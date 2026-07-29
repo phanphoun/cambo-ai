@@ -1,0 +1,270 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ═══════════════ DARK THEME (default) ═══════════════ */
+  :root,
+  .dark {
+    --background: 240 10% 4%;
+    --foreground: 240 6% 93%;
+    --card: 240 10% 9%;
+    --card-foreground: 240 6% 93%;
+    --primary: 252 87% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 6% 14%;
+    --secondary-foreground: 240 6% 93%;
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 252 87% 70%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 6% 21%;
+    --input: 240 6% 21%;
+    --ring: 252 87% 70%;
+    --radius: 0.75rem;
+
+    /* Chat-specific colors */
+    --chat-user: 252 87% 65%;
+    --chat-user-foreground: 0 0% 100%;
+    --chat-assistant: 240 10% 9%;
+    --chat-assistant-foreground: 240 6% 93%;
+    --chat-ai-accent: 160 84% 39%;
+
+    /* Code block */
+    --code-bg: 240 6% 11%;
+    --code-header: 240 6% 15%;
+    --code-border: 240 6% 21%;
+
+    /* Sidebar */
+    --sidebar-bg: 240 10% 7%;
+    --sidebar-border: 240 6% 18%;
+
+    /* Scrollbar */
+    --scrollbar-thumb: 240 6% 21%;
+  }
+
+  /* ═══════════════ LIGHT THEME ═══════════════ */
+  .light {
+    --background: 240 20% 99%;
+    --foreground: 240 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+    --primary: 252 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 10% 94%;
+    --secondary-foreground: 240 10% 10%;
+    --muted: 240 10% 94%;
+    --muted-foreground: 240 5% 45%;
+    --accent: 252 70% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 10% 88%;
+    --input: 240 10% 88%;
+    --ring: 252 70% 50%;
+    --radius: 0.75rem;
+
+    /* Chat-specific colors */
+    --chat-user: 252 70% 50%;
+    --chat-user-foreground: 0 0% 100%;
+    --chat-assistant: 0 0% 100%;
+    --chat-assistant-foreground: 240 10% 10%;
+    --chat-ai-accent: 160 60% 35%;
+
+    /* Code block */
+    --code-bg: 240 10% 96%;
+    --code-header: 240 10% 92%;
+    --code-border: 240 10% 88%;
+
+    /* Sidebar */
+    --sidebar-bg: 240 20% 97%;
+    --sidebar-border: 240 10% 88%;
+
+    /* Scrollbar */
+    --scrollbar-thumb: 240 10% 80%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter", -apple-system, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
+  }
+
+  /* Smooth theme transition */
+  *, *::before, *::after {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  /* Exclude animations from the transition */
+  .animate-progress,
+  .animate-streaming-dot,
+  .animate-pulse-dot,
+  .animate-blink,
+  .animate-shimmer {
+    transition: none !important;
+  }
+}
+
+@layer utilities {
+  /* ── Scrollbar ── */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--scrollbar-thumb));
+    border-radius: 3px;
+    transition: background 0.2s;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+  .scrollbar-thin::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* ── Glow effect ── */
+  .glow-soft {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.15), 0 0 80px hsl(var(--primary) / 0.05);
+  }
+  .light .glow-soft {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.12), 0 0 80px hsl(var(--primary) / 0.04);
+  }
+
+  /* ── Typing cursor ── */
+  .typing-cursor::after {
+    content: "▊";
+    @apply text-primary animate-blink;
+  }
+
+  /* ── Voice waveform bars ── */
+  @keyframes voice-wave {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.7; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  /* ── Animations ── */
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-slide-in { animation: slide-in 0.25s ease-out; }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-slide-up { animation: slide-up 0.4s ease-out; }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 0.75; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(2); }
+  }
+  .animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .animate-blink { animation: blink 1s step-end infinite; }
+
+  @keyframes streaming-dot {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  .animate-streaming-dot { animation: streaming-dot 1.4s ease-in-out infinite; }
+  .animate-streaming-dot:nth-child(2) { animation-delay: 0.2s; }
+  .animate-streaming-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, hsl(var(--border)) 25%, hsl(var(--muted)) 50%, hsl(var(--border)) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  @keyframes progress-slide {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(0%); }
+    100% { transform: translateX(100%); }
+  }
+  .animate-progress { animation: progress-slide 2s ease-in-out infinite; }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .animate-fade-in { animation: fade-in 0.3s ease-out; }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .animate-scale-in { animation: scale-in 0.2s ease-out; }
+
+  /* ── Sidebar ── */
+  .sidebar-bg { background: hsl(var(--sidebar-bg)); }
+  .light .sidebar-bg { background: hsl(var(--sidebar-bg)); }
+
+  /* ── Markdown content ── */
+  .markdown { @apply leading-relaxed; }
+  .markdown p { @apply my-2 first:mt-0 last:mb-0; }
+  .markdown ul { @apply my-2 ml-5 list-disc space-y-1 first:mt-0 last:mb-0; }
+  .markdown ol { @apply my-2 ml-5 list-decimal space-y-1 first:mt-0 last:mb-0; }
+  .markdown li { @apply leading-relaxed; }
+  .markdown h1 { @apply mb-2 mt-4 text-xl font-bold first:mt-0; }
+  .markdown h2 { @apply mb-2 mt-4 text-lg font-semibold first:mt-0; }
+  .markdown h3 { @apply mb-1.5 mt-3 text-base font-semibold first:mt-0; }
+  .markdown blockquote {
+    @apply my-2 border-l-2 py-1 pl-3 italic first:mt-0 last:mb-0;
+    border-color: hsl(var(--primary) / 0.4);
+    background: hsl(var(--secondary) / 0.5);
+    color: hsl(var(--muted-foreground));
+  }
+  .markdown a { @apply text-primary underline-offset-4 hover:underline; }
+  .markdown strong { @apply font-semibold; color: hsl(var(--foreground)); }
+  .markdown em { @apply italic; }
+  .markdown pre {
+    @apply relative my-3 overflow-x-auto rounded-lg p-4 text-[13px] leading-relaxed first:mt-0 last:mb-0;
+    background: hsl(var(--code-bg));
+    border: 1px solid hsl(var(--code-border));
+  }
+  .markdown code { @apply font-mono text-[13px]; }
+  .markdown :not(pre) > code {
+    @apply rounded px-1.5 py-0.5;
+    background: hsl(var(--secondary));
+    color: hsl(var(--primary));
+  }
+  .markdown table { @apply my-3 min-w-full border-collapse text-sm first:mt-0 last:mb-0; }
+  .markdown th {
+    @apply px-3 py-1.5 text-left font-semibold;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--secondary));
+  }
+  .markdown td {
+    @apply px-3 py-1.5;
+    border: 1px solid hsl(var(--border));
+  }
+  .markdown hr { @apply my-4; border-color: hsl(var(--border)); }
+}
