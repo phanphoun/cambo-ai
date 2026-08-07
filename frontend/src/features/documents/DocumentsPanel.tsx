@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { X, Upload, FileText, Link2, Trash2, Check, Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -9,7 +9,6 @@ import {
   useDeleteDocumentMutation,
 } from "../chat/chatApi";
 import {
-  setDocumentList,
   toggleDocumentSelected,
 } from "./documentsSlice";
 import type { RootState } from "../../store";
@@ -28,17 +27,14 @@ export default function DocumentsPanel({
   onClose: () => void;
 }) {
   const dispatch = useDispatch();
-  const { data: docs = [], refetch } = useListDocumentsQuery();
+  const { data: docs, refetch } = useListDocumentsQuery();
+  const docsList = docs ?? [];
   const [uploadDoc, { isLoading: uploading }] = useUploadDocumentMutation();
   const [ingestUrl, { isLoading: ingesting }] = useIngestUrlMutation();
   const [deleteDoc] = useDeleteDocumentMutation();
   const selected = useSelector((s: RootState) => s.documents.selected);
   const fileRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState("");
-
-  useEffect(() => {
-    dispatch(setDocumentList(docs));
-  }, [docs, dispatch]);
 
   if (!open) return null;
 
@@ -142,7 +138,7 @@ export default function DocumentsPanel({
 
         {/* List */}
         <div className="flex-1 overflow-y-auto scrollbar-thin p-4">
-          {docs.length === 0 ? (
+          {docsList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <FileText className="mb-2 h-8 w-8 opacity-50" />
               <p className="text-sm">No documents yet</p>
@@ -150,7 +146,7 @@ export default function DocumentsPanel({
             </div>
           ) : (
             <div className="space-y-2">
-              {docs.map((d) => {
+              {docsList.map((d) => {
                 const isSel = selected.includes(d.id);
                 return (
                   <div
