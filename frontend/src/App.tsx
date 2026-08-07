@@ -6,7 +6,9 @@ import {
   setSessionId,
   setStreaming,
   appendToLastAssistant,
+  setAssistantMeta,
   resetChat,
+  clearAttachments,
   type ChatState,
 } from "./features/chat/chatSlice";
 import { setMode } from "./features/modes/modesSlice";
@@ -22,6 +24,7 @@ import ChatContainer from "./components/ChatContainer";
 import ChatInput from "./components/ChatInput";
 import WelcomeScreen from "./components/WelcomeScreen";
 import DirectoryPanel from "./features/directory/DirectoryPanel";
+import DocumentsPanel from "./features/documents/DocumentsPanel";
 import type { RootState } from "./store";
 
 export default function App() {
@@ -29,6 +32,9 @@ export default function App() {
   const { sessionId, messages, isStreaming } = useSelector(
     (state: { chat: ChatState }) => state.chat,
   );
+  const attachments = useSelector((s: RootState) => s.chat.attachments);
+  const useTools = useSelector((s: RootState) => s.chat.useTools);
+  const selectedDocs = useSelector((s: RootState) => s.documents.selected);
   const currentMode = useSelector((s: RootState) => s.modes.current);
   const currentProvider = useSelector((s: RootState) => s.provider.current);
   const currentTheme = useSelector((s: RootState) => s.theme.current);
@@ -36,6 +42,7 @@ export default function App() {
   const [clearSession] = useClearSessionMutation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [docsOpen, setDocsOpen] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
 
@@ -103,13 +110,15 @@ export default function App() {
   const handleSend = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || isStreaming) return;
+      const imageData = attachments.map((a) => a.dataUrl);
+      if ((!trimmed && imageData.length === 0) || isStreaming) return;
 
       dispatch(
         addMessage({
           role: "user",
-          content: trimmed,
+          content: trimmed || "(attached image)",
           timestamp: new Date().toISOString(),
+          images: imageData.length ? imageData : undefined,
         }),
       );
       dispatch(
@@ -126,11 +135,27 @@ export default function App() {
 
       try {
         const response = await sendMessage(
-          { message: trimmed, session_id: sessionId, mode: currentMode, provider: currentProvider },
-          { signal: controller.signal },
+          {
+            message: trimmed,
+            session_id: sessionId,
+            mode: currentMode,
+            provider: currentProvider,
+            image_data: imageData.length ? imageData : undefined,
+            use_tools: useTools,
+            document_ids: selectedDocs.length ? selectedDocs : undefined,
+          },
         ).unwrap();
         dispatch(setSessionId(response.session_id));
         dispatch(appendToLastAssistant(response.reply));
+        // Attach tool calls + citations to the last assistant message
+        if (response.tool_calls?.length || response.citations?.length) {
+          dispatch(
+            setAssistantMeta({
+              tool_calls: response.tool_calls ?? [],
+              citations: response.citations ?? [],
+            }),
+          );
+        }
       } catch (err) {
         if ((err as { name?: string })?.name === "AbortError") return;
         const message =
@@ -155,10 +180,11 @@ export default function App() {
         });
       } finally {
         dispatch(setStreaming(false));
+        dispatch(clearAttachments());
         abortRef.current = null;
       }
     },
-    [dispatch, isStreaming, sendMessage, sessionId, currentMode, currentProvider],
+    [dispatch, isStreaming, sendMessage, sessionId, currentMode, currentProvider, attachments, useTools, selectedDocs],
   );
 
   const handleStop = useCallback(() => {
@@ -308,7 +334,7 @@ export default function App() {
           {messages.length === 0 ? (
             <WelcomeScreen onPick={(q) => handleSend(q)} />
           ) : (
-            <ChatContainer messages={messages} isStreaming={isStreaming} />
+            <ChatContainer messages={messages} isStreaming={isStreaming} provider={currentProvider} />
           )}
         </div>
 
@@ -329,9 +355,11 @@ export default function App() {
           onStop={handleStop}
           disabled={isStreaming}
           isStreaming={isStreaming}
+          onOpenDocuments={() => setDocsOpen(true)}
         />
       </main>
       <DirectoryPanel />
+      <DocumentsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
     </div>
   );
 }

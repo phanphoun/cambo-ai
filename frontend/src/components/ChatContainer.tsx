@@ -6,23 +6,29 @@ import {
   Check,
   Copy,
   Sparkles,
+  Cpu,
+  Cloud,
   User,
   AlertTriangle,
   ThumbsUp,
   ThumbsDown,
+  Wrench,
 } from "lucide-react";
 import { cn, formatTime } from "../lib/utils";
 import type { Message } from "../types/chat";
+import type { AiProvider } from "../features/provider/providerSlice";
 import PinButton from "../features/pin/PinButton";
 
 interface ChatContainerProps {
   messages: Message[];
   isStreaming: boolean;
+  provider: AiProvider;
 }
 
 export default function ChatContainer({
   messages,
   isStreaming,
+  provider,
 }: ChatContainerProps) {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-5 pb-4">
@@ -33,6 +39,7 @@ export default function ChatContainer({
           isLast={i === messages.length - 1}
           isStreaming={isStreaming}
           messageIndex={i}
+          provider={provider}
         />
       ))}
     </div>
@@ -44,11 +51,13 @@ const MessageBubble = memo(function MessageBubble({
   isLast,
   isStreaming,
   messageIndex,
+  provider,
 }: {
   message: Message;
   isLast: boolean;
   isStreaming: boolean;
   messageIndex: number;
+  provider: AiProvider;
 }) {
   const isUser = message.role === "user";
   const isEmpty = !message.content;
@@ -102,7 +111,14 @@ const MessageBubble = memo(function MessageBubble({
                 color: "hsl(var(--chat-ai-accent))",
               }}
             >
-              <Sparkles className="h-2.5 w-2.5" /> Gemini
+              {provider === "gemini" && <Sparkles className="h-2.5 w-2.5" />}
+              {provider === "ollama" && <Cpu className="h-2.5 w-2.5" />}
+              {provider === "ollama-cloud" && <Cloud className="h-2.5 w-2.5" />}
+              <span className="hidden xs:inline">
+                {provider === "gemini" && "Gemini"}
+                {provider === "ollama" && "Ollama (Local)"}
+                {provider === "ollama-cloud" && "Ollama Cloud"}
+              </span>
             </span>
           )}
         </div>
@@ -136,14 +152,12 @@ const MessageBubble = memo(function MessageBubble({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  code({ className, children, inline, ...props }) {
+                  code({ className, children, ...props }) {
                     const codeStr = String(children).replace(/\n$/, "");
-                    // Fenced code blocks: inline === false, regardless of language
-                    if (inline === false) {
-                      const lang = className?.startsWith("language-")
-                        ? className.replace("language-", "")
-                        : "";
-                      return <CodeBlock code={codeStr} language={lang} />;
+                    // Fenced code blocks: block-level code has a language class or contains newlines.
+                    const match = /language-(\w+)/.exec(className || "");
+                    if (match || codeStr.includes("\n")) {
+                      return <CodeBlock code={codeStr} language={match?.[1] ?? ""} />;
                     }
                     // Inline code (single backticks)
                     return (
@@ -162,7 +176,62 @@ const MessageBubble = memo(function MessageBubble({
               </ReactMarkdown>
             </div>
           )}
+
+          {/* User-attached images */}
+          {isUser && message.images?.length ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {message.images.map((src, i) => (
+                <a
+                  key={i}
+                  href={src}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block h-24 w-24 overflow-hidden rounded-lg border border-border shadow-sm"
+                >
+                  <img src={src} alt={`attachment ${i + 1}`} className="h-full w-full object-cover" />
+                </a>
+              ))}
+            </div>
+          ) : null}
         </div>
+
+        {/* Assistant tool calls + citations */}
+        {!isUser && (message.tool_calls?.length || message.citations?.length) ? (
+          <div className="mt-2 flex flex-col gap-1.5">
+            {message.tool_calls?.map((tc, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-2 rounded-lg border border-border bg-secondary/40 px-2.5 py-1.5 text-[11px]"
+              >
+                <Wrench className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+                <div className="min-w-0">
+                  <span className="font-medium text-foreground">{tc.name}</span>
+                  <span className="text-muted-foreground">
+                    {" "}({Object.entries(tc.args ?? {}).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(", ")})
+                  </span>
+                  {tc.result_preview ? (
+                    <p className="mt-0.5 line-clamp-2 text-muted-foreground/80">{tc.result_preview}</p>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+            {message.citations?.length ? (
+              <details className="rounded-lg border border-border bg-secondary/40 px-2.5 py-1.5 text-[11px]">
+                <summary className="cursor-pointer font-medium text-muted-foreground">
+                  {message.citations.length} source{message.citations.length > 1 ? "s" : ""}
+                </summary>
+                <ul className="mt-1.5 space-y-1.5">
+                  {message.citations.map((c, i) => (
+                    <li key={c.chunk_id ?? i} className="text-muted-foreground/90">
+                      <span className="font-medium text-foreground">{c.source}</span>
+                      <p className="line-clamp-3">{c.snippet}</p>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
+          </div>
+        ) : null}
 
         {/* Streaming dots indicator */}
         {isLoading && (

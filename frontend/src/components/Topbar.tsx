@@ -160,7 +160,7 @@ export default function Topbar({
           <span className="hidden sm:inline">
             {currentProvider === "ollama" && "Ollama (Local)"}
             {currentProvider === "ollama-cloud" && "Ollama Cloud"}
-            {currentProvider === "gemini" && "Gemini 3 Flash"}
+            {currentProvider === "gemini" && "Gemini"}
           </span>
         </div>
 

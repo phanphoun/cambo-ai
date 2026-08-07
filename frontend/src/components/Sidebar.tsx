@@ -279,13 +279,20 @@ export default function Sidebar({
                     </div>
                   ) : (
                     conversations.map((conv) => (
-                      <button
+                      <div
                         key={conv.id}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
                         onClick={() => handleLoadConversation(conv)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleLoadConversation(conv);
+                          }
+                        }}
                         className={cn(
-                          "group flex w-full items-start gap-2 rounded-lg border border-border/40 px-2.5 py-2 text-left transition-all",
-                          "hover:border-primary/30 hover:bg-secondary/50",
+                          "group flex w-full cursor-pointer items-start gap-2 rounded-lg border border-border/40 px-2.5 py-2 text-left transition-all",
+                          "hover:border-primary/30 hover:bg-secondary/50 focus:outline-none focus:ring-1 focus:ring-primary/30",
                           currentSessionId === conv.sessionId && "border-primary/30 bg-primary/5",
                         )}
                       >
@@ -302,13 +309,13 @@ export default function Sidebar({
                         </div>
                         <button
                           type="button"
-                          onClick={(e) => handleDeleteConversation(e, conv.id)}
+                          onClick={(e: React.MouseEvent) => handleDeleteConversation(e, conv.id)}
                           className="mt-0.5 shrink-0 rounded p-0.5 text-muted-foreground/30 opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
                           title="Delete conversation"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
-                      </button>
+                      </div>
                     ))
                   )}
                 </div>

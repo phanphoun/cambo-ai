@@ -1,5 +1,5 @@
 """Routes AI requests to the configured provider (Gemini, Ollama local, or Ollama Cloud)."""
-from typing import Optional, Generator
+from typing import Optional, AsyncGenerator, List
 from config import settings
 from services.gemini_service import GeminiService
 from services.ollama_service import OllamaService
@@ -31,19 +31,34 @@ class ProviderManager:
         history: Optional[list[dict]] = None,
         mode: str = "chat",
         provider: str = "gemini",
+        image_data: Optional[List[str]] = None,
+        image_urls: Optional[List[str]] = None,
+        rag_context: Optional[str] = None,
+        use_tools: bool = False,
     ) -> dict:
         svc = self._resolve(provider)
-        return await svc.ask(message, history=history, mode=mode)
+        return await svc.ask(
+            message, history=history, mode=mode,
+            image_data=image_data, image_urls=image_urls,
+            rag_context=rag_context, use_tools=use_tools,
+        )
 
-    def ask_stream(
+    async def ask_stream(
         self,
         message: str,
         history: Optional[list[dict]] = None,
         mode: str = "chat",
         provider: str = "gemini",
-    ) -> Generator[str, None, None]:
+        image_data: Optional[List[str]] = None,
+        image_urls: Optional[List[str]] = None,
+        rag_context: Optional[str] = None,
+    ) -> AsyncGenerator[str, None]:
         svc = self._resolve(provider)
-        return svc.ask_stream(message, history=history, mode=mode)
+        async for chunk in svc.ask_stream(
+            message, history=history, mode=mode,
+            image_data=image_data, image_urls=image_urls, rag_context=rag_context,
+        ):
+            yield chunk
 
 
 provider_manager = ProviderManager()

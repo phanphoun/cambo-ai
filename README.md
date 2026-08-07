@@ -13,14 +13,17 @@ A production-ready, full-stack AI chatbot powered by **Google Gemini 2.0 Flash**
 
 ## ✨ Features
 
-- 🤖 **AI Chat** — Powered by Google Gemini 2.0 Flash
+- 🤖 **AI Chat** — Powered by Google Gemini (multimodal, multi-provider: Gemini, local Ollama, Ollama Cloud)
 - 🇰🇭 **Cambodia-First** — System prompt prioritizes Khmer tech companies, hubs, and ecosystem
 - 💬 **Conversational Memory** — Server-side session history with `/api/chat/{id}` lifecycle
-- ⚡ **Smart UX** — Animated typing cursor, auto-scroll, Enter-to-send, Shift+Enter for newline
+- 🖼️ **Multimodal Input** — Paste, drop, or attach images; the model sees them (OCR, describe, code-from-screenshot)
+- 📚 **RAG over Documents** — Upload PDFs / text / URLs, then ask questions grounded in them with citations
+- 🛠️ **Function Calling / Tools** — The assistant can browse the Cambodia directory, fetch URLs, run a calculator, and query your RAG docs
+- ⚡ **Smart UX** — Animated typing cursor, auto-scroll, Enter-to-send, Shift+Enter for newline, voice input
 - 🎨 **Modern UI** — Dark-themed, fully responsive, Tailwind + shadcn/ui components
 - 🔌 **RESTful API** — Auto-generated Swagger docs at `/docs`
 - 🛡️ **Type-safe** — Pydantic on the backend, TypeScript on the frontend
-- 📦 **Clean Architecture** — Services, routes, models separated
+- 📦 **Clean Architecture** — Services, routes, models separated; request-ID + structured logging + rate limiting
 - 🚀 **Deploy Anywhere** — Vercel/Netlify (frontend) + Render/Railway (backend)
 
 ---
@@ -286,6 +289,38 @@ Streams the response chunk-by-chunk for real-time UX.
 #### `DELETE /api/chat/{session_id}` — Clear session
 
 Clears a chat session's history.
+
+#### `POST /api/chat` — New fields (v0.2)
+The conversational endpoint now accepts:
+- `image_data` — array of `data:image/...;base64,...` strings (paste/drop)
+- `image_urls` — array of public image URLs
+- `document_ids` — array of RAG document IDs to ground the answer in
+- `use_tools` — `true` to enable function calling (Gemini)
+
+The response adds `tool_calls` (what the model invoked) and `citations`
+(RAG source passages) when relevant.
+
+### RAG / Documents Endpoints
+
+#### `GET /api/documents` — List uploaded documents
+Returns `{ "documents": [ { id, name, source_type, chunks, ... } ] }`.
+
+#### `POST /api/documents/upload` — Upload a file (multipart)
+Accepts `file` (PDF/text/markdown) and optional `name`. Size-limited by `MAX_DOCUMENT_MB`.
+
+#### `POST /api/documents/url` — Ingest a URL
+Body: `{ "url": "https://...", "name"?: "..." }`.
+
+#### `POST /api/documents/text` — Ingest raw text
+Body: `{ "name": "...", "text": "...", "metadata"?: {} }`.
+
+#### `DELETE /api/documents/{id}` — Delete a document
+
+### Tools Endpoints
+
+#### `GET /api/tools` — List available function-calling tools
+Returns `{ "tools": [ { name, description, parameters } ] }`.
+Current tools: `web_fetch`, `cambodia_directory_search`, `calculator`, `rag_query`.
 
 ---
 

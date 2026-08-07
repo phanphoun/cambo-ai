@@ -1,8 +1,14 @@
-"""All Gemini API interactions live here — single responsibility."""
+"""All Gemini API interactions live here — single responsibility.
+
+Supports: text chat, multimodal (inline images), RAG-grounded context, and
+agentic tool calling (via services.tool_runner).
+"""
 from google import genai
 from google.genai import types
 from config import settings
-from typing import List, Optional, Generator
+from typing import List, Optional, AsyncGenerator, Dict, Any
+
+from services.tool_runner import run_with_tools
 
 
 SYSTEM_PROMPTS: dict[str, str] = {
@@ -74,6 +80,40 @@ Rules:
 - If Cambodia-specific tech context applies, mention it""",
 }
 
+RAG_INSTRUCTION = (
+    "\n\nYou have been given context passages from documents the user provided. "
+    "Answer the user's question using ONLY those passages when they are relevant. "
+    "After a factual claim grounded in a passage, cite it inline as [source: <name>]. "
+    "If the passages do not contain the answer, say so honestly and answer from your "
+    "own knowledge only if appropriate. Do not invent sources."
+)
+
+
+def _build_history_parts(history: Optional[List[dict]]) -> List[dict]:
+    parts = []
+    if history:
+        for turn in history[-10:]:
+            role = turn.get("role", "user")
+            content = turn.get("content", "")
+            parts.append({"role": role, "parts": [content]})
+    return parts
+
+
+def _image_part_from_data(data_url: str) -> "types.Part":
+    # data:image/png;base64,XXXX -> inline_data
+    header, _, b64 = data_url.partition(",")
+    mime = "image/png"
+    if header.startswith("data:"):
+        mime = header[5:].split(";")[0] or "image/png"
+    import base64
+    return types.Part(
+        inline_data=types.Blob(data=base64.b64decode(b64), mime_type=mime)
+    )
+
+
+def _image_part_from_url(url: str) -> "types.Part":
+    return types.Part(file_data=types.FileData(file_uri=str(url)))
+
 
 class GeminiService:
     def __init__(self):
@@ -98,77 +138,116 @@ class GeminiService:
             self._client = genai.Client(api_key=settings.gemini_api_key)
         return self._client
 
-    def _build_contents(self, message: str, history: Optional[List[dict]] = None) -> str:
-        """Build the full prompt with optional conversation history."""
-        parts = []
-        if history:
-            for turn in history[-10:]:  # Last 10 turns only
-                role = turn.get("role", "user")
-                content = turn.get("content", "")
-                parts.append(f"{role.capitalize()}: {content}")
-        parts.append(f"User: {message}")
-        parts.append("Assistant:")
-        return "\n\n".join(parts)
+    # ---------- multimodal content builder ----------
+    def build_contents(
+        self,
+        message: str,
+        history: Optional[List[dict]] = None,
+        image_data: Optional[List[str]] = None,
+        image_urls: Optional[List[str]] = None,
+        rag_context: Optional[str] = None,
+    ) -> List[dict]:
+        parts: List[Any] = []
+        # text (with optional RAG context injected)
+        text = message
+        if rag_context:
+            text = f"{rag_context}\n\nUser question: {message}"
+        parts.append(text)
+        for url in (image_urls or []):
+            parts.append(_image_part_from_url(url))
+        for d in (image_data or []):
+            parts.append(_image_part_from_data(d))
+        content = {"role": "user", "parts": parts}
+        return _build_history_parts(history) + [content]
 
-    @staticmethod
-    def _check_finish_reason(response) -> None:
-        """Raise a clear error if the model hit a token limit or safety filter."""
-        if not response.candidates:
-            return
-        reason = response.candidates[0].finish_reason
-        # Map SDK finish reasons to user-friendly errors
-        if reason is None or str(reason) == "FinishReason.STOP":
-            return
-        reason_name = str(reason).split(".")[-1]
-        if reason_name == "MAX_TOKENS":
-            raise RuntimeError(
-                "Response was cut off because it exceeded the model's output "
-                "token limit. Try a shorter question or increase "
-                "GEMINI_MAX_TOKENS in your .env."
-            )
-        if reason_name in ("SAFETY", "RECITATION"):
-            raise RuntimeError(
-                f"Response blocked by Gemini's {reason_name.lower()} filter. "
-                "Try rephrasing your question."
-            )
-
+    # ---------- single turn ----------
     async def ask(
-        self, message: str, history: Optional[List[dict]] = None, mode: str = "chat"
+        self,
+        message: str,
+        history: Optional[List[dict]] = None,
+        mode: str = "chat",
+        image_data: Optional[List[str]] = None,
+        image_urls: Optional[List[str]] = None,
+        rag_context: Optional[str] = None,
+        use_tools: bool = False,
     ) -> dict:
-        """Single-shot Q&A — returns full response."""
-        prompt = self._build_contents(message, history)
+        contents = self.build_contents(
+            message, history=history, image_data=image_data,
+            image_urls=image_urls, rag_context=rag_context,
+        )
+        if use_tools:
+            res = await run_with_tools(
+                self.client, self.model,
+                SYSTEM_PROMPTS.get(mode, SYSTEM_PROMPTS["chat"]),
+                contents,
+            )
+            return res
+
         config = self._config_for_mode(mode)
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=prompt,
-            config=config,
+        if rag_context:
+            config = types.GenerateContentConfig(
+                temperature=settings.gemini_temperature,
+                max_output_tokens=settings.gemini_max_tokens,
+                system_instruction=SYSTEM_PROMPTS.get(mode, SYSTEM_PROMPTS["chat"]) + RAG_INSTRUCTION,
+            )
+        response = await self.client.aio.models.generate_content(
+            model=self.model, contents=contents, config=config  # type: ignore[arg-type]
         )
         self._check_finish_reason(response)
         return {
             "answer": response.text,
             "model": self.model,
             "tokens_used": response.usage_metadata.total_token_count
-            if response.usage_metadata
-            else None,
+            if response.usage_metadata else None,
+            "tool_calls": [],
+            "citations": [],
         }
 
-    def ask_stream(
-        self, message: str, history: Optional[List[dict]] = None, mode: str = "chat"
-    ) -> Generator[str, None, None]:
-        """Streaming Q&A — yields chunks as they arrive."""
-        prompt = self._build_contents(message, history)
+    async def ask_stream(
+        self, message: str, history: Optional[List[dict]] = None, mode: str = "chat",
+        image_data: Optional[List[str]] = None, image_urls: Optional[List[str]] = None,
+        rag_context: Optional[str] = None,
+    ) -> AsyncGenerator[str, None]:
+        contents = self.build_contents(
+            message, history=history, image_data=image_data,
+            image_urls=image_urls, rag_context=rag_context,
+        )
         config = self._config_for_mode(mode)
+        if rag_context:
+            config = types.GenerateContentConfig(
+                temperature=settings.gemini_temperature,
+                max_output_tokens=settings.gemini_max_tokens,
+                system_instruction=SYSTEM_PROMPTS.get(mode, SYSTEM_PROMPTS["chat"]) + RAG_INSTRUCTION,
+            )
         last_chunk = None
-        for chunk in self.client.models.generate_content_stream(
-            model=self.model,
-            contents=prompt,
-            config=config,
-        ):
+        stream = self.client.aio.models.generate_content_stream(
+            model=self.model, contents=contents, config=config  # type: ignore[arg-type]
+        )
+        async for chunk in stream:
             last_chunk = chunk
             if chunk.text:
                 yield chunk.text
         if last_chunk:
             self._check_finish_reason(last_chunk)
+
+    @staticmethod
+    def _check_finish_reason(response) -> None:
+        if not response.candidates:
+            return
+        reason = response.candidates[0].finish_reason
+        if reason is None or str(reason) == "FinishReason.STOP":
+            return
+        reason_name = str(reason).split(".")[-1]
+        if reason_name == "MAX_TOKENS":
+            raise RuntimeError(
+                "Response was cut off because it exceeded the model's output "
+                "token limit. Try a shorter question or increase GEMINI_MAX_TOKENS."
+            )
+        if reason_name in ("SAFETY", "RECITATION"):
+            raise RuntimeError(
+                f"Response blocked by Gemini's {reason_name.lower()} filter. "
+                "Try rephrasing your question."
+            )
 
 
 # Singleton
