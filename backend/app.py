@@ -21,6 +21,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger("cambo")
 
+# Guarantee every LogRecord has a `request_id` attribute so the formatter
+# above never crashes on logs emitted outside the request middleware
+# (library noise, startup/shutdown, etc.).
+_orig_factory = logging.getLogRecordFactory()
+
+def _record_factory(*args, **kwargs):
+    record = _orig_factory(*args, **kwargs)
+    if not hasattr(record, "request_id"):
+        record.request_id = "-"  # type: ignore[attr-defined]
+    return record
+
+logging.setLogRecordFactory(_record_factory)
+
 # Per-IP rate limiting for chat/upload endpoints.
 limiter = Limiter(key_func=get_remote_address, default_limits=[f"{settings.rate_limit_per_minute}/minute"])
 
