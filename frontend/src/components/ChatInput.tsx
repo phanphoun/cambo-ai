@@ -11,7 +11,7 @@ import {
   MicOff,
   Languages,
   ImagePlus,
-  Wrench,
+  Paperclip,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
@@ -246,7 +246,7 @@ export default function ChatInput({
   const micSupported = speech.supported;
 
   return (
-    <div className="border-t border-border bg-gradient-to-t from-background to-background/80 px-4 pt-3 pb-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-6">
+    <div className="border-t border-border bg-background px-4 pt-3 pb-6 sm:px-6">
       <div className="mx-auto w-full max-w-3xl">
         {/* Mode chips + Look up button */}
         <div className="mb-2 flex items-center justify-between">
@@ -263,7 +263,7 @@ export default function ChatInput({
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
                 </span>
-                {getLangLabel(speech.lang)}
+                {getLangLabel(speech.lang === "km-KH" ? "en-US" : "km-KH")}
               </span>
             )}
             <button
@@ -309,15 +309,14 @@ export default function ChatInput({
           }}
           onDragLeave={() => setDragOver(false)}
           className={cn(
-            "group relative flex items-end gap-1 rounded-2xl border bg-card transition-all duration-200",
-            "shadow-lg shadow-black/5",
-            "focus-within:border-primary/70 focus-within:ring-2 focus-within:ring-primary/20 focus-within:shadow-primary/5",
+            "group relative flex items-end gap-1 rounded-2xl border bg-background transition-all duration-200",
+            "focus-within:border-gold focus-within:ring-2 focus-within:ring-gold/20",
             isStreaming
-              ? "border-primary/40 shadow-primary/5"
-              : "border-border hover:border-primary/30",
-            hasText && "border-primary/20",
-            isListening && "border-destructive/60 ring-2 ring-destructive/20 shadow-destructive/5",
-            dragOver && "border-primary/80 ring-2 ring-primary/30",
+              ? "border-gold/40"
+              : "border-border hover:border-gold/30",
+            hasText && "border-gold/20",
+            isListening && "border-destructive/60 ring-2 ring-destructive/20",
+            dragOver && "border-gold/80 ring-2 ring-gold/30",
           )}
         >
           <textarea
@@ -410,7 +409,7 @@ export default function ChatInput({
               }}
             />
 
-            {/* Tools toggle */}
+            {/* Paperclip (tools toggle) */}
             <button
               type="button"
               onClick={() => dispatch(setUseTools(!useTools))}
@@ -423,7 +422,7 @@ export default function ChatInput({
               aria-label="Toggle tool calling"
               title="Enable tools (web fetch, search, calculator)"
             >
-              <Wrench className="h-4 w-4" />
+              <Paperclip className="h-4 w-4" />
             </button>
 
             {/* Voice input button */}
@@ -449,7 +448,7 @@ export default function ChatInput({
                       onClick={handleMicClick}
                       className={cn(
                         "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-                        "bg-destructive text-destructive-foreground shadow-sm shadow-destructive/30",
+                        "bg-destructive text-destructive-foreground shadow-sm",
                         "active:scale-90",
                       )}
                       aria-label="Stop recording"
@@ -482,7 +481,7 @@ export default function ChatInput({
               <Button
                 size="icon"
                 onClick={onStop}
-                className="h-9 w-9 shrink-0 rounded-xl bg-destructive text-destructive-foreground shadow-sm transition-all hover:bg-destructive/90 hover:shadow-md active:scale-95"
+                className="h-9 w-9 shrink-0 rounded-xl bg-destructive text-destructive-foreground shadow-sm transition-all hover:bg-destructive/90 active:scale-95"
                 aria-label="Stop generation"
                 title="Stop (Esc)"
               >
@@ -496,7 +495,7 @@ export default function ChatInput({
                 className={cn(
                   "h-9 w-9 shrink-0 rounded-xl transition-all active:scale-95",
                   canSend
-                    ? "bg-gradient-to-br from-indigo-500 to-violet-600 shadow-sm shadow-indigo-500/20 hover:from-indigo-600 hover:to-violet-700 hover:shadow-md"
+                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
                     : "",
                 )}
                 aria-label="Send message"

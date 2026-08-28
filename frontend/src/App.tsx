@@ -6,7 +6,6 @@ import {
   setSessionId,
   setStreaming,
   appendToLastAssistant,
-  setAssistantMeta,
   resetChat,
   clearAttachments,
   type ChatState,
@@ -14,12 +13,12 @@ import {
 import { setMode } from "./features/modes/modesSlice";
 import { saveConversation } from "./features/conversations/conversationsSlice";
 import {
-  useSendMessageMutation,
   useClearSessionMutation,
   useCheckHealthQuery,
 } from "./features/chat/chatApi";
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 import Sidebar from "./components/Sidebar";
-import Topbar from "./components/Topbar";
 import ChatContainer from "./components/ChatContainer";
 import ChatInput from "./components/ChatInput";
 import WelcomeScreen from "./components/WelcomeScreen";
@@ -38,7 +37,6 @@ export default function App() {
   const currentMode = useSelector((s: RootState) => s.modes.current);
   const currentProvider = useSelector((s: RootState) => s.provider.current);
   const currentTheme = useSelector((s: RootState) => s.theme.current);
-  const [sendMessage] = useSendMessageMutation();
   const [clearSession] = useClearSessionMutation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -56,11 +54,10 @@ export default function App() {
     root.classList.add(currentTheme);
   }, [currentTheme]);
 
-  const { data: health, isError: healthError } = useCheckHealthQuery(undefined, {
+  useCheckHealthQuery(undefined, {
     pollingInterval: 30_000,
     refetchOnMountOrArgChange: true,
   });
-  const backendOnline = !!health?.ok && !healthError;
 
   // Auto-scroll when new messages arrive
   useEffect(() => {
@@ -134,45 +131,63 @@ export default function App() {
       abortRef.current = controller;
 
       try {
-        const response = await sendMessage(
-          {
-            message: trimmed,
-            session_id: sessionId,
-            mode: currentMode,
-            provider: currentProvider,
-            image_data: imageData.length ? imageData : undefined,
-            use_tools: useTools,
-            document_ids: selectedDocs.length ? selectedDocs : undefined,
-          },
-        ).unwrap();
-        dispatch(setSessionId(response.session_id));
-        dispatch(appendToLastAssistant(response.reply));
-        // Attach tool calls + citations to the last assistant message
-        if (response.tool_calls?.length || response.citations?.length) {
-          dispatch(
-            setAssistantMeta({
-              tool_calls: response.tool_calls ?? [],
-              citations: response.citations ?? [],
-            }),
-          );
+        const body = {
+          message: trimmed,
+          session_id: sessionId,
+          mode: currentMode,
+          provider: currentProvider,
+          image_data: imageData.length ? imageData : undefined,
+          use_tools: useTools,
+          document_ids: selectedDocs.length ? selectedDocs : undefined,
+        };
+
+        const res = await fetch(`${API_BASE}/api/chat/stream`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+
+        const reader = res.body?.getReader();
+        if (!reader) throw new Error("Streaming unavailable");
+
+        const decoder = new TextDecoder();
+        let session = sessionId;
+        let hasError = false;
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          for (const line of chunk.split("\n")) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine || !trimmedLine.startsWith("data:")) continue;
+            const payload = trimmedLine.slice(5).trim();
+            if (payload === "[DONE]") continue;
+            if (payload.startsWith("Error:")) {
+              dispatch(appendToLastAssistant(payload.replace(/^Error:\s*/, "")));
+              hasError = true;
+              continue;
+            }
+            dispatch(appendToLastAssistant(payload));
+          }
+        }
+
+        if (!hasError && session) {
+          dispatch(setSessionId(session));
         }
       } catch (err) {
         if ((err as { name?: string })?.name === "AbortError") return;
-        const message =
-          err instanceof Error ? err.message : "Unknown error";
-        const isQuota =
-          /quota|429|rate.?limit/i.test(message) ||
-          (err as { status?: number })?.status === 429;
-        const isUnreachable =
-          /unreachable|Connection refused|ConnectError/i.test(message);
-        const isTimeout =
-          /timeout|timed out|504/i.test(message);
+        const message = err instanceof Error ? err.message : "Unknown error";
+        const isQuota = /quota|429|rate.?limit/i.test(message);
         const friendly = isQuota
           ? "⚠️ API quota exhausted. Try again later."
-          : isUnreachable
-          ? "⚠️ Provider unreachable. Make sure Ollama is running on localhost:11434."
-          : isTimeout
-          ? "⏳ Model is taking too long to respond. The cloud model may still be loading — try again."
           : `❌ ${message}`;
         dispatch(appendToLastAssistant(`\n\n${friendly}`));
         toast.error(isQuota ? "API quota exhausted" : "Message failed to send", {
@@ -184,7 +199,16 @@ export default function App() {
         abortRef.current = null;
       }
     },
-    [dispatch, isStreaming, sendMessage, sessionId, currentMode, currentProvider, attachments, useTools, selectedDocs],
+    [
+      dispatch,
+      isStreaming,
+      sessionId,
+      currentMode,
+      currentProvider,
+      attachments,
+      useTools,
+      selectedDocs,
+    ],
   );
 
   const handleStop = useCallback(() => {
@@ -196,7 +220,6 @@ export default function App() {
   }, [dispatch]);
 
   const handleNewChat = useCallback(async () => {
-    // Save current conversation before clearing
     if (messages.length > 0) {
       dispatch(saveConversation({ messages, sessionId }));
     }
@@ -212,14 +235,12 @@ export default function App() {
     toast.success("New chat started", { duration: 2000 });
   }, [dispatch, sessionId, clearSession, messages]);
 
-  // Refs for use in stable event listeners
   const handleNewChatRef = useRef(handleNewChat);
   handleNewChatRef.current = handleNewChat;
 
   const handleSendRef = useRef(handleSend);
   handleSendRef.current = handleSend;
 
-  // Listen for "Ask about company" events from DirectoryPanel
   useEffect(() => {
     function handleAsk(e: CustomEvent) {
       const { prompt } = e.detail;
@@ -235,13 +256,6 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
-      {/* Streaming progress bar */}
-      {isStreaming && (
-        <div className="fixed left-0 right-0 top-0 z-[60] h-0.5 overflow-hidden bg-transparent">
-          <div className="h-full w-full animate-progress rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-emerald-500" />
-        </div>
-      )}
-
       {/* Keyboard shortcuts modal */}
       {showShortcuts && (
         <div
@@ -321,12 +335,6 @@ export default function App() {
         onNewChat={handleNewChat}
       />
       <main className="flex flex-1 flex-col min-w-0 relative">
-        <Topbar
-          onMenu={() => setSidebarOpen(true)}
-          onToggleSidebar={() => setSidebarCollapsed((c) => !c)}
-          sidebarVisible={!sidebarCollapsed}
-          backendOnline={backendOnline}
-        />
         <div
           ref={scrollRef}
           className="flex-1 overflow-y-auto scrollbar-thin px-4 sm:px-6 py-6"

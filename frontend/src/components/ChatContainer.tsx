@@ -128,16 +128,11 @@ const MessageBubble = memo(function MessageBubble({
           className={cn(
             "rounded-2xl px-4 py-3 text-[15px] leading-relaxed break-words shadow-sm transition-shadow hover:shadow-md",
             isUser
-              ? "rounded-tr-sm bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 text-white"
-              : "rounded-tl-sm border bg-card text-card-foreground",
+              ? "rounded-tr-sm cambo-user-bubble text-white"
+              : "rounded-tl-sm border cambo-ai-bubble text-foreground",
             hasError && "border-destructive/30 bg-destructive/5",
             showCursor && "typing-cursor min-h-[1.5em]",
           )}
-          style={!isUser ? {
-            borderColor: "hsl(var(--border))",
-            backgroundColor: "hsl(var(--chat-assistant))",
-            color: "hsl(var(--chat-assistant-foreground))",
-          } : undefined}
         >
           {hasError && (
             <div className="mb-2 flex items-center gap-2 text-xs font-medium text-destructive">

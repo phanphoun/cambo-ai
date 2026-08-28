@@ -27,12 +27,12 @@ async def run_with_tools(
     client,
     model: str,
     system_instruction: str,
-    contents: list,
+    contents: list | dict,
     tool_decls: Optional[List[dict]] = None,
 ) -> Dict[str, Any]:
     """Run a tool-enabled turn. Returns {answer, tool_calls, model}.
 
-    `contents` is a list of Gemini content parts (text + inline images).
+    `contents` can be a single content dict or a list of content dicts.
     """
     from google.genai import types
 
@@ -47,7 +47,7 @@ async def run_with_tools(
     )
 
     # Running conversation: seed with the user turn(s).
-    messages: List[Any] = list(contents)
+    messages = list(contents) if isinstance(contents, list) else [contents]
     last_text = ""
 
     for _round in range(MAX_TOOL_ROUNDS):

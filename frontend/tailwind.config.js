@@ -3,10 +3,7 @@ import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
-  content: [
-    "./index.html",
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -14,9 +11,6 @@ export default {
       screens: { "2xl": "1400px" },
     },
     extend: {
-      screens: {
-        xs: "475px",
-      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -47,6 +41,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        gold: "#D4AF37",
+        "gold-light": "#F5D061",
+        terracotta: "#A0522D",
+        crimson: "#8B0000",
+        jade: "#00A86B",
+        charcoal: "#2C2C2C",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -54,7 +54,17 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "-apple-system", "sans-serif"],
+        sans: ['"Inter"', "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        khmer: ['"Noto Sans Khmer"', '"Battambang"', "system-ui", "sans-serif"],
+        display: ['"Playfair Display"', "Georgia", "serif"],
+        mono: [
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "monospace",
+        ],
       },
       keyframes: {
         "slide-in": {
@@ -69,11 +79,26 @@ export default {
           "0%, 50%": { opacity: "1" },
           "51%, 100%": { opacity: "0" },
         },
+        "voice-wave": {
+          "0%, 100%": { transform: "scaleY(0.4)", opacity: "0.7" },
+          "50%": { transform: "scaleY(1)", opacity: "1" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-12px)" },
+        },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
       },
       animation: {
         "slide-in": "slide-in 0.3s ease-out",
         "pulse-dot": "pulse-dot 2s infinite",
-        blink: "blink 1s infinite",
+        blink: "blink 1s step-end infinite",
+        "voice-wave": "voice-wave 0.8s ease-in-out infinite",
+        float: "float 6s ease-in-out infinite",
+        "fade-in": "fadeIn 0.3s ease-out",
       },
     },
   },

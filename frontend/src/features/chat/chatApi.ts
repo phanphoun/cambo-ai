@@ -16,9 +16,56 @@ export const chatApi = createApi({
   endpoints: (builder) => ({
     sendMessage: builder.mutation<ChatResponse, ChatRequest>({
       query: (body) => ({
-        url: "/api/chat",
+        url: "/api/chat/stream",
         method: "POST",
         body,
+        responseHandler: async (res) => {
+          if (!res.ok || !res.body) {
+            const text = await res.text().catch(() => "");
+            throw new Error(text || `HTTP ${res.status}`);
+          }
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let full = "";
+          let lastEmit = performance.now();
+
+          const flush = () => {
+            if (full && performance.now() - lastEmit >= 12) {
+              const slice = full;
+              full = "";
+              lastEmit = performance.now();
+              return slice;
+            }
+            return null;
+          };
+
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              const slice = flush();
+              if (slice) return { reply: slice, _flush: slice };
+              return { reply: "", _flush: "" };
+            }
+            const text = decoder.decode(value, { stream: true });
+            for (const line of text.split("\n")) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith("data:")) continue;
+              const payload = trimmed.slice(5).trim();
+              if (payload === "[DONE]") continue;
+              if (payload.startsWith("Error:")) {
+                throw new Error(payload.replace(/^Error:\s*/, ""));
+              }
+              full += payload;
+            }
+            const slice = flush();
+            if (slice) return { reply: slice, _flush: slice };
+          }
+        },
+        transformResponse: (res: any) => ({
+          reply: res.reply ?? "",
+          ...(res._flush ? { _flush: res._flush } : {}),
+        }),
       }),
     }),
     askOnce: builder.mutation<AskResponse, { question: string }>({
@@ -79,7 +126,6 @@ export const chatApi = createApi({
 });
 
 export const {
-  useSendMessageMutation,
   useAskOnceMutation,
   useClearSessionMutation,
   useCheckHealthQuery,

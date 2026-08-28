@@ -1,0 +1,344 @@
+/**
+ * Cambo AI Design System
+ *
+ * This file is the canonical style reference for the Cambo AI product.
+ * It documents the design tokens, component library, iconography rules,
+ * and animation principles in one place.
+ *
+ * Layer roles
+ * ───────────
+ * tokens  : CSS variables + Tailwind theme extensions
+ * base    : global resets and typography defaults
+ * helpers : reusable component classes for buttons, cards, inputs, modals
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   1. COLOR TOKENS
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  /* Brand palette */
+  --cambo-gold: #D4AF37;
+  --cambo-gold-light: #F5D061;
+  --cambo-terracotta: #A0522D;
+  --cambo-crimson: #8B0000;
+  --cambo-jade: #00A86B;
+
+  /* Neutrals */
+  --cambo-ink: #1A1A1A;
+  --cambo-charcoal: #2C2C2C;
+  --cambo-steel: #6B7280;
+  --cambo-cloud: #9CA3AF;
+  --cambo-mist: #E5E7EB;
+  --cambo-snow: #F9FAFB;
+  --cambo-paper: #FFFFFF;
+
+  /* Semantic */
+  --cambo-success: #16A34A;
+  --cambo-warning: #F59E0B;
+  --cambo-danger: #DC2626;
+
+  /* Surfaces */
+  --cambo-surface-base: #FFFFFF;
+  --cambo-surface-raised: #FFFFFF;
+  --cambo-surface-overlay: rgba(20, 20, 20, 0.55);
+}
+
+/* Dark theme adjustments */
+.dark {
+  --cambo-ink: #F9FAFB;
+  --cambo-charcoal: #E5E7EB;
+  --cambo-steel: #9CA3AF;
+  --cambo-cloud: #6B7280;
+  --cambo-mist: #374151;
+  --cambo-snow: #111827;
+  --cambo-paper: #0B0F19;
+
+  --cambo-surface-base: #0B0F19;
+  --cambo-surface-raised: #111827;
+  --cambo-surface-overlay: rgba(0, 0, 0, 0.65);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   2. TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-khmer: "Noto Sans Khmer", "Battambang", system-ui, sans-serif;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Scale based on 4px baseline */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+}
+
+/* Khmer override rules */
+.font-khmer,
+.markdown,
+.chat-message,
+.chat-bubble {
+  font-family: var(--font-khmer);
+  line-height: var(--leading-relaxed);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   3. SPACING SYSTEM
+   Base unit: 4px
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   4. BORDER RADIUS
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.5rem;   /* 24px */
+  --radius-full: 9999px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   5. SHADOW SYSTEM
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.18), 0 8px 16px rgba(0, 0, 0, 0.08);
+  --shadow-gold: 0 10px 30px rgba(212, 175, 55, 0.25);
+}
+
+.dark {
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-gold: 0 10px 30px rgba(212, 175, 55, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   6. COMPONENT LIBRARY
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Buttons */
+.cambo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  will-change: transform;
+}
+.cambo-btn:active {
+  transform: translateY(1px);
+}
+
+.cambo-btn-primary {
+  background: linear-gradient(135deg, var(--cambo-crimson), #5c0000);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-sm);
+}
+.cambo-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.cambo-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cambo-gold);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+.cambo-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(212, 175, 55, 0.7);
+}
+
+.cambo-btn-ghost {
+  background: transparent;
+  color: var(--cambo-ink);
+  border-color: transparent;
+}
+.cambo-btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.dark .cambo-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cambo-btn-gold {
+  background: linear-gradient(135deg, var(--cambo-gold), var(--cambo-gold-light), var(--cambo-gold));
+  background-size: 200% 200%;
+  color: var(--cambo-charcoal);
+  font-weight: 700;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-gold);
+}
+.cambo-btn-gold:hover {
+  background-position: 100% 0;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(212, 175, 55, 0.35);
+}
+
+/* Cards */
+.cambo-card {
+  background: var(--cambo-surface-raised);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.cambo-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: var(--shadow-md);
+}
+
+/* Inputs */
+.cambo-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: var(--text-base);
+  font-family: var(--font-sans);
+  color: var(--cambo-ink);
+  background: var(--cambo-paper);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-lg);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.cambo-input::placeholder {
+  color: var(--cambo-cloud);
+}
+.cambo-input:focus {
+  border-color: var(--cambo-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+/* Modals */
+.cambo-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--cambo-surface-overlay);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 60;
+}
+.cambo-modal-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cambo-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -48%) scale(0.98);
+  width: min(92vw, 560px);
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--cambo-surface-raised);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-xl);
+  z-index: 70;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.cambo-modal.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   7. ICONOGRAPHY GUIDELINES
+   - Use icons for state, navigation, and actions only.
+   - Prefer outlined icons for secondary actions.
+   - Use filled icons only for primary, high-emphasis actions.
+   - Keep icon size aligned to the spacing scale: 16px, 20px, 24px.
+   - For Cambo motifs, use simple geometric temple/lotus shapes;
+      avoid complex illustrations inside buttons.
+   ═══════════════════════════════════════════════════════════════════ */
+.cambo-icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.cambo-icon-sm {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.cambo-icon-lg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   8. ANIMATION PRINCIPLES
+   - Motion clarifies state changes and reduces cognitive load.
+   - Keep durations under 300ms for controls, 400-800ms for reveals.
+   - Use ease-out for entering motion, ease-in for exiting motion.
+   - Always respect prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

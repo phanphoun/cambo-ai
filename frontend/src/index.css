@@ -3,71 +3,29 @@
 @tailwind utilities;
 
 @layer base {
-  /* ═══════════════ DARK THEME (default) ═══════════════ */
-  :root,
-  .dark {
-    --background: 240 10% 4%;
-    --foreground: 240 6% 93%;
-    --card: 240 10% 9%;
-    --card-foreground: 240 6% 93%;
-    --primary: 252 87% 70%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 6% 14%;
-    --secondary-foreground: 240 6% 93%;
-    --muted: 240 6% 14%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 252 87% 70%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 21%;
-    --input: 240 6% 21%;
-    --ring: 252 87% 70%;
-    --radius: 0.75rem;
-
-    /* Chat-specific colors */
-    --chat-user: 252 87% 65%;
-    --chat-user-foreground: 0 0% 100%;
-    --chat-assistant: 240 10% 9%;
-    --chat-assistant-foreground: 240 6% 93%;
-    --chat-ai-accent: 160 84% 39%;
-
-    /* Code block */
-    --code-bg: 240 6% 11%;
-    --code-header: 240 6% 15%;
-    --code-border: 240 6% 21%;
-
-    /* Sidebar */
-    --sidebar-bg: 240 10% 7%;
-    --sidebar-border: 240 6% 18%;
-
-    /* Scrollbar */
-    --scrollbar-thumb: 240 6% 21%;
-  }
-
-  /* ═══════════════ LIGHT THEME ═══════════════ */
-  .light {
-    --background: 240 20% 99%;
+  /* ═══════════════ LIGHT THEME (default) ═══════════════ */
+  :root {
+    --background: 0 0% 100%;
     --foreground: 240 10% 10%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 10%;
-    --primary: 252 70% 50%;
+    --primary: 262 84% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 10% 94%;
+    --secondary: 240 10% 96%;
     --secondary-foreground: 240 10% 10%;
-    --muted: 240 10% 94%;
+    --muted: 240 10% 96%;
     --muted-foreground: 240 5% 45%;
-    --accent: 252 70% 50%;
+    --accent: 262 84% 55%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 50%;
     --destructive-foreground: 0 0% 100%;
     --border: 240 10% 88%;
     --input: 240 10% 88%;
-    --ring: 252 70% 50%;
+    --ring: 262 84% 55%;
     --radius: 0.75rem;
 
     /* Chat-specific colors */
-    --chat-user: 252 70% 50%;
+    --chat-user: 262 84% 55%;
     --chat-user-foreground: 0 0% 100%;
     --chat-assistant: 0 0% 100%;
     --chat-assistant-foreground: 240 10% 10%;
@@ -86,15 +44,79 @@
     --scrollbar-thumb: 240 10% 80%;
   }
 
+  /* ═══════════════ DARK THEME ═══════════════ */
+  .dark {
+    --background: 240 10% 4%;
+    --foreground: 240 6% 93%;
+    --card: 240 10% 9%;
+    --card-foreground: 240 6% 93%;
+    --primary: 262 84% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 6% 14%;
+    --secondary-foreground: 240 6% 93%;
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 262 84% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 6% 21%;
+    --input: 240 6% 21%;
+    --ring: 262 84% 55%;
+    --radius: 0.75rem;
+
+    /* Chat-specific colors */
+    --chat-user: 262 84% 55%;
+    --chat-user-foreground: 0 0% 100%;
+    --chat-assistant: 240 10% 9%;
+    --chat-assistant-foreground: 240 6% 93%;
+    --chat-ai-accent: 160 84% 39%;
+
+    /* Code block */
+    --code-bg: 240 6% 11%;
+    --code-header: 240 6% 15%;
+    --code-border: 240 6% 21%;
+
+    /* Sidebar */
+    --sidebar-bg: 240 10% 7%;
+    --sidebar-border: 240 6% 18%;
+
+    /* Scrollbar */
+    --scrollbar-thumb: 240 6% 21%;
+  }
+
+  /* Khmer font fallback */
+  @font-face {
+    font-family: "Noto Sans Khmer";
+    src: local("Noto Sans Khmer"), url("/src/assets/fonts/NotoSansKhmer-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Inter", -apple-system, sans-serif;
+    font-family: "Inter", "Noto Sans Khmer", -apple-system, sans-serif;
     height: 100vh;
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Force a clean Khmer font stack on relevant elements */
+  .font-khmer,
+  .markdown,
+  .markdown *,
+  .chat-bubble,
+  .chat-bubble *,
+  .chat-message,
+  .chat-message * {
+    font-family: "Noto Sans Khmer", "Inter", -apple-system, sans-serif;
   }
 
   html {
@@ -103,20 +125,6 @@
 
   ::selection {
     background: hsl(var(--primary) / 0.3);
-  }
-
-  /* Smooth theme transition */
-  *, *::before, *::after {
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  /* Exclude animations from the transition */
-  .animate-progress,
-  .animate-streaming-dot,
-  .animate-pulse-dot,
-  .animate-blink,
-  .animate-shimmer {
-    transition: none !important;
   }
 }
 
@@ -139,14 +147,6 @@
   }
   .scrollbar-thin::-webkit-scrollbar-corner {
     background: transparent;
-  }
-
-  /* ── Glow effect ── */
-  .glow-soft {
-    box-shadow: 0 0 40px hsl(var(--primary) / 0.15), 0 0 80px hsl(var(--primary) / 0.05);
-  }
-  .light .glow-soft {
-    box-shadow: 0 0 40px hsl(var(--primary) / 0.12), 0 0 80px hsl(var(--primary) / 0.04);
   }
 
   /* ── Typing cursor ── */
@@ -193,23 +193,6 @@
   .animate-streaming-dot { animation: streaming-dot 1.4s ease-in-out infinite; }
   .animate-streaming-dot:nth-child(2) { animation-delay: 0.2s; }
   .animate-streaming-dot:nth-child(3) { animation-delay: 0.4s; }
-
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-  .animate-shimmer {
-    background: linear-gradient(90deg, hsl(var(--border)) 25%, hsl(var(--muted)) 50%, hsl(var(--border)) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s ease-in-out infinite;
-  }
-
-  @keyframes progress-slide {
-    0% { transform: translateX(-100%); }
-    50% { transform: translateX(0%); }
-    100% { transform: translateX(100%); }
-  }
-  .animate-progress { animation: progress-slide 2s ease-in-out infinite; }
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -267,4 +250,18 @@
     border: 1px solid hsl(var(--border));
   }
   .markdown hr { @apply my-4; border-color: hsl(var(--border)); }
+
+  /* ── Cambo-branded chat helpers ── */
+  .cambo-ai-bubble {
+    border-color: rgba(212, 175, 55, 0.25);
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  }
+  .dark .cambo-ai-bubble {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  }
+
+  .cambo-user-bubble {
+    background: linear-gradient(135deg, #7C3AED, #6D28D9);
+    color: #fff;
+  }
 }

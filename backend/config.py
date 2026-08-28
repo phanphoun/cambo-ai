@@ -9,8 +9,11 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-flash-latest"
     gemini_temperature: float = 0.3
-    gemini_max_tokens: int = 2048
+    gemini_max_tokens: int = 1024
     gemini_thinking_budget: int = 0
+
+    stream_default: bool = True
+    stream_fallback_timeout_ms: int = 1200
 
     # --- Ollama (local) ---
     ollama_base_url: str = "http://localhost:11434"
@@ -28,7 +31,7 @@ class Settings(BaseSettings):
     default_provider: str = "gemini"
 
     # --- CORS ---
-    allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
 
     # --- RAG / Embeddings ---
     rag_dir: str = "./data/rag"
@@ -48,6 +51,11 @@ class Settings(BaseSettings):
     web_fetch_timeout_seconds: float = 15.0
     web_fetch_max_chars: int = 60_000
     web_fetch_user_agent: str = "CAMBO-AI/0.2 (+https://cambo-ai.local)"
+
+    # --- Tavily web research ---
+    tavily_api_key: str = ""
+    tavily_search_depth: str = "basic"
+    tavily_max_results: int = 5
 
     @property
     def origins_list(self) -> List[str]:

@@ -37,11 +37,48 @@ class ProviderManager:
         use_tools: bool = False,
     ) -> dict:
         svc = self._resolve(provider)
+        effective_use_tools = use_tools or mode == "search" or self._is_phoun_query(message)
+        if effective_use_tools and provider != "gemini":
+            tool_result = await self._auto_search(message)
+            grounded = (rag_context or "") + "\n\nWeb research results:\n" + tool_result
+            return await svc.ask(
+                message, history=history, mode=mode,
+                image_data=image_data, image_urls=image_urls,
+                rag_context=grounded, use_tools=False,
+            )
         return await svc.ask(
             message, history=history, mode=mode,
             image_data=image_data, image_urls=image_urls,
-            rag_context=rag_context, use_tools=use_tools,
+            rag_context=rag_context, use_tools=effective_use_tools,
         )
+
+    @staticmethod
+    def _is_phoun_query(message: str) -> bool:
+        m = message.lower()
+        return any(
+            token in m
+            for token in [
+                "mr.phoun",
+                "mr phoun",
+                "phoun",
+                "developer",
+                "developed by",
+                "who built you",
+                "who build you",
+                "who created you",
+                "who made you",
+                "your developer",
+                "your creator",
+            ]
+        )
+
+    @staticmethod
+    async def _auto_search(message: str) -> str:
+        from services import tools as tool_registry
+        try:
+            return await tool_registry.run_tool("web_search", {"query": message, "max_results": 5})
+        except Exception as e:
+            return f"[research unavailable] {e}"
 
     async def ask_stream(
         self,

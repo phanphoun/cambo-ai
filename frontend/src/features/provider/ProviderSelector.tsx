@@ -4,10 +4,10 @@ import { setProvider, type AiProvider } from "./providerSlice";
 import { cn } from "../../lib/utils";
 import type { RootState } from "../../store";
 
-const PROVIDERS: { id: AiProvider; label: string; icon: typeof Sparkles; description: string }[] = [
-  { id: "gemini", label: "Gemini", icon: Sparkles, description: "Google Gemini API" },
-  { id: "ollama", label: "Ollama (Local)", icon: Cpu, description: "Local LLM via Ollama" },
-  { id: "ollama-cloud", label: "Ollama Cloud", icon: Cloud, description: "Cloud models via Ollama" },
+const PROVIDERS: { id: AiProvider; label: string; icon: typeof Sparkles }[] = [
+  { id: "gemini", label: "Gemini", icon: Sparkles },
+  { id: "ollama", label: "Ollama (Local)", icon: Cpu },
+  { id: "ollama-cloud", label: "Ollama Cloud", icon: Cloud },
 ];
 
 export default function ProviderSelector() {
@@ -36,12 +36,7 @@ export default function ProviderSelector() {
               )}
             >
               <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "text-primary" : "")} />
-              <div className="min-w-0 flex-1">
-                <span className="block font-medium">{p.label}</span>
-                <span className="block text-[10px] text-muted-foreground/70">
-                  {p.description}
-                </span>
-              </div>
+              <span className="flex-1 font-medium">{p.label}</span>
               {active && (
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
               )}

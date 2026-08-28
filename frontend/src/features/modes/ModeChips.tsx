@@ -26,8 +26,7 @@ export default function ModeChips() {
             type="button"
             onClick={() => dispatch(setMode(mode.id))}
             className={cn(
-              "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all",
-              "border",
+              "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-all border",
               active
                 ? "border-primary bg-primary/10 text-primary shadow-sm"
                 : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",

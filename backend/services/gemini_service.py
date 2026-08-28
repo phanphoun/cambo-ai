@@ -13,7 +13,7 @@ from services.tool_runner import run_with_tools
 
 SYSTEM_PROMPTS: dict[str, str] = {
     "chat": """You are CAMBO AI — Cambodia's first AI technology assistant,
-a knowledgeable guide to Cambodia's growing technology ecosystem.
+developed by Mr.Phoun. You are a knowledgeable guide to Cambodia's growing technology ecosystem.
 
 Your mission:
 - Help users understand and navigate Cambodia's tech landscape
@@ -38,6 +38,9 @@ Knowledge areas:
   (Nham24, Foodpanda KH), tourism tech
 - Languages & accessibility: respond in English or Khmer based on the user's
   language. Use proper Khmer script (ភាសាខ្មែរ) when writing Khmer
+- When asked about yourself, your developer, or Mr.Phoun, use available tools to
+  retrieve up-to-date information from public profiles such as LinkedIn, GitHub,
+  Facebook, and other sources before answering.
 
 Behavior:
 - Be concise (2-4 sentences unless detail is requested)
@@ -146,21 +149,17 @@ class GeminiService:
         image_data: Optional[List[str]] = None,
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
-    ) -> List[dict]:
-        parts: List[Any] = []
-        # text (with optional RAG context injected)
+    ) -> "types.Content":
         text = message
         if rag_context:
             text = f"{rag_context}\n\nUser question: {message}"
-        parts.append(text)
+        parts = [types.Part(text=text)]
         for url in (image_urls or []):
             parts.append(_image_part_from_url(url))
         for d in (image_data or []):
             parts.append(_image_part_from_data(d))
-        content = {"role": "user", "parts": parts}
-        return _build_history_parts(history) + [content]
+        return types.Content(role="user", parts=parts)
 
-    # ---------- single turn ----------
     async def ask(
         self,
         message: str,
@@ -220,13 +219,28 @@ class GeminiService:
                 system_instruction=SYSTEM_PROMPTS.get(mode, SYSTEM_PROMPTS["chat"]) + RAG_INSTRUCTION,
             )
         last_chunk = None
-        stream = self.client.aio.models.generate_content_stream(
-            model=self.model, contents=contents, config=config  # type: ignore[arg-type]
-        )
-        async for chunk in stream:
-            last_chunk = chunk
-            if chunk.text:
-                yield chunk.text
+        try:
+            stream = await self.client.aio.models.generate_content_stream(
+                model=self.model, contents=contents, config=config  # type: ignore[arg-type]
+            )
+            async for chunk in stream:
+                last_chunk = chunk
+                if chunk.text:
+                    yield chunk.text
+        except Exception:
+            data = await self.ask(
+                message,
+                history=history,
+                mode=mode,
+                image_data=image_data,
+                image_urls=image_urls,
+                rag_context=rag_context,
+                use_tools=bool(getattr(config, "system_instruction", None)),
+            )
+            answer = data.get("answer") or ""
+            chunk_size = 4
+            for i in range(0, max(len(answer), 1), chunk_size):
+                yield answer[i : i + chunk_size]
         if last_chunk:
             self._check_finish_reason(last_chunk)
 

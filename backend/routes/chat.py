@@ -53,14 +53,32 @@ async def ask(q: Question):
         raise _ai_error(e) from e
 
 
-@router.post("/ask/stream")
-async def ask_stream(q: Question, mode: str = "chat", provider: Optional[str] = None):
+@router.post("/chat/stream")
+async def chat_stream(req: ChatRequest):
     async def generate():
         try:
+            session_id = req.session_id or chat_history.create_session()
+            history = chat_history.get_history(session_id)
+            chat_history.add_message(session_id, "user", req.message)
+
+            rag = _retrieve_rag(req)
+            provider = req.provider or settings.default_provider
+
+            full_answer = []
             async for chunk in provider_manager.ask_stream(
-                q.question, mode=mode, provider=provider or settings.default_provider,
+                req.message,
+                history=history,
+                mode=req.mode,
+                provider=provider,
+                image_data=req.image_data,
+                image_urls=[str(u) for u in req.image_urls],
+                rag_context=rag["context"] or None,
             ):
+                full_answer.append(chunk)
                 yield f"data: {chunk}\n\n"
+
+            answer = "".join(full_answer)
+            chat_history.add_message(session_id, "assistant", answer)
             yield "data: [DONE]\n\n"
         except Exception as e:
             exc = _ai_error(e)

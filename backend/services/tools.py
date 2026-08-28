@@ -180,3 +180,58 @@ def rag_query(query: str, document_ids: list | None = None) -> str:
     for r in results:
         out.append(f"[{r['source_label']}] {r['text']}")
     return "\n\n".join(out)
+
+
+@register_tool(
+    "web_search",
+    "Search the web using Tavily and return concise results with titles, URLs, and snippets. "
+    "Use this for current events, live info, or anything outside the local knowledge base.",
+    {
+        "type": "object",
+        "properties": {
+            "query": {"type": "string", "description": "Search query."},
+            "search_depth": {
+                "type": "string",
+                "enum": ["basic", "advanced"],
+                "description": "Depth of search. Use 'advanced' for harder questions.",
+            },
+            "max_results": {
+                "type": "integer",
+                "description": "Number of results to return.",
+                "minimum": 1,
+                "maximum": 10,
+            },
+        },
+        "required": ["query"],
+    },
+)
+def web_search(query: str, search_depth: str | None = None, max_results: int | None = None) -> str:
+    from config import settings
+
+    if not settings.tavily_api_key:
+        return "[error] Tavily is not configured. Set TAVILY_API_KEY."
+
+    try:
+        from tavily import TavilyClient
+    except Exception as e:
+        return f"[error] tavily client unavailable: {e}"
+
+    client = TavilyClient(api_key=settings.tavily_api_key)
+    depth = search_depth or settings.tavily_search_depth or "basic"
+    limit = max_results or settings.tavily_max_results or 5
+    try:
+        result = client.search(query, search_depth=depth, max_results=limit)
+    except Exception as e:
+        return f"[tool error] tavily search failed: {e}"
+
+    hits = result.get("results") or []
+    if not hits:
+        return "No web search results found."
+
+    out = []
+    for i, hit in enumerate(hits[:limit], start=1):
+        title = hit.get("title") or "(untitled)"
+        url = hit.get("url") or ""
+        snippet = (hit.get("content") or "").strip()
+        out.append(f"{i}. {title}\n   {url}\n   {snippet}")
+    return "\n\n".join(out)
