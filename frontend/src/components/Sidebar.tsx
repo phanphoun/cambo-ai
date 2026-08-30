@@ -1,23 +1,33 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  Plus,
-  BookOpen,
-  ChevronDown,
-  ChevronRight,
+  Home,
   Clock,
-  Trash2,
+  Bookmark,
+  FileText,
+  Settings,
   PanelLeftClose,
-  MessageSquare,
-  Sparkles,
-  MapPin,
+  Plus,
+  Landmark,
+  Languages,
+  Lightbulb,
+  Code2,
+  TrendingUp,
+  X,
+  Trash2,
 } from "lucide-react";
-import { Button } from "./ui/button";
-import { cn } from "../lib/utils";
-import { setDirectoryOpen } from "../features/directory/directorySlice";
-import { deleteConversation, saveConversation } from "../features/conversations/conversationsSlice";
-import { addMessage, setSessionId, resetChat } from "../features/chat/chatSlice";
-import ProviderSelector from "../features/provider/ProviderSelector";
+import { KhmerAngkorCrest, KbachCorner, KbachLotus } from "./KhmerOrnaments";
+import {
+  deleteConversation,
+  type SavedConversation,
+} from "../features/conversations/conversationsSlice";
+import {
+  resetChat,
+  setSessionId,
+  addMessage,
+  type ChatState,
+} from "../features/chat/chatSlice";
+import { cn, formatTime } from "../lib/utils";
 import type { RootState } from "../store";
 
 interface SidebarProps {
@@ -25,61 +35,104 @@ interface SidebarProps {
   collapsed: boolean;
   onClose: () => void;
   onToggleCollapse: () => void;
-  onNewChat: () => void;
+  onNewChat?: () => void;
+  onOpenDocs: () => void;
+  onOpenPins: () => void;
+  onOpenSettings?: () => void;
+  onSelectPrompt?: (prompt: string) => void;
 }
 
-export default function Sidebar({
+export const SUGGESTED_TOPICS = [
+  {
+    id: "angkor",
+    icon: Landmark,
+    titleKm: "អំពី អង្គរវត្ត",
+    titleEn: "About Angkor Wat",
+    prompt: "សូមរៀបរាប់អំពីប្រវត្តិ និងស្ថាបត្យកម្មដ៏អស្ចារ្យនៃប្រាសាទអង្គរវត្ត និងចក្រភពខ្មែរបុរាណ។",
+  },
+  {
+    id: "language",
+    icon: Languages,
+    titleKm: "ភាសាខ្មែរ",
+    titleEn: "Khmer Language",
+    prompt: "សូមបង្រៀនពាក្យគួរសម ឃ្លាសន្ទនាប្រចាំថ្ងៃ និងវេយ្យាករណ៍ភាសាខ្មែរ។",
+  },
+  {
+    id: "history",
+    icon: Lightbulb,
+    titleKm: "ប្រវត្តិសាស្ត្រ",
+    titleEn: "Khmer History",
+    prompt: "សូមរៀបរាប់អំពីប្រវត្តិសាស្ត្រប្រទេសកម្ពុជាពីសម័យហ្វូណន ចេនឡា រហូតដល់បច្ចុប្បន្ន។",
+  },
+  {
+    id: "tech",
+    icon: Code2,
+    titleKm: "បច្ចេកវិទ្យា",
+    titleEn: "Technology in Cambodia",
+    prompt: "តើប្រព័ន្ធអេកូឡូស៊ីបច្ចេកវិទ្យា Tech Startup និង AI នៅកម្ពុជាមានការវិវត្តយ៉ាងណាខ្លះ?",
+  },
+  {
+    id: "economy",
+    icon: TrendingUp,
+    titleKm: "សេដ្ឋកិច្ច",
+    titleEn: "Cambodia Economy",
+    prompt: "សូមបង្ហាញអំពីស្ថានភាពសេដ្ឋកិច្ច ប្រព័ន្ធធនាគារឌីជីថល បាគង (Bakong) និងការវិនិយោគនៅកម្ពុជា។",
+  },
+];
+
+export default memo(function Sidebar({
   open,
   collapsed,
   onClose,
   onToggleCollapse,
   onNewChat,
+  onOpenDocs,
+  onOpenPins,
+  onOpenSettings,
+  onSelectPrompt,
 }: SidebarProps) {
   const dispatch = useDispatch();
   const conversations = useSelector((s: RootState) => s.conversations.list);
-  const currentMessages = useSelector((s: RootState) => s.chat.messages);
-  const currentSessionId = useSelector((s: RootState) => s.chat.sessionId);
-  const [historyOpen, setHistoryOpen] = useState(true);
+  const activeSessionId = useSelector((s: { chat: ChatState }) => s.chat.sessionId);
+  const pinnedCount = useSelector((s: RootState) => s.pin.pinned.length);
+  const selectedDocsCount = useSelector((s: RootState) => s.documents.selected.length);
 
-  function handleLoadConversation(conv: typeof conversations[0]) {
-    if (currentMessages.length > 0) {
-      dispatch(saveConversation({ messages: currentMessages, sessionId: currentSessionId }));
-    }
+  const [activeNav, setActiveNav] = useState<"home" | "history" | "bookmarks" | "documents" | "settings">("home");
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
+
+  const handleSelectConversation = (conv: SavedConversation) => {
     dispatch(resetChat());
-    dispatch(setSessionId(conv.sessionId || conv.id));
-    conv.messages.forEach((msg) => {
-      dispatch(addMessage(msg));
-    });
-    onClose();
-  }
-
-  function handleDeleteConversation(e: React.MouseEvent, id: string) {
-    e.stopPropagation();
-    dispatch(deleteConversation(id));
-  }
-
-  function formatDate(iso: string) {
-    const d = new Date(iso);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    } else if (diffDays === 1) {
-      return "Yesterday";
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
+    if (conv.sessionId) {
+      dispatch(setSessionId(conv.sessionId));
     }
-    return d.toLocaleDateString([], { month: "short", day: "numeric" });
-  }
+    conv.messages.forEach((m) => dispatch(addMessage(m)));
+    setShowHistoryDrawer(false);
+    onClose();
+  };
+
+  const handlePickTopic = (prompt: string) => {
+    if (onSelectPrompt) {
+      onSelectPrompt(prompt);
+    }
+    onClose();
+  };
+
+  const handleNewChatClick = () => {
+    if (onNewChat) {
+      onNewChat();
+    } else {
+      dispatch(resetChat());
+    }
+    setActiveNav("home");
+    onClose();
+  };
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile overlay backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in md:hidden"
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm md:hidden animate-fade-in"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -87,201 +140,268 @@ export default function Sidebar({
 
       <aside
         className={cn(
-          "fixed md:relative inset-y-0 left-0 z-50 shrink-0",
-          "bg-sidebar-bg border-r border-sidebar-border flex flex-col gap-4",
-          "transition-all duration-300 ease-out",
+          "fixed md:static inset-y-0 left-0 z-50 flex h-full flex-col border-r border-[#2C2114] bg-[#0E0C09]/95 backdrop-blur-xl shadow-2xl md:shadow-none transition-all duration-200 ease-in-out select-none",
           collapsed
-            ? "w-0 md:w-14 md:p-2 overflow-hidden"
-            : "w-72 p-4",
-          "md:translate-x-0",
-          open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+            ? "w-0 p-0 border-r-0 opacity-0 pointer-events-none overflow-hidden md:hidden"
+            : "w-72 max-w-[85vw] md:w-72 p-3.5 opacity-100",
+          open ? "translate-x-0 !flex !w-72 !p-3.5 !opacity-100 !pointer-events-auto" : "-translate-x-full md:translate-x-0",
         )}
-        aria-label="Sidebar"
+        aria-label="Navigation Sidebar"
       >
-        {/* Header */}
-        <div className="flex items-center gap-2 shrink-0">
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 text-xl font-bold">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-crimson text-white">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="6" r="3" />
-                    <path d="M12 9v6" />
-                    <path d="M8 15c0 2 4 4 4 4s4-2 4-4" />
-                    <path d="M6 21c0-3 3-5 6-5s6 2 6 5" />
-                    <path d="M9 12l-2-2M15 12l2-2" />
-                  </svg>
-                </span>
-                <span className="truncate text-gold">Cambo AI</span>
-              </div>
-              <p className="mt-1 text-[11px] text-muted-foreground leading-snug font-khmer">
-                ជំនួយក្នុងផ្នែកបច្ចេកវិទ្យាខ្មែរ
-              </p>
+        {/* ── Brand Header ── */}
+        <div className="relative z-10 flex items-center justify-between shrink-0 pb-3 border-b border-[#2C2114]">
+          <div className="flex items-center gap-2.5">
+            <KhmerAngkorCrest className="h-8 w-8 text-gold drop-shadow shrink-0" />
+            <div className="flex flex-col">
+              <span className="font-bold text-base text-[#E5C058] tracking-tight leading-none">
+                Sastra AI
+              </span>
+              <span className="font-khmer text-[11px] font-semibold text-gold/80 mt-1 leading-none">
+                សាស្ត្រា អេអាយ
+              </span>
             </div>
-          )}
+          </div>
 
-          {collapsed && (
-            <span className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-crimson text-white" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="6" r="3" />
-                <path d="M12 9v6" />
-                <path d="M8 15c0 2 4 4 4 4s4-2 4-4" />
-                <path d="M6 21c0-3 3-5 6-5s6 2 6 5" />
-                <path d="M9 12l-2-2M15 12l2-2" />
-              </svg>
-            </span>
-          )}
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleCollapse}
-            className="hidden md:inline-flex h-8 w-8 shrink-0"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Expand (Ctrl+B)" : "Collapse (Ctrl+B)"}
+          <button
+            type="button"
+            onClick={onClose}
+            className="md:hidden flex h-7 w-7 items-center justify-center rounded-lg border border-[#3C301D] bg-[#16120C]/90 text-gold/80 hover:text-gold transition-all"
+            aria-label="Close sidebar"
           >
-            <PanelLeftClose
-              className={cn(
-                "h-4 w-4 transition-transform",
-                collapsed && "rotate-180",
-              )}
-            />
-          </Button>
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        {/* Action buttons */}
-        {!collapsed && (
-          <div className="space-y-2 shrink-0">
-            <Button
-              onClick={onNewChat}
-              className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Plus className="h-4 w-4" />
-              New Chat
-              <kbd className="ml-auto rounded border border-primary/30 bg-primary/20 px-1.5 py-0.5 font-mono text-[10px] text-primary-foreground/80">
-                Ctrl + N
-              </kbd>
-            </Button>
+        {/* ── Action Buttons Row: [ |< ] + [ + New Chat ] ── */}
+        <div className="relative z-10 mt-3 flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#3C301D] bg-[#16120C]/90 text-gold/80 hover:text-gold hover:border-gold/60 hover:bg-[#1F1910] transition-all shadow-xs shrink-0"
+            title="Collapse sidebar (Ctrl+B)"
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
 
-            <Button
-              onClick={() => dispatch(setDirectoryOpen(true))}
-              variant="outline"
-              className="w-full justify-start gap-2 bg-background hover:border-primary/50"
-            >
-              <BookOpen className="h-4 w-4" />
-              Tech Directory
-            </Button>
+          <button
+            type="button"
+            onClick={handleNewChatClick}
+            className="flex flex-1 items-center justify-center gap-2 h-9 rounded-xl border border-gold/40 bg-[#16120C] px-3 text-xs font-semibold text-gold shadow-xs hover:border-gold/70 hover:bg-gold/10 transition-all"
+            title="New Conversation"
+          >
+            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+            <span>New Chat</span>
+          </button>
+        </div>
+
+        {/* ── Main Navigation List (Home, History, Bookmarks, Documents, Settings) ── */}
+        <div className="relative z-10 mt-3 space-y-1 shrink-0">
+          {/* Home */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveNav("home");
+              setShowHistoryDrawer(false);
+            }}
+            className={cn(
+              "w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all text-left",
+              activeNav === "home" && !showHistoryDrawer
+                ? "bg-[#251D12] text-gold border border-gold/40 shadow-xs"
+                : "text-stone-300 hover:bg-[#1A150F] hover:text-stone-100"
+            )}
+          >
+            <Home className="h-4 w-4 text-gold shrink-0" />
+            <span>Home</span>
+          </button>
+
+          {/* History */}
+          <button
+            type="button"
+            onClick={() => setShowHistoryDrawer(!showHistoryDrawer)}
+            className={cn(
+              "w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all text-left",
+              showHistoryDrawer
+                ? "bg-[#251D12] text-gold border border-gold/40 shadow-xs"
+                : "text-stone-300 hover:bg-[#1A150F] hover:text-stone-100"
+            )}
+          >
+            <span className="flex items-center gap-3">
+              <Clock className="h-4 w-4 text-stone-400 shrink-0" />
+              <span>History</span>
+            </span>
+            {conversations.length > 0 && (
+              <span className="rounded-full bg-gold/15 text-gold text-[10px] px-1.5 py-0.2 font-mono">
+                {conversations.length}
+              </span>
+            )}
+          </button>
+
+          {/* Bookmarks */}
+          <button
+            type="button"
+            onClick={() => {
+              onOpenPins();
+              onClose();
+            }}
+            className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-stone-300 hover:bg-[#1A150F] hover:text-stone-100 transition-all text-left"
+          >
+            <span className="flex items-center gap-3">
+              <Bookmark className="h-4 w-4 text-stone-400 shrink-0" />
+              <span>Bookmarks</span>
+            </span>
+            {pinnedCount > 0 && (
+              <span className="rounded-full bg-gold/15 text-gold text-[10px] px-1.5 py-0.2 font-mono">
+                {pinnedCount}
+              </span>
+            )}
+          </button>
+
+          {/* Documents */}
+          <button
+            type="button"
+            onClick={() => {
+              onOpenDocs();
+              onClose();
+            }}
+            className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-stone-300 hover:bg-[#1A150F] hover:text-stone-100 transition-all text-left"
+          >
+            <span className="flex items-center gap-3">
+              <FileText className="h-4 w-4 text-stone-400 shrink-0" />
+              <span>Documents</span>
+            </span>
+            {selectedDocsCount > 0 && (
+              <span className="rounded-full bg-gold/15 text-gold text-[10px] px-1.5 py-0.2 font-mono">
+                {selectedDocsCount}
+              </span>
+            )}
+          </button>
+
+          {/* Settings */}
+          <button
+            type="button"
+            onClick={() => {
+              if (onOpenSettings) onOpenSettings();
+              onClose();
+            }}
+            className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-stone-300 hover:bg-[#1A150F] hover:text-stone-100 transition-all text-left cursor-pointer"
+          >
+            <Settings className="h-4 w-4 text-stone-400 shrink-0" />
+            <span>Settings</span>
+          </button>
+        </div>
+
+        {/* ── SUGGESTED TOPICS Section ── */}
+        <div className="relative z-10 mt-3 pt-3 border-t border-[#2C2114]/80 flex flex-col flex-1 min-h-0">
+          <div className="flex items-center justify-between px-1 mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gold/70">
+              Suggested Topics
+            </span>
+            <span className="text-gold/40 text-[10px]">✦</span>
           </div>
-        )}
 
-        {/* Scrollable content */}
-        {!collapsed && (
-          <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-y-auto scrollbar-thin">
-            {/* Provider selector */}
-            <ProviderSelector />
-
-            {/* Conversation history */}
-            <div>
-              <button
-                type="button"
-                onClick={() => setHistoryOpen(!historyOpen)}
-                className="flex w-full items-center gap-1.5 px-1 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 transition-colors hover:text-foreground"
-              >
-                {historyOpen ? (
-                  <ChevronDown className="h-3 w-3" />
+          {/* Scrollable Topics List */}
+          <div className="flex-1 overflow-y-auto scrollbar-thin space-y-1.5 pr-0.5 min-h-0">
+            {showHistoryDrawer ? (
+              /* Conversation History Drawer */
+              <div className="space-y-1 animate-fade-in">
+                {conversations.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-stone-500">
+                    No past conversations yet
+                  </div>
                 ) : (
-                  <ChevronRight className="h-3 w-3" />
-                )}
-                <MessageSquare className="h-3 w-3" />
-                Recent Chats
-              </button>
-
-              {historyOpen && (
-                <div className="mt-1 space-y-1 max-h-[320px] overflow-y-auto scrollbar-thin">
-                  {conversations.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border/60 px-3 py-5 text-center transition-colors hover:border-border">
-                      <p className="text-xs text-muted-foreground">
-                        No conversations yet
-                      </p>
-                      <p className="mt-1 text-[10px] text-muted-foreground/60">
-                        Start a chat and it will auto-save here
-                      </p>
-                    </div>
-                  ) : (
-                    conversations.map((conv) => (
+                  conversations.map((conv) => {
+                    const isActive = conv.sessionId === activeSessionId;
+                    return (
                       <div
                         key={conv.id}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => handleLoadConversation(conv)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            handleLoadConversation(conv);
-                          }
-                        }}
+                        onClick={() => handleSelectConversation(conv)}
                         className={cn(
-                          "group flex w-full cursor-pointer items-start gap-2 rounded-lg border border-border/40 px-2.5 py-2 text-left transition-all",
-                          "hover:border-primary/30 hover:bg-secondary/50 focus:outline-none focus:ring-1 focus:ring-primary/30",
-                          currentSessionId === conv.sessionId && "border-primary/30 bg-primary/5",
+                          "group relative flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-all cursor-pointer",
+                          isActive
+                            ? "bg-gold/15 text-gold border border-gold/40"
+                            : "text-stone-300 hover:bg-[#1A150F] hover:text-white border border-transparent"
                         )}
                       >
-                        <Clock className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground/60" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[12px] font-medium text-foreground">
-                            {conv.title}
-                          </p>
-                          <div className="mt-0.5 flex items-center gap-2 text-[10px] text-muted-foreground/60">
-                            <span>{formatDate(conv.updatedAt)}</span>
-                            <span>·</span>
-                            <span>{conv.messageCount} msgs</span>
-                          </div>
+                        <div className="min-w-0 flex-1 pr-2">
+                          <p className="truncate font-medium">{conv.title}</p>
+                          <span className="text-[10px] text-stone-500 font-mono">
+                            {formatTime(conv.createdAt)}
+                          </span>
                         </div>
                         <button
                           type="button"
-                          onClick={(e: React.MouseEvent) => handleDeleteConversation(e, conv.id)}
-                          className="mt-0.5 shrink-0 rounded p-0.5 text-muted-foreground/30 opacity-0 transition-all hover:text-destructive group-hover:opacity-100"
-                          title="Delete conversation"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            dispatch(deleteConversation(conv.id));
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-stone-400 hover:text-red-400 transition-opacity"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
                       </div>
-                    ))
-                  )}
-                </div>
-              )}
+                    );
+                  })
+                )}
+              </div>
+            ) : (
+              SUGGESTED_TOPICS.map((topic) => {
+                const Icon = topic.icon;
+                return (
+                  <button
+                    key={topic.id}
+                    type="button"
+                    onClick={() => handlePickTopic(topic.prompt)}
+                    className="w-full group flex items-center gap-2.5 rounded-xl border border-transparent hover:border-[#3C301D] bg-transparent hover:bg-[#16120C] p-2 text-left transition-all cursor-pointer"
+                  >
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gold/30 bg-[#1F1910] text-gold group-hover:border-gold/60 group-hover:scale-105 transition-all">
+                      <Icon className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-heading text-[12.5px] font-semibold text-stone-200 group-hover:text-gold transition-colors truncate leading-tight">
+                        {topic.titleKm}
+                      </p>
+                      <p className="text-[10.5px] font-sans text-stone-400 group-hover:text-stone-300 truncate leading-tight mt-0.5">
+                        {topic.titleEn}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* ── Bottom Wisdom Card (ចេះ ឈ្នះ ងងឹត - Knowledge is Power) ── */}
+        <div className="relative z-10 mt-3 pt-2 shrink-0">
+          <div className="relative rounded-2xl border border-amber-600/40 bg-gradient-to-br from-[#1A140D] via-[#14100A] to-[#0D0A07] p-3 text-center shadow-lg shadow-black/60 overflow-hidden group">
+            {/* Ornate Corner Elements */}
+            <div className="absolute top-1.5 left-1.5 text-gold/60 pointer-events-none">
+              <KbachCorner className="h-3.5 w-3.5" />
+            </div>
+            <div className="absolute top-1.5 right-1.5 rotate-90 text-gold/60 pointer-events-none">
+              <KbachCorner className="h-3.5 w-3.5" />
+            </div>
+            <div className="absolute bottom-1.5 left-1.5 -rotate-90 text-gold/60 pointer-events-none">
+              <KbachCorner className="h-3.5 w-3.5" />
+            </div>
+            <div className="absolute bottom-1.5 right-1.5 rotate-180 text-gold/60 pointer-events-none">
+              <KbachCorner className="h-3.5 w-3.5" />
+            </div>
+
+            {/* Wisdom Content */}
+            <p className="font-heading text-sm font-bold text-[#E5C058] tracking-normal pt-0.5">
+              “ចេះ ឈ្នះ ងងឹត”
+            </p>
+            <p className="text-[11px] font-sans text-stone-400 font-normal mt-0.5">
+              Knowledge is Power
+            </p>
+            <div className="mt-1.5 flex justify-center text-gold/70">
+              <KbachLotus className="h-4 w-4" />
             </div>
           </div>
-        )}
-
-        {collapsed && <div className="flex-1" />}
-
-        {/* Footer */}
-        {!collapsed && (
-          <div className="pt-3 mt-auto border-t border-sidebar-border space-y-2 text-xs text-muted-foreground shrink-0">
-            <div>
-              <p className="uppercase tracking-wider text-[10px] text-muted-foreground/70">
-                Powered by
-              </p>
-              <p className="mt-0.5 flex items-center gap-1.5 text-sm text-foreground">
-                <Sparkles className="h-3.5 w-3.5 text-primary" /> Google Gemini
-              </p>
-            </div>
-            <div className="text-[11px]">
-              <p>Made in Cambodia 🇰🇭</p>
-              <p className="mt-0.5 flex items-center gap-1">
-                <MapPin className="h-3 w-3 inline" /> Phnom Penh · Cambodia
-              </p>
-            </div>
-          </div>
-        )}
-
-        {collapsed && (
-          <div className="hidden md:flex justify-center pt-3 mt-auto border-t border-sidebar-border shrink-0">
-            <Sparkles className="h-4 w-4 text-primary" aria-label="Powered by Gemini" />
-          </div>
-        )}
+        </div>
       </aside>
     </>
   );
-}
+});

@@ -54,10 +54,14 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ['"Inter"', "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
-        khmer: ['"Noto Sans Khmer"', '"Battambang"', "system-ui", "sans-serif"],
-        display: ['"Playfair Display"', "Georgia", "serif"],
+        sans: ['"Inter"', '"Noto Sans Khmer"', "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        khmer: ['"Noto Sans Khmer"', '"Inter"', "system-ui", "sans-serif"],
+        heading: ['"Kantumruy Pro"', '"Noto Sans Khmer"', '"Inter"', "sans-serif"],
+        "khmer-heading": ['"Kantumruy Pro"', '"Noto Sans Khmer"', '"Inter"', "sans-serif"],
+        display: ['"Kantumruy Pro"', '"Inter"', "Georgia", "serif"],
         mono: [
+          "JetBrains Mono",
+          "Fira Code",
           "ui-monospace",
           "SFMono-Regular",
           "Menlo",

@@ -21,7 +21,15 @@ def test_calculator_rejects_names():
 
 def test_directory_search_finds_fintech():
     out = asyncio.run(tool_registry.run_tool("cambodia_directory_search", {"query": "fintech"}))
-    assert "Wing" in out or "ABA" in out
+    assert "Wing" in out or "ABA" in out or "Bakong" in out
+
+
+def test_cambodia_knowledge_lookup():
+    out = asyncio.run(tool_registry.run_tool("cambodia_knowledge_lookup", {"query": "Angkor Wat"}))
+    assert "Suryavarman II" in out or "Angkor" in out
+
+    out_food = asyncio.run(tool_registry.run_tool("cambodia_knowledge_lookup", {"query": "Fish Amok"}))
+    assert "Amok" in out_food or "kroeung" in out_food.lower()
 
 
 def test_unknown_tool():

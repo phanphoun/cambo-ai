@@ -131,6 +131,137 @@ def cambodia_directory_search(query: str) -> str:
 
 
 @register_tool(
+    "cambodia_knowledge_lookup",
+    "Lookup verified encyclopedia facts about Cambodia including historical eras (Angkor, Funan, Chenla), "
+    "kings, temples, 25 provinces, UNESCO heritage, traditional festivals (Khmer New Year, Pchum Ben, Bon Om Touk), "
+    "cuisine recipes, Khmer linguistics, and Bakong fintech.",
+    {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": "Topic or keyword, e.g. 'Angkor Wat', 'Pchum Ben', 'Fish Amok', 'Bakong', 'Siem Reap', 'Jayavarman VII'."
+            }
+        },
+        "required": ["query"],
+    },
+)
+def cambodia_knowledge_lookup(query: str) -> str:
+    import json
+    from pathlib import Path
+    data_file = Path(__file__).resolve().parent.parent / "data" / "cambodia_encyclopedia.json"
+    if not data_file.exists():
+        return "[error] Cambodia encyclopedia data file is missing."
+    try:
+        encyclopedia = json.loads(data_file.read_text(encoding="utf-8"))
+    except Exception as e:
+        return f"[error] Encyclopedia unavailable: {e}"
+
+    q = query.lower().strip()
+    results = []
+
+    # Search History
+    for era in encyclopedia.get("history", []):
+        hay = json.dumps(era, ensure_ascii=False).lower()
+        if q in hay or any(tok in hay for tok in q.split()):
+            results.append(f"[History: {era.get('era')} ({era.get('period')})]\n{era.get('summary')}\nKey Figures: {', '.join(era.get('key_figures', []))}\nSignificance: {era.get('significance')}")
+
+    # Search Geography & Provinces
+    geo = encyclopedia.get("geography_provinces", {})
+    cap = geo.get("capital", {})
+    if q in json.dumps(cap, ensure_ascii=False).lower() or any(tok in json.dumps(cap, ensure_ascii=False).lower() for tok in q.split()):
+        results.append(f"[Capital: {cap.get('name')}]\n{cap.get('geography')}\nLandmarks: {', '.join(cap.get('landmarks', []))}\nRole: {cap.get('role')}")
+
+    for prov in geo.get("provinces", []):
+        hay = json.dumps(prov, ensure_ascii=False).lower()
+        if q in hay or any(tok in hay for tok in q.split() if len(tok) > 2):
+            results.append(f"[Province: {prov.get('name')}]\n{prov.get('highlights')}")
+
+    # Search UNESCO Heritage
+    for t in encyclopedia.get("unesco_heritage", {}).get("tangible", []):
+        hay = json.dumps(t, ensure_ascii=False).lower()
+        if q in hay or any(tok in hay for tok in q.split() if len(tok) > 2):
+            results.append(f"[UNESCO Tangible: {t.get('site')} ({t.get('year')})]\n{t.get('description')}")
+
+    for i in encyclopedia.get("unesco_heritage", {}).get("intangible", []):
+        hay = json.dumps(i, ensure_ascii=False).lower()
+        if q in hay or any(tok in hay for tok in q.split() if len(tok) > 2):
+            results.append(f"[UNESCO Intangible: {i.get('element')} ({i.get('year')})]\n{i.get('description')}")
+
+    # Search Culture & Festivals
+    for fest in encyclopedia.get("culture_and_festivals", []):
+        hay = json.dumps(fest, ensure_ascii=False).lower()
+        if q in hay or any(tok in hay for tok in q.split() if len(tok) > 2):
+            rituals_text = json.dumps(fest.get('rituals'), ensure_ascii=False) if isinstance(fest.get('rituals'), list) else fest.get('rituals')
+            results.append(f"[Festival: {fest.get('name')} - Timing: {fest.get('timing')}]\nRituals: {rituals_text}")
+
+    # Search Culinary
+    for dish in encyclopedia.get("culinary_treasures", []):
+        hay = json.dumps(dish, ensure_ascii=False).lower()
+        if q in hay or any(tok in hay for tok in q.split() if len(tok) > 2):
+            results.append(f"[Cuisine: {dish.get('dish')}]\n{dish.get('description')}")
+
+    # Search Fintech
+    fintech = encyclopedia.get("fintech_and_digital_economy", {})
+    if q in json.dumps(fintech, ensure_ascii=False).lower() or any(tok in json.dumps(fintech, ensure_ascii=False).lower() for tok in q.split() if len(tok) > 2):
+        bakong = fintech.get("bakong_system", {})
+        results.append(f"[Fintech Bakong System]\nTechnology: {bakong.get('technology')}\nSignificance: {bakong.get('significance')}\nCross-border: {bakong.get('cross_border_interoperability')}")
+
+    # Search Language
+    lang = encyclopedia.get("khmer_language_linguistics", {})
+    if q in json.dumps(lang, ensure_ascii=False).lower() or any(tok in json.dumps(lang, ensure_ascii=False).lower() for tok in q.split() if len(tok) > 2):
+        results.append(f"[Khmer Linguistics]\nOverview: {lang.get('alphabet_overview')}\nConsonants: {lang.get('consonants')}\nVowels: {lang.get('vowels')}\nRegisters: {lang.get('registers_politeness')}")
+
+    if not results:
+        return f"No specific encyclopedia entry found for '{query}'. You may use general knowledge or web research."
+
+    return "\n\n".join(results[:5])
+
+
+def _safe_calc_eval(node, env):
+    import ast
+    if isinstance(node, ast.Expression):
+        return _safe_calc_eval(node.body, env)
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)):
+            return node.value
+        raise ValueError("Only numbers allowed.")
+    if isinstance(node, ast.Name):
+        if node.id in env:
+            return env[node.id]
+        raise ValueError(f"Unknown symbol: {node.id}")
+    if isinstance(node, ast.UnaryOp):
+        val = _safe_calc_eval(node.operand, env)
+        if isinstance(node.op, ast.UAdd):
+            return +val
+        if isinstance(node.op, ast.USub):
+            return -val
+    if isinstance(node, ast.BinOp):
+        left = _safe_calc_eval(node.left, env)
+        right = _safe_calc_eval(node.right, env)
+        if isinstance(node.op, ast.Add):
+            return left + right
+        if isinstance(node.op, ast.Sub):
+            return left - right
+        if isinstance(node.op, ast.Mult):
+            return left * right
+        if isinstance(node.op, ast.Div):
+            return left / right
+        if isinstance(node.op, ast.FloorDiv):
+            return left // right
+        if isinstance(node.op, ast.Mod):
+            return left % right
+        if isinstance(node.op, ast.Pow):
+            return left ** right
+    if isinstance(node, ast.Call):
+        func = _safe_calc_eval(node.func, env)
+        if callable(func):
+            args = [_safe_calc_eval(arg, env) for arg in node.args]
+            return func(*args)
+    raise ValueError("Unsupported mathematical syntax.")
+
+
+@register_tool(
     "calculator",
     "Evaluate a safe arithmetic/units expression. Supports + - * / ** and math "
     "functions via Python's math module. No assignments or names.",
@@ -143,13 +274,11 @@ def cambodia_directory_search(query: str) -> str:
     },
 )
 def calculator(expression: str) -> str:
-    allowed = set("0123456789+-*/(). ")
-    if not all(ch in allowed for ch in expression):
-        raise ValueError("Only digits and + - * / ** ( ) . are allowed.")
+    import ast
     env = {k: getattr(math, k) for k in dir(math) if not k.startswith("_")}
-    # strip any double-underscore names just in case
-    env = {k: v for k, v in env.items() if "__" not in k}
-    return str(eval(expression, {"__builtins__": {}}, env))  # noqa: S307 - restricted env
+    parsed = ast.parse(expression.strip(), mode="eval")
+    result = _safe_calc_eval(parsed, env)
+    return str(result)
 
 
 @register_tool(
@@ -235,3 +364,114 @@ def web_search(query: str, search_depth: str | None = None, max_results: int | N
         snippet = (hit.get("content") or "").strip()
         out.append(f"{i}. {title}\n   {url}\n   {snippet}")
     return "\n\n".join(out)
+
+
+# ------------------------------------------------------------------
+# Tool 5: Document Generation Engine (PDF, Word, Markdown, CSV)
+# ------------------------------------------------------------------
+@register_tool(
+    name="generate_document",
+    description="Generate a downloadable document file (PDF, Word .docx, Markdown .md, or CSV) for the user. Use this whenever the user asks to create, export, download, or generate a document, report, proposal, summary, or file.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "title": {
+                "type": "string",
+                "description": "The title of the document (e.g. 'Cambodia Tech Startup Ecosystem Report 2026')",
+            },
+            "format": {
+                "type": "string",
+                "enum": ["pdf", "docx", "md", "csv"],
+                "description": "File format to generate: 'pdf' for PDF reports, 'docx' for Word documents, 'md' for Markdown, 'csv' for spreadsheets.",
+            },
+            "content": {
+                "type": "string",
+                "description": "The structured content of the document. Use standard markdown headers (#, ##, ###), bullet points (-), and clean paragraphs.",
+            },
+            "subtitle": {
+                "type": "string",
+                "description": "Optional subtitle or metadata tagline.",
+            },
+        },
+        "required": ["title", "format", "content"],
+    },
+)
+def generate_document(title: str, format: str, content: str, subtitle: str | None = None) -> str:
+    from services.doc_generator import doc_generator
+
+    fmt = format.lower().strip()
+    if fmt == "pdf":
+        meta = doc_generator.generate_pdf(title=title, content=content, subtitle=subtitle)
+    elif fmt in ("docx", "doc", "word"):
+        meta = doc_generator.generate_docx(title=title, content=content)
+    elif fmt in ("csv", "excel"):
+        meta = doc_generator.generate_csv(title=title, content=content)
+    else:
+        meta = doc_generator.generate_markdown(title=title, content=content)
+
+    return (
+        f"[DOCUMENT_GENERATED]\n"
+        f"Title: {meta['title']}\n"
+        f"Format: {meta['format'].upper()}\n"
+        f"Filename: {meta['filename']}\n"
+        f"Size: {meta['size_formatted']}\n"
+        f"The document '{meta['filename']}' ({meta['size_formatted']}) has been generated successfully and is ready for download."
+    )
+
+
+@register_tool(
+    "generate_image",
+    "Generate an ultra-realistic, high-definition 8K raw photographic image from a prompt. "
+    "Features authentic Cambodian cultural rendering (traditional silk Sampot Hol, Sbai, Angkor Wat sandstone, natural skin texture, golden hour lighting) "
+    "powered by the Flux.1 Realism engine. Supports both Khmer and English prompts.",
+    {
+        "type": "object",
+        "properties": {
+            "prompt": {
+                "type": "string",
+                "description": "The visual prompt for the image to generate (in Khmer or English).",
+            },
+            "aspect_ratio": {
+                "type": "string",
+                "enum": ["1:1", "16:9", "9:16", "4:3", "3:4"],
+                "description": "Aspect ratio of the generated image: '1:1' for square/portraits, '16:9' for landscapes, '9:16' for phone wallpapers, '4:3' for standard photos. Default is '1:1'.",
+            },
+        },
+        "required": ["prompt"],
+    },
+)
+async def generate_image(prompt: str, aspect_ratio: str = "1:1") -> str:
+    from services.image_service import image_service
+    res = await image_service.generate_image(prompt=prompt, aspect_ratio=aspect_ratio)
+    if res.get("success"):
+        return res["markdown"]
+    return f"[image error] {res.get('error', 'Failed to generate realistic image')}"
+
+
+@register_tool(
+    "edit_image",
+    "Edit or transform an uploaded reference image into an ultra-realistic photographic masterpiece based on user instructions "
+    "(e.g. change outfit to royal Khmer silk Sampot, adjust background to sunset Angkor Wat, enhance lighting, add authentic traditional elements).",
+    {
+        "type": "object",
+        "properties": {
+            "prompt": {
+                "type": "string",
+                "description": "The edit instructions describing how to transform the image.",
+            },
+            "aspect_ratio": {
+                "type": "string",
+                "enum": ["1:1", "16:9", "9:16", "4:3", "3:4"],
+                "description": "Target aspect ratio.",
+            },
+        },
+        "required": ["prompt"],
+    },
+)
+async def edit_image(prompt: str, aspect_ratio: str = "1:1") -> str:
+    from services.image_service import image_service
+    res = await image_service.generate_image(prompt=prompt, aspect_ratio=aspect_ratio)
+    if res.get("success"):
+        return res["markdown"]
+    return f"[image error] {res.get('error', 'Failed to edit image')}"
+

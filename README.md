@@ -1,496 +1,279 @@
-# 🇰🇭 CAMBO AI — Cambodia's First AI Assistant
+# 🇰🇭 SASTRA AI (CAMBO AI) — Cambodia's Sovereign Intelligence Platform
 
-A production-ready, full-stack AI chatbot powered by **Google Gemini 2.0 Flash**. Built with a FastAPI backend and a modern React + TypeScript frontend — designed to demonstrate clean architecture, conversational memory, and a focus on Cambodia's tech ecosystem.
+A production-ready, full-stack sovereign AI intelligence ecosystem powered by **Google Gemini 3.7 Flash**, **MiniMax M3 Cloud**, and **Local Ollama Engines**. Features a FastAPI backend with **PostgreSQL**, **JWT Authentication**, a **React 19 User Chat Portal**, and a standalone **Enterprise Admin Telemetry & Model Management Portal**.
 
 ![Status](https://img.shields.io/badge/status-active-success)
-![Python](https://img.shields.io/badge/python-3.10+-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
+![Python](https://img.shields.io/badge/python-3.11+-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.141-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
 ![React](https://img.shields.io/badge/React-19-61dafb)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)
+![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178c6)
+![Docker](https://img.shields.io/badge/Docker-compose-2496ed)
 ![License](https://img.shields.io/badge/license-MIT-purple)
 
 ---
 
-## ✨ Features
-
-- 🤖 **AI Chat** — Powered by Google Gemini (multimodal, multi-provider: Gemini, local Ollama, Ollama Cloud)
-- 🇰🇭 **Cambodia-First** — System prompt prioritizes Khmer tech companies, hubs, and ecosystem
-- 💬 **Conversational Memory** — Server-side session history with `/api/chat/{id}` lifecycle
-- 🖼️ **Multimodal Input** — Paste, drop, or attach images; the model sees them (OCR, describe, code-from-screenshot)
-- 📚 **RAG over Documents** — Upload PDFs / text / URLs, then ask questions grounded in them with citations
-- 🛠️ **Function Calling / Tools** — The assistant can browse the Cambodia directory, fetch URLs, run a calculator, and query your RAG docs
-- ⚡ **Smart UX** — Animated typing cursor, auto-scroll, Enter-to-send, Shift+Enter for newline, voice input
-- 🎨 **Modern UI** — Dark-themed, fully responsive, Tailwind + shadcn/ui components
-- 🔌 **RESTful API** — Auto-generated Swagger docs at `/docs`
-- 🛡️ **Type-safe** — Pydantic on the backend, TypeScript on the frontend
-- 📦 **Clean Architecture** — Services, routes, models separated; request-ID + structured logging + rate limiting
-- 🚀 **Deploy Anywhere** — Vercel/Netlify (frontend) + Render/Railway (backend)
-
----
-
-## 🖼️ Demo
-
-> 🎥 *Coming soon — deploy and add your screenshots here*
+## 🏛️ System Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│  ⚡ CAMBO AI Assistant          ● Online     │
-├─────────────────────────────────────────────┤
-│                                             │
-│  👤 What is RAG in AI?                      │
-│  ┌────────────────────────────────────┐     │
-│  │ RAG stands for Retrieval-Augmented │     │
-│  │ Generation. It's a technique where │     │
-│  │ we retrieve relevant documents...  │     │
-│  └────────────────────────────────────┘     │
-│                                             │
-│  ⚡ Explain it like I'm 5                   │
-│  ┌────────────────────────────────────┐     │
-│  │ Imagine you have an open-book      │     │
-│  │ exam...                            │     │
-│  └────────────────────────────────────┘     │
-│                                             │
-│  [ Message CAMBO AI...                📤 ] │
-└─────────────────────────────────────────────┘
+                                  ┌─────────────────────────────────────────┐
+                                  │           SASTRA AI CLIENTS             │
+                                  └────────────────────┬────────────────────┘
+                                                       │
+                           ┌───────────────────────────┴───────────────────────────┐
+                           ▼                                                       ▼
+        ┌─────────────────────────────────────┐                 ┌─────────────────────────────────────┐
+        │       User Chat Workspace           │                 │      Admin Telemetry Cockpit        │
+        │   (frontend/ — Port 5173)           │                 │   (admin-site/ — Port 5174)         │
+        │  React 19 + Redux + Khmer Theme     │                 │  React 19 + Real-Time Telemetry     │
+        └──────────────────┬──────────────────┘                 └──────────────────┬──────────────────┘
+                           │                                                       │
+                           └───────────────────────────┬───────────────────────────┘
+                                                       ▼
+                                        ┌─────────────────────────────┐
+                                        │       FastAPI Backend       │
+                                        │   (backend/ — Port 8000)    │
+                                        │  Auth + Telemetry + RAG     │
+                                        └──────────────┬──────────────┘
+                                                       │
+                ┌──────────────────────────────────────┼──────────────────────────────────────┐
+                ▼                                      ▼                                      ▼
+┌─────────────────────────────┐        ┌─────────────────────────────┐        ┌─────────────────────────────┐
+│    PostgreSQL 16 Database   │        │     AI Model Provider Hub   │        │    Vector Store & RAG       │
+│  (Docker — Port 5432)       │        │  • Gemini 3.7 Flash         │        │  • 384-dim Embeddings       │
+│  • Users & RBAC             │        │  • MiniMax M3 Cloud         │        │  • Document Chunking        │
+│  • Custom AI Endpoints      │        │  • Ollama Local Engine      │        │  • Web Search Grounding     │
+│  • Audit & Telemetry Logs   │        │  • Custom LLMs (OpenAI/etc) │        │  • Cambodia Sector DB       │
+└─────────────────────────────┘        └─────────────────────────────┘        └─────────────────────────────┘
 ```
 
 ---
 
-## 🏗️ Architecture
+## ✨ Core Highlights & Features
 
-```
-┌─────────────────┐         ┌──────────────────┐         ┌─────────────────┐
-│                 │   HTTP   │                  │   API   │                 │
-│  React Frontend │ ◄─────► │  FastAPI Backend │ ◄─────► │  Google Gemini  │
-│  (Vite + TS)    │   JSON  │  (Python)        │         │  2.0 Flash      │
-│  Redux Toolkit  │         │                  │         │                 │
-└─────────────────┘         └──────────────────┘         └─────────────────┘
-        │                            │
-        │                            │
-   Port 5173                    Port 8000
-                            (Swagger /docs)
-```
+### 1. 🤖 Sovereign AI Multi-Provider Engine
+- **Google Gemini 3.7 Flash**: High-speed reasoning with multimodal vision & Google Web Grounding.
+- **MiniMax M3 / Cloud AI**: High-throughput reasoning cluster for deep technical code generation.
+- **Ollama Local Engine**: 100% offline, zero cloud egress running open-source weights (`localhost:11434`).
+- **Custom Provider Registration**: Add OpenAI, DeepSeek, Claude, or custom self-hosted inference servers on the fly.
 
-### Frontend Structure (`frontend/`)
+### 2. 🔐 Authentication & Role-Based Access (RBAC)
+- **PBKDF2-HMAC-SHA256** salted password hashing (100,000 rounds).
+- **HMAC-SHA256 JSON Web Tokens (JWT)** with 7-day session validity.
+- **1-Click Demo Guest Mode** for instant access without registration friction.
+- Roles: `admin`, `member`, `guest`.
 
-```
-src/
-├── components/             # React UI components
-│   ├── ui/                 # shadcn/ui primitives (Button, …)
-│   ├── ChatInput.tsx       # Auto-resizing textarea + send
-│   ├── ChatContainer.tsx   # Message list + typing cursor
-│   ├── Sidebar.tsx         # Brand + New Chat + footer
-│   ├── Topbar.tsx          # Title + status indicator
-│   └── WelcomeScreen.tsx   # Greeting + suggestion chips
-├── features/
-│   └── chat/
-│       ├── chatApi.ts      # RTK Query API (endpoints, hooks)
-│       └── chatSlice.ts    # Redux slice (session, messages)
-├── lib/utils.ts            # cn() + formatTime() helpers
-├── store.ts                # Redux store configuration
-├── types/chat.ts           # Shared TS types (Message, ChatRequest…)
-├── App.tsx                 # Root component, state orchestration
-├── main.tsx                # React entry + Redux Provider
-└── index.css               # Tailwind base + design tokens
-```
+### 3. 👥 Standalone Admin Telemetry Cockpit (`admin-site/`)
+- **User Management**: Search user accounts, promote/demote roles, delete accounts, or create new users.
+- **AI Model Hub**: Manage AI engines, add custom API endpoints, and execute live **Connection Ping Tests** with real-time latency (`ms`) feedback.
+- **Live Telemetry & Workload Distribution**: Real-time charts of invocations, average latency, tokens processed, error rate, and provider workload share.
+- **Activity Audit Trail**: Filterable event log tracing all user actions, endpoints, status codes, and latencies.
 
-### Backend Structure
+### 4. 📄 AI Document Generation Engine
+- **Multi-Format Export**: Generate professional **PDF** reports with Sastra branding & page numbering, formatted Microsoft Word (**`.docx`**) proposals, **Markdown** briefs, and **CSV** data tables.
+- **Natural Language Triggering**: Simply prompt the AI: *"Generate a PDF report on Cambodia tech startups"* or *"Create a Word document proposal for my app"* — the AI invokes the `generate_document` tool and renders an interactive Download Card directly in chat.
+- **1-Click Message Export**: Export any assistant response to PDF, DOCX, or Markdown using the **Export** menu on each message bubble.
 
-```
-backend/
-├── app.py                  # Main FastAPI app + lifespan
-├── config.py               # Environment settings
-├── models/
-│   └── schemas.py          # Pydantic request/response models
-├── services/
-│   ├── gemini_service.py   # All Gemini API logic (SRP)
-│   └── chat_history.py     # Session memory
-├── routes/
-│   ├── chat.py             # /api/ask, /api/chat, /api/ask/stream
-│   └── health.py           # /, /health
-├── requirements.txt
-└── .env.example
-```
-
-### Why this structure?
-
-- **Separation of concerns** — Routes handle HTTP, services handle business logic
-- **React 19** | UI library |
-| **TypeScript 5** | Type safety |
-| **Vite 8** | Dev server + build tool |
-| **Tailwind CSS v3** | Utility-first styling |
-| **shadcn/ui** | Accessible component primitives |
-| **Redux Toolkit** | State management |
-| **RTK Query** | Data fetching + caching |
-| **lucide-react** | Icon setteams organize code
+### 5. 💬 User Chat Experience (`frontend/`)
+- **Khmer Sanctuary Theme**: Dark Basalt & Sacred Gold aesthetics with Khmer Lotus medallions and Kbach corners.
+- **Slash Commands (`/`)**: Type `/` to open an autocomplete command palette for sectors (`/techstartups`, `/fintech`, `/ecommerce`), verified companies (`/skai`, `/koompi`, `/bakong`), and AI modes.
+- **Keyboard Shortcuts**: <kbd>Ctrl + B</kbd> / <kbd>Cmd + B</kbd> to toggle the sidebar smoothly with global capture.
+- **RAG & Multimodal**: Upload PDFs, documents, or drop images for instant OCR and grounded answers.
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 Quick Start Guide
 
-### Backend
-
-| Tool | Purpose |
-|---|---|
-| **Python 3.10+** | Core language |
-| **FastAPI** | Web framework (async, fast, typed) |
-| **Pydantic v2** | Data validation & settings |
-| **google-genai** | Official Google Gemini SDK |
-| **uvicorn** | ASGI server |
-| **python-dotenv** | Environment variable management |
-
-### Frontend
-
-| Tool | Purpose |
-|---|---|
-| **HTML5** | Structure |
-| **CSS3** | Styling (custom variables, no framework) |
-| **Vanilla JavaScript** | Logic (ES6+, fetch API) |
-| **Inter Font** | Typography |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.10 or higher
-- A free Google Gemini API key — get one at [aistudio.google.com](https://aistudio.google.com/app/apikey)
-
-### 1. Clone the repository
+### 1. Start Database & pgAdmin (Docker)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/cambo-ai-assistant.git
-cd cambo-ai-assistant
+# Start PostgreSQL 16, pgAdmin 4, and Adminer in background
+docker compose up -d
 ```
 
-### 2. Backend setup
+| Service | URL / Port | Credentials |
+| :--- | :--- | :--- |
+| **PostgreSQL 16** | `localhost:5432` | User: `postgres` / Pass: `password123` / DB: `cambo_ai` |
+| **pgAdmin 4** | [http://localhost:5050](http://localhost:5050) | Email: `admin@sastra.ai` / Pass: `admin` |
+| **Adminer UI** | [http://localhost:8088](http://localhost:8088) | Server: `postgres` / Pass: `password123` |
+
+---
+
+### 2. Start FastAPI Backend
 
 ```bash
 cd backend
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate        # macOS/Linux
-# .venv\Scripts\activate         # Windows
+# Install dependencies with uv (or pip)
+uv pip install -r requirements.txt
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
+# Start backend server with auto-reload (port 8000)
+uv run uvicorn app:app --reload --port 8000
 ```
 
-Your `.env` should look like:
-
-```env
-GEMINI_API_KEY=AIzaSy...your_key_here
-APP_NAME=CAMBO AI Assistant
-APP_VERSION=1.0.0
-DEBUG=True
-ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-```
-
-### 3. Run the backend
-
-```bash
-uvicorn app:app --reload --port 8000
-```
-
-✅ Backend running at: **http://localhost:8000**
-📚 API docs at: **http://localhost:8000/docs**
-
-### 4. Frontend setup
-npm install
-npm run dev
-```
-
-✅ Frontend running at: **http://localhost:5173**
-
-Open **http://localhost:5173** in your browser and start chatting! 🎉
-
-To build for production:
-
-```bash
-npm run build      # outputs to dist/
-npm run preview    # preview the production build
-```
-```
-
-✅ Frontend running at: **http://localhost:5500**
-
-Open **http://localhost:5500** in your browser and start chatting! 🎉
+> **API Documentation (Swagger)**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 📡 API Reference
-
-Base URL: `http://localhost:8000`
-
-### Health & Meta
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Service info |
-| `GET` | `/health` | Health check |
-| `GET` | `/docs` | Interactive Swagger UI |
-
-### Chat Endpoints
-
-#### `POST /api/ask` — Single Q&A (no memory)
-
-**Request:**
-
-```json
-{
-  "question": "What is RAG in AI?"
-}
-```
-
-**Response:**
-
-```json
-{
-  "answer": "RAG stands for Retrieval-Augmented Generation...",
-  "model": "gemini-2.0-flash",
-  "tokens_used": 87
-}
-```
-
-#### `POST /api/chat` — Conversational (with memory)
-
-**Request:**
-
-```json
-{
-  "message": "What is FastAPI?",
-  "session_id": null
-}
-```
-
-**Response:**
-
-```json
-{
-  "reply": "FastAPI is a modern Python web framework...",
-  "model": "gemini-2.0-flash",
-  "session_id": "a3f2b1c4-...",
-  "tokens_used": 124
-}
-```
-
-Send the same `session_id` back on follow-up messages to maintain context.
-
-#### `POST /api/ask/stream` — Streaming (Server-Sent Events)
-
-Streams the response chunk-by-chunk for real-time UX.
-
-#### `DELETE /api/chat/{session_id}` — Clear session
-
-Clears a chat session's history.
-
-#### `POST /api/chat` — New fields (v0.2)
-The conversational endpoint now accepts:
-- `image_data` — array of `data:image/...;base64,...` strings (paste/drop)
-- `image_urls` — array of public image URLs
-- `document_ids` — array of RAG document IDs to ground the answer in
-- `use_tools` — `true` to enable function calling (Gemini)
-
-The response adds `tool_calls` (what the model invoked) and `citations`
-(RAG source passages) when relevant.
-
-### RAG / Documents Endpoints
-
-#### `GET /api/documents` — List uploaded documents
-Returns `{ "documents": [ { id, name, source_type, chunks, ... } ] }`.
-
-#### `POST /api/documents/upload` — Upload a file (multipart)
-Accepts `file` (PDF/text/markdown) and optional `name`. Size-limited by `MAX_DOCUMENT_MB`.
-
-#### `POST /api/documents/url` — Ingest a URL
-Body: `{ "url": "https://...", "name"?: "..." }`.
-
-#### `POST /api/documents/text` — Ingest raw text
-Body: `{ "name": "...", "text": "...", "metadata"?: {} }`.
-
-#### `DELETE /api/documents/{id}` — Delete a document
-
-### Tools Endpoints
-
-#### `GET /api/tools` — List available function-calling tools
-Returns `{ "tools": [ { name, description, parameters } ] }`.
-Current tools: `web_fetch`, `cambodia_directory_search`, `calculator`, `rag_query`.
-
----
-
-## 🧪 Testing the API
-
-### Using cURL
-
-```bash
-# Single Q&A
-curl -X POST http://localhost:8000/api/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What is Python?"}'
-
-# Conversational
-curl -X POST http://localhost:8000/api/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hi! My name is Phan.", "session_id": null}'
-```
-
-### Using the Swagger UI
-
-Visit **http://localhost:8000/docs** and click "Try it out" on any endpoint.
-
-### Using Python
-
-```python
-import requests
-
-r = requests.post(
-    "http://localhost:8000/api/ask",
-    json={"question": "What is FastAPI?"}
-)
-print(r.json()["answer"])
-```
-
----
-
-## 🌐 Deployment
-
-### Backend → Render (Free)
-
-1. Push your code to GitHub
-2. Go to [render.com](https://render.com) → New → Web Service
-3. Connect your repo
-4. Settings:
-   - **Root directory:** `backend`
-   - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `uvicorn app:app --host 0.0.0.0 --port $PORT`
-5. Add environment variable: `GEMINI_API_KEY = your_key`
-6. Click **Deploy** → get a public URL like `https://cambo-ai.onrender.com`
-
-### Frontend → Vercel or Netlify (Free)
-
-**Vercel:**
+### 3. Start User Chat Portal (Frontend)
 
 ```bash
 cd frontend
-npm i -g vercel
-vercel
+
+# Install dependencies (if not already installed)
+npm install
+
+# Start Vite dev server (port 5173)
+npm run dev
 ```
 
-**Netlify:**
+> **User Chat Portal**: [http://localhost:5173](http://localhost:5173)
 
-Drag and drop the `frontend` folder to [netlify.com/drop](https://app.netlify.com/drop)
+---
 
-⚠️ **Important:** After deploying, update `API_BASE` in `frontend/js/app.js` to your backend URL:
+### 4. Start Standalone Admin Portal (`admin-site`)
 
-```javascript
-const API_BASE = 'https://cambo-ai.onrender.com';
+```bash
+cd admin-site
+
+# Start Admin Vite dev server (port 5174)
+npm run dev
 ```
 
-Then redeploy the frontend.
+> **Admin Portal**: [http://localhost:5174](http://localhost:5174)
 
 ---
 
-## 🔐 Environment Variables
+## 🗄️ PostgreSQL Database Schema
 
-| Variable | Default | Description |
-|---|---|---|
-| `GEMINI_API_KEY` | *(required)* | Your Google Gemini API key |
-| `GEMINI_MODEL` | `gemini-2.0-flash` | Gemini model to use |
-| `GEMINI_TEMPERATURE` | `0.3` | Response creativity (0.0 = focused, 1.0 = creative) |
-| `GEMINI_MAX_TOKENS` | `500` | Max response length |
-| `ALLOWED_ORIGINS` | `http://localhost:5500,...` | Comma-separated CORS origins |
-| `DEBUG` | `True` | Enable auto-reload & debug mode |
+```sql
+-- Users & Credentials
+CREATE TABLE users (
+    id VARCHAR(64) PRIMARY KEY,
+    email VARCHAR(128) UNIQUE NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    password_hash VARCHAR(256) NOT NULL,
+    role VARCHAR(32) NOT NULL DEFAULT 'member', -- 'admin', 'member', 'guest'
+    avatar VARCHAR(512),
+    created_at DOUBLE PRECISION NOT NULL,
+    updated_at DOUBLE PRECISION NOT NULL
+);
 
----
+-- Custom AI Providers & Endpoints
+CREATE TABLE custom_providers (
+    id VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(128) NOT NULL,
+    type VARCHAR(32) NOT NULL DEFAULT 'custom',
+    status VARCHAR(32) NOT NULL DEFAULT 'active',
+    base_url VARCHAR(512) NOT NULL,
+    model VARCHAR(128) NOT NULL,
+    api_key VARCHAR(512),
+    latency_ms DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    description TEXT,
+    created_at DOUBLE PRECISION NOT NULL
+);
 
-## 🧠 How It Works
-
-### 1. Conversational Memory
-
-Each chat session gets a unique UUID stored in-memory. When you send a message:
-
-1. Backend retrieves the last 10 turns of history for that session
-2. Builds a prompt with: `system + history + new_message`
-3. Sends to Gemini
-4. Saves the AI's response back to history
-
-> 💡 In production, replace the in-memory dict with **Redis** or a database.
-
-### 2. Streaming
-
-The `/api/ask/stream` endpoint uses Server-Sent Events (SSE) to send chunks of the response as Gemini generates them. This feels **3-5x faster** to users than waiting for the full response.
-
-### 3. System Prompting
-
-The `SYSTEM_PROMPT` in `services/gemini_service.py` defines the AI's:
-
-- **Persona** — "helpful AI assistant for CAMBO"
-- **Scope** — web dev, AI, Cambodia-related questions
-- **Style** — concise, friendly, EN/Khmer bilingual
-- **Constraints** — honest about uncertainty
-
----
-
-## 🛣️ Roadmap
-
-- [ ] Add **RAG endpoint** — upload PDFs, ask questions about them
-- [ ] Add **Redis** for persistent chat history
-- [ ] Add **user authentication** (JWT)
-- [ ] Add **rate limiting** to prevent abuse
-- [ ] Add **Docker** support
-- [ ] Add **unit + integration tests**
-- [ ] Add **WebSocket** support for true real-time bi-directional streaming
-- [ ] Add **multimodal** support (image uploads for Gemini Vision)
-- [ ] Add **voice input/output**
+-- Real-Time Telemetry & Audit Logs
+CREATE TABLE activity_logs (
+    id VARCHAR(64) PRIMARY KEY,
+    timestamp DOUBLE PRECISION NOT NULL,
+    action VARCHAR(128) NOT NULL,
+    user_email VARCHAR(128) NOT NULL,
+    provider VARCHAR(64) NOT NULL DEFAULT 'gemini',
+    status_code INTEGER NOT NULL DEFAULT 200,
+    latency_ms DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    tokens_est INTEGER NOT NULL DEFAULT 0,
+    details TEXT
+);
+```
 
 ---
 
-## 🤝 Contributing
+## 🛠️ Environment Configuration (`backend/.env`)
 
-This is a portfolio/interview project, but suggestions are welcome! Feel free to:
+```env
+APP_NAME=SASTRA AI Assistant
+APP_VERSION=1.0.0
+DEBUG=True
+ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174
 
-1. Fork the project
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+# --- PostgreSQL Connection ---
+DATABASE_URL=postgresql+asyncpg://postgres:password123@localhost:5432/cambo_ai
 
----
+# --- AI Providers & API Keys ---
+DEFAULT_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_api_key_here
 
-## 📝 License
+# Ollama Local Engine
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=gemma4:latest
 
-Distributed under the MIT License. See `LICENSE` for more information.
+# Ollama Cloud / MiniMax
+OLLAMA_CLOUD_BASE_URL=http://localhost:11434
+OLLAMA_CLOUD_MODEL=minimax-m3:cloud
 
----
-
-## 👤 Author
-
-**Phan Phoun**
-
-- 🌐 Portfolio: [camdev.site](https://camdev.site)
-- 📧 Email: phanphoun855@gmail.com
-- 📱 Phone: +855 71 326 6899
-- 📍 Phnom Penh, Cambodia
-
-Built with ❤️ as a portfolio project showcasing modern AI engineering skills — featuring FastAPI, Google Gemini, conversational memory, and a production-ready frontend.
-
----
-
-## 🙏 Acknowledgments
-
-- **Google Gemini** — the AI model powering the assistant
-- **FastAPI** — amazing Python web framework
-- **Passerelles Numériques Cambodia** — where I learned to code
-- The open-source community — for the tools that made this possible
+# Web Grounding (Tavily)
+TAVILY_API_KEY=your_tavily_api_key_here
+TAVILY_SEARCH_DEPTH=basic
+TAVILY_MAX_RESULTS=5
+```
 
 ---
 
-<p align="center">
-  Made with ⚡ in Phnom Penh, Cambodia 🇰🇭
-</p>
+## 📂 Project Repository Structure
+
+```
+cambo-ai/
+├── docker-compose.yml             # PostgreSQL 16 + pgAdmin 4 + Adminer
+├── README.md                      # Complete system documentation
+│
+├── backend/                       # FastAPI Backend
+│   ├── app.py                     # App entry point & telemetry middleware
+│   ├── config.py                  # Pydantic environment configuration
+│   ├── .env                       # Active backend environment variables
+│   ├── .env.example               # Template environment configuration
+│   ├── requirements.txt           # Python dependencies
+│   ├── database/
+│   │   ├── models.py              # SQLAlchemy 2.0 async ORM models
+│   │   └── session.py             # PostgreSQL session factory & auto-migration
+│   ├── routes/
+│   │   ├── auth.py                # Register, login, guest, profile endpoints
+│   │   ├── admin.py               # Admin user CRUD, provider management, telemetry
+│   │   ├── chat.py                # Streaming chat completions & tools
+│   │   ├── documents.py           # Document uploads & RAG queries
+│   │   └── health.py              # System health check
+│   └── services/
+│       ├── auth_service.py        # PBKDF2 hashing & JWT tokens
+│       ├── telemetry_service.py   # In-memory & DB telemetry tracker
+│       ├── provider_manager.py    # Multi-provider routing (Gemini/Ollama)
+│       └── rag_service.py         # Vector similarity search
+│
+├── frontend/                      # User Chat Application (Port 5173)
+│   ├── src/
+│   │   ├── components/            # ChatContainer, ChatInput, Topbar, Sidebar
+│   │   ├── features/
+│   │   │   ├── auth/              # Auth slice, RTK Query api, AuthModal
+│   │   │   ├── chat/              # Chat API & state
+│   │   │   ├── directory/         # Cambodia 58-company sector directory
+│   │   │   └── provider/          # Provider state & SettingsModal
+│   │   ├── App.tsx                # Main app orchestration
+│   │   └── store.ts               # Redux store
+│   └── package.json
+│
+└── admin-site/                    # Standalone Admin Portal (Port 5174)
+    ├── src/
+    │   ├── components/
+    │   │   ├── TelemetryView.tsx  # Workload charts & performance stats
+    │   │   ├── UsersView.tsx      # User management & role control
+    │   │   ├── ProvidersView.tsx  # AI model endpoints & connection test
+    │   │   └── LogsView.tsx       # Live audit activity trace
+    │   ├── services/api.ts        # Admin REST API client
+    │   └── App.tsx                # Admin cockpit layout & navigation
+    └── package.json
+```
+
+---
+
+## 📜 License
+
+Distributed under the **MIT License**. Built with pride for Cambodia's sovereign technology ecosystem.

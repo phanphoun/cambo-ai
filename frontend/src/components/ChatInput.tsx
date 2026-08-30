@@ -1,34 +1,56 @@
-import { useEffect, useRef, useState, useCallback, type KeyboardEvent, type DragEvent } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo, type KeyboardEvent, type DragEvent } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
 import {
-  ArrowUp,
+  Send,
   Square,
-  Loader2,
-  BookOpen,
   X,
   Mic,
   MicOff,
-  Languages,
-  ImagePlus,
   Paperclip,
+  BookOpen,
+  Sparkles,
+  MessageSquare,
+  Languages,
+  Search,
+  Code2,
+  Rocket,
+  ShoppingCart,
+  Landmark,
+  GraduationCap,
+  Palette,
+  Factory,
+  Truck,
+  Radio,
+  ShieldCheck,
+  Building2,
 } from "lucide-react";
-import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
-import ModeChips from "../features/modes/ModeChips";
+import ModeDropdown from "../features/modes/ModeDropdown";
 import { setMode, type AiMode } from "../features/modes/modesSlice";
+import { setDirectoryOpen } from "../features/directory/directorySlice";
+import {
+  companies,
+  DIRECTORY_SECTORS,
+} from "../data/cambodia-tech-directory";
 import {
   addAttachment,
   removeAttachment,
-  clearAttachments,
-  setUseTools,
-  type ChatState,
 } from "../features/chat/chatSlice";
 import type { RootState } from "../store";
-import {
-  useSpeechRecognition,
-  getLangLabel,
-} from "../hooks/useSpeechRecognition";
+import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+
+interface SlashOption {
+  id: string;
+  type: "directory-modal" | "sector" | "company" | "mode";
+  slashCmd: string;
+  titleEn: string;
+  titleKm?: string;
+  subtitle?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  prompt?: string;
+  modeId?: AiMode;
+}
 
 const MAX_LENGTH = 4000;
 const MAX_IMAGE_MB = 8;
@@ -41,13 +63,6 @@ interface ChatInputProps {
   onOpenDocuments: () => void;
 }
 
-const MODE_COMMANDS: Record<string, AiMode> = {
-  "/chat": "chat",
-  "/translate": "translate",
-  "/search": "search",
-  "/code": "code",
-};
-
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -57,33 +72,210 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+function getSectorIcon(iconName: string) {
+  switch (iconName) {
+    case "Rocket":
+      return Rocket;
+    case "ShoppingCart":
+      return ShoppingCart;
+    case "Landmark":
+      return Landmark;
+    case "GraduationCap":
+      return GraduationCap;
+    case "Palette":
+      return Palette;
+    case "Factory":
+      return Factory;
+    case "Truck":
+      return Truck;
+    case "Radio":
+      return Radio;
+    case "ShieldCheck":
+      return ShieldCheck;
+    default:
+      return Building2;
+  }
+}
+
 export default function ChatInput({
   onSend,
   onStop,
   disabled,
   isStreaming,
-  onOpenDocuments,
 }: ChatInputProps) {
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
+  const [slashOpen, setSlashOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
   const ref = useRef<HTMLTextAreaElement>(null);
   const composingRef = useRef(false);
   const userTypedRef = useRef(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
   const attachments = useSelector((s: RootState) => s.chat.attachments);
-  const useTools = useSelector((s: RootState) => (s.chat as ChatState).useTools);
 
-  const handleTranscript = useCallback(
-    (transcript: string) => {
-      const trimmed = transcript.trim();
-      if (!trimmed) return;
-      setValue(trimmed);
-      ref.current?.focus();
+  // ── Build All Available Slash Options ──
+  const allSlashOptions: SlashOption[] = useMemo(() => {
+    const list: SlashOption[] = [
+      {
+        id: "dir-open",
+        type: "directory-modal",
+        slashCmd: "/directory",
+        titleEn: "Open Sectors Directory (58 Organizations)",
+        titleKm: "បើកបញ្ជីឈ្មោះធុរកិច្ច & ស្ថាប័នកម្ពុជា",
+        subtitle: "Full Cambodia ecosystem classified across 9 sectors",
+        icon: BookOpen,
+      },
+    ];
+
+    // Sectors
+    for (const sec of DIRECTORY_SECTORS) {
+      const slug = "/" + sec.id.replace(/-/g, "");
+      list.push({
+        id: `sec-${sec.id}`,
+        type: "sector",
+        slashCmd: slug,
+        titleEn: sec.name,
+        titleKm: sec.khmerName,
+        subtitle: sec.description,
+        icon: getSectorIcon(sec.iconName),
+        prompt: `សូមរៀបរាប់ និងបង្ហាញទិដ្ឋភាពទូទៅអំពីវិស័យ ${sec.name} (${sec.khmerName}) នៅកម្ពុជា រួមទាំងស្ថាប័នសំខាន់ៗ និងការរីកចម្រើននាពេលបច្ចុប្បន្ន។`,
+      });
+    }
+
+    // AI Modes
+    list.push(
+      {
+        id: "mode-chat",
+        type: "mode",
+        slashCmd: "/chat",
+        titleEn: "Switch to Chat Mode",
+        titleKm: "របៀបសន្ទនាទូទៅ",
+        subtitle: "General conversation & multilingual knowledge",
+        icon: MessageSquare,
+        modeId: "chat",
+      },
+      {
+        id: "mode-translate",
+        type: "mode",
+        slashCmd: "/translate",
+        titleEn: "Switch to Translate Mode",
+        titleKm: "របៀបបកប្រែភាសាខ្មែរ-អង់គ្លេស",
+        subtitle: "Accurate Khmer-English cultural translation",
+        icon: Languages,
+        modeId: "translate",
+      },
+      {
+        id: "mode-search",
+        type: "mode",
+        slashCmd: "/search",
+        titleEn: "Switch to Search Mode",
+        titleKm: "របៀបស្វែងរកទិន្នន័យ",
+        subtitle: "Deep web research & citations",
+        icon: Search,
+        modeId: "search",
+      },
+      {
+        id: "mode-code",
+        type: "mode",
+        slashCmd: "/code",
+        titleEn: "Switch to Code Mode",
+        titleKm: "របៀបសរសេរកូដ Full-Stack",
+        subtitle: "Architecture, Python, TypeScript & AI engineering",
+        icon: Code2,
+        modeId: "code",
+      },
+    );
+
+    // Companies / Organizations
+    for (const comp of companies) {
+      const cleanName = comp.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+      list.push({
+        id: `comp-${comp.id}`,
+        type: "company",
+        slashCmd: `/${cleanName}`,
+        titleEn: comp.name,
+        titleKm: comp.khmerName,
+        subtitle: `${comp.category} · ${comp.location}`,
+        icon: Sparkles,
+        prompt: `សូមរៀបរាប់ និងបង្ហាញព័ត៌មានលម្អិតអំពីស្ថាប័ន ${comp.name} (${comp.khmerName || ""}) ក្នុងវិស័យ ${comp.category} នៅកម្ពុជា៖ ${comp.description}`,
+      });
+    }
+
+    return list;
+  }, []);
+
+  // ── Filtered Options based on User Typing /query ──
+  const filteredSlashOptions = useMemo(() => {
+    if (!value.startsWith("/")) return [];
+    const query = value.slice(1).trim().toLowerCase();
+    if (!query) return allSlashOptions;
+
+    return allSlashOptions.filter(
+      (opt) =>
+        opt.slashCmd.toLowerCase().includes(query) ||
+        opt.titleEn.toLowerCase().includes(query) ||
+        (opt.titleKm && opt.titleKm.toLowerCase().includes(query)) ||
+        (opt.subtitle && opt.subtitle.toLowerCase().includes(query)),
+    );
+  }, [value, allSlashOptions]);
+
+  // Keep slashOpen state in sync
+  useEffect(() => {
+    if (value.startsWith("/")) {
+      setSlashOpen(true);
+      setSelectedIndex(0);
+    } else {
+      setSlashOpen(false);
+    }
+  }, [value]);
+
+  // Scroll active item into view
+  useEffect(() => {
+    if (!slashOpen || !listRef.current) return;
+    const activeEl = listRef.current.querySelector<HTMLElement>(
+      `[data-index="${selectedIndex}"]`,
+    );
+    if (activeEl) {
+      activeEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [selectedIndex, slashOpen]);
+
+  const handleSelectSlashOption = useCallback(
+    (option: SlashOption) => {
+      setSlashOpen(false);
+
+      if (option.type === "directory-modal") {
+        setValue("");
+        dispatch(setDirectoryOpen(true));
+        return;
+      }
+
+      if (option.type === "mode" && option.modeId) {
+        dispatch(setMode(option.modeId));
+        setValue("");
+        toast.success(`Switched to ${option.titleEn}`);
+        return;
+      }
+
+      if (option.prompt) {
+        setValue(option.prompt);
+        userTypedRef.current = true;
+        ref.current?.focus();
+      }
     },
-    [],
+    [dispatch],
   );
+
+  const handleTranscript = useCallback((transcript: string) => {
+    const trimmed = transcript.trim();
+    if (!trimmed) return;
+    setValue(trimmed);
+    ref.current?.focus();
+  }, []);
 
   const handleError = useCallback((error: string) => {
     if (!error) return;
@@ -106,8 +298,16 @@ export default function ChatInput({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 400)}px`;
+    if (!value) {
+      el.style.height = "auto";
+      return;
+    }
+    const raf = requestAnimationFrame(() => {
+      el.style.height = "auto";
+      const targetHeight = Math.min(el.scrollHeight, 240);
+      el.style.height = `${targetHeight}px`;
+    });
+    return () => cancelAnimationFrame(raf);
   }, [value]);
 
   useEffect(() => {
@@ -127,424 +327,363 @@ export default function ChatInput({
         continue;
       }
       if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
-        toast.error(`${file.name} exceeds ${MAX_IMAGE_MB}MB`);
+        toast.error(`${file.name} exceeds ${MAX_IMAGE_MB}MB limit`);
         continue;
       }
       try {
         const dataUrl = await fileToDataUrl(file);
-        dispatch(
-          addAttachment({
-            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-            dataUrl,
-            name: file.name,
-          }),
-        );
-      } catch {
-        toast.error(`Could not read ${file.name}`);
+        dispatch(addAttachment({ id: crypto.randomUUID(), dataUrl, name: file.name }));
+      } catch (err) {
+        toast.error(`Failed to load ${file.name}`);
       }
     }
   }
 
-  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-    const imgs: File[] = [];
-    for (const it of Array.from(items)) {
-      if (it.type.startsWith("image/")) {
-        const f = it.getAsFile();
-        if (f) imgs.push(f);
-      }
-    }
-    if (imgs.length) {
-      e.preventDefault();
-      handleImages(imgs);
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      handleImages(e.target.files);
+      e.target.value = "";
     }
   }
 
-  function handleDrop(e: DragEvent<HTMLDivElement>) {
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    setDragOver(true);
+  }
+
+  function handleDragLeave(e: DragEvent) {
     e.preventDefault();
     setDragOver(false);
-    if (e.dataTransfer?.files?.length) {
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleImages(e.dataTransfer.files);
     }
   }
 
-  function handleMicClick() {
-    if (speech.listening) {
-      speech.stop();
-    } else {
-      userTypedRef.current = false;
-      speech.start();
+  function handlePaste(e: React.ClipboardEvent) {
+    const items = Array.from(e.clipboardData.items);
+    const imageFiles: File[] = [];
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      handleImages(imageFiles);
     }
   }
 
-  function detectCommand(text: string): AiMode | null {
-    const trimmed = text.trim().toLowerCase();
-    for (const [cmd, mode] of Object.entries(MODE_COMMANDS)) {
-      if (trimmed === cmd) return mode;
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Slash Menu Keyboard Navigation
+    if (slashOpen && filteredSlashOptions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % filteredSlashOptions.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(
+          (prev) => (prev - 1 + filteredSlashOptions.length) % filteredSlashOptions.length,
+        );
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        const selected = filteredSlashOptions[selectedIndex];
+        if (selected) {
+          handleSelectSlashOption(selected);
+        }
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSlashOpen(false);
+        return;
+      }
     }
-    return null;
-  }
 
-  function submit() {
+    if (e.key === "Enter" && !e.shiftKey && !composingRef.current) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = () => {
     const trimmed = value.trim();
     if ((!trimmed && attachments.length === 0) || disabled) return;
-
-    const mode = detectCommand(trimmed);
-    if (mode) {
-      dispatch(setMode(mode));
-      setValue("");
-      toastMode(mode);
-      ref.current?.focus();
-      return;
-    }
-
     onSend(trimmed);
     setValue("");
-    dispatch(clearAttachments());
-    requestAnimationFrame(() => {
-      if (ref.current) ref.current.style.height = "auto";
-    });
-    ref.current?.focus();
-  }
-
-  function toastMode(mode: AiMode) {
-    const labels: Record<AiMode, string> = {
-      chat: "💬 Chat mode",
-      translate: "🌐 Translate mode",
-      search: "🔍 Search mode",
-      code: "💻 Code mode",
-    };
-    const el = ref.current;
-    if (el) {
-      el.placeholder = labels[mode];
-      el.focus();
+    userTypedRef.current = false;
+    if (ref.current) {
+      ref.current.style.height = "auto";
     }
-  }
-
-  function handleKey(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.nativeEvent.isComposing || composingRef.current) return;
-
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      submit();
-    } else if (e.key === "Escape" && isStreaming) {
-      e.preventDefault();
-      onStop();
-    } else if (e.key === "Escape" && speech.listening) {
-      e.preventDefault();
-      speech.stop();
-    }
-  }
-
-  const remaining = MAX_LENGTH - value.length;
-  const showCounter = value.length > MAX_LENGTH * 0.8;
-  const overLimit = value.length > MAX_LENGTH;
-  const canSend = (!!value.trim() || attachments.length > 0) && !disabled && !overLimit;
-  const hasText = value.length > 0;
-  const isListening = speech.listening;
-  const micSupported = speech.supported;
+  };
 
   return (
-    <div className="border-t border-border bg-background px-4 pt-3 pb-6 sm:px-6">
-      <div className="mx-auto w-full max-w-3xl">
-        {/* Mode chips + Look up button */}
-        <div className="mb-2 flex items-center justify-between">
-          <ModeChips />
-          <div className="flex items-center gap-2">
-            {micSupported && !isListening && (
-              <span className="text-[10px] text-muted-foreground/50">
-                {getLangLabel(speech.lang)}
+    <div className="relative px-2 sm:px-6 pb-2.5 sm:pb-4 pt-1 max-w-full">
+      <div className="relative mx-auto max-w-3xl sm:max-w-3.5xl lg:max-w-4xl">
+        {/* Floating Slash Shortcuts Dropdown Menu */}
+        {slashOpen && filteredSlashOptions.length > 0 && (
+          <div
+            ref={listRef}
+            className="absolute bottom-full mb-3 left-0 right-0 z-40 max-h-72 overflow-y-auto rounded-2xl border border-gold/50 bg-[#14100B]/98 p-2 shadow-2xl shadow-black/95 backdrop-blur-2xl scrollbar-thin animate-fade-in"
+          >
+            {/* Header Info */}
+            <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-[#2C2114] text-[11px] text-stone-400">
+              <span className="font-semibold text-gold flex items-center gap-1.5">
+                <span>⚡</span>
+                <span>Directory & Slash Shortcuts</span>
               </span>
-            )}
-            {isListening && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-2.5 py-1 text-[10px] font-medium text-destructive animate-fade-in">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
-                </span>
-                {getLangLabel(speech.lang === "km-KH" ? "en-US" : "km-KH")}
+              <span className="text-[10px] text-stone-500 font-mono">
+                ↑ ↓ navigate · Enter select · Esc close
               </span>
-            )}
-            <button
-              type="button"
-              onClick={onOpenDocuments}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:border-primary/50 hover:text-foreground hover:shadow-sm"
-              title="Manage documents for RAG"
-            >
-              <BookOpen className="h-3 w-3" />
-              <span className="hidden sm:inline">Docs</span>
-            </button>
-          </div>
-        </div>
+            </div>
 
-        {/* Attachment thumbnails */}
-        {attachments.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
-            {attachments.map((a) => (
-              <div
-                key={a.id}
-                className="group relative h-16 w-16 overflow-hidden rounded-lg border border-border shadow-sm"
-              >
-                <img src={a.dataUrl} alt={a.name} className="h-full w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => dispatch(removeAttachment(a.id))}
-                  className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                  aria-label={`Remove ${a.name}`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
+            {/* List of items */}
+            <div className="mt-1 space-y-0.5">
+              {filteredSlashOptions.map((opt, idx) => {
+                const active = idx === selectedIndex;
+                const IconComp = opt.icon;
+                return (
+                  <button
+                    key={opt.id}
+                    data-index={idx}
+                    type="button"
+                    onClick={() => handleSelectSlashOption(opt)}
+                    onMouseEnter={() => setSelectedIndex(idx)}
+                    className={cn(
+                      "w-full flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition-all cursor-pointer",
+                      active
+                        ? "bg-gold/20 text-gold border border-gold/50 shadow-xs"
+                        : "text-stone-300 hover:bg-[#1C160F] border border-transparent",
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div
+                        className={cn(
+                          "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs",
+                          active
+                            ? "border-gold/60 bg-gold/20 text-gold"
+                            : "border-[#352818] bg-[#1C160F] text-stone-400",
+                        )}
+                      >
+                        <IconComp className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold font-mono text-gold">
+                            {opt.slashCmd}
+                          </span>
+                          <span className="text-xs font-medium text-stone-200 truncate">
+                            {opt.titleEn}
+                          </span>
+                        </div>
+                        {opt.titleKm && (
+                          <p className="font-khmer text-[11px] text-gold/80 truncate leading-tight mt-0.5">
+                            {opt.titleKm}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {opt.subtitle && (
+                      <span className="hidden sm:inline text-[10.5px] text-stone-500 truncate max-w-[200px] text-right font-sans">
+                        {opt.subtitle}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {/* Input area */}
+        {/* Main Input Composer Capsule with Khmer Heritage Styling */}
         <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
           className={cn(
-            "group relative flex items-end gap-1 rounded-2xl border bg-background transition-all duration-200",
-            "focus-within:border-gold focus-within:ring-2 focus-within:ring-gold/20",
-            isStreaming
-              ? "border-gold/40"
-              : "border-border hover:border-gold/30",
-            hasText && "border-gold/20",
-            isListening && "border-destructive/60 ring-2 ring-destructive/20",
-            dragOver && "border-gold/80 ring-2 ring-gold/30",
+            "relative flex flex-col rounded-3xl border-2 border-[#5E4723] bg-[#110D09]/95 p-3 sm:p-4 shadow-2xl shadow-black/90 backdrop-blur-2xl ring-1 ring-gold/25 transition-all duration-200 overflow-visible",
+            dragOver && "border-gold ring-2 ring-gold/50 bg-gold/10",
           )}
         >
-          <textarea
-            ref={ref}
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value.slice(0, MAX_LENGTH));
-              if (speech.listening) userTypedRef.current = true;
-            }}
-            onKeyDown={handleKey}
-            onPaste={handlePaste}
-            onCompositionStart={() => (composingRef.current = true)}
-            onCompositionEnd={() => (composingRef.current = false)}
-            placeholder={
-              isListening
-                ? "🎤 Listening... Speak now"
-                : isStreaming
-                ? "CAMBO AI is thinking... (Esc to stop)"
-                : "Ask CAMBO AI, paste/drop an image, or attach a doc..."
-            }
-            rows={1}
-            autoComplete="off"
-            spellCheck={true}
-            disabled={false}
-            className={cn(
-              "flex-1 resize-none bg-transparent px-4 py-3.5 text-[15px] leading-relaxed",
-              "outline-none placeholder:text-muted-foreground/60",
-              "max-h-[400px] scrollbar-thin",
-              isListening && "placeholder:text-destructive/60",
-            )}
+          {/* Traditional Khmer Kbach Corner Filigree Ornaments from Asset 1 */}
+          <img
+            src="/images/khmer-assets/khmer-corner-1.png"
+            alt="Khmer Corner Decor"
+            className="absolute top-0 left-0 h-8 w-8 object-contain pointer-events-none z-10 opacity-80 hover:opacity-100 transition-opacity drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]"
+          />
+          <img
+            src="/images/khmer-assets/khmer-corner-1.png"
+            alt="Khmer Corner Decor"
+            className="absolute top-0 right-0 h-8 w-8 object-contain pointer-events-none z-10 opacity-80 hover:opacity-100 transition-opacity -scale-x-100 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]"
+          />
+          <img
+            src="/images/khmer-assets/khmer-corner-1.png"
+            alt="Khmer Corner Decor"
+            className="absolute bottom-0 left-0 h-8 w-8 object-contain pointer-events-none z-10 opacity-80 hover:opacity-100 transition-opacity -scale-y-100 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]"
+          />
+          <img
+            src="/images/khmer-assets/khmer-corner-1.png"
+            alt="Khmer Corner Decor"
+            className="absolute bottom-0 right-0 h-8 w-8 object-contain pointer-events-none z-10 opacity-80 hover:opacity-100 transition-opacity -scale-x-100 -scale-y-100 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]"
           />
 
-          {/* Waveform indicator when listening */}
-          {isListening && (
-            <div className="flex items-center gap-0.5 px-1" aria-hidden="true">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <span
-                  key={i}
-                  className="block w-0.5 rounded-full bg-destructive/70"
-                  style={{
-                    height: "16px",
-                    transformOrigin: "bottom",
-                    animation: `voice-wave 0.8s ease-in-out ${i * 0.1}s infinite`,
-                  }}
-                />
+          {/* Image Attachments Tray */}
+          {attachments.length > 0 && (
+            <div className="mb-2.5 flex flex-wrap gap-2 pt-1 z-10">
+              {attachments.map((att) => (
+                <div
+                  key={att.id}
+                  className="group relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-xl border border-gold/40 bg-black/60 shadow-sm"
+                >
+                  <img
+                    src={att.dataUrl}
+                    alt={att.name || "Attachment"}
+                    className="h-full w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => dispatch(removeAttachment(att.id))}
+                    className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-black/80 text-white transition-colors hover:bg-rose-600"
+                    title="Remove attachment"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </div>
               ))}
             </div>
           )}
 
-          {/* Clear button */}
-          {hasText && !isStreaming && !isListening && (
-            <button
-              type="button"
-              onClick={() => {
-                setValue("");
-                ref.current?.focus();
-              }}
-              className="shrink-0 rounded-lg p-1.5 text-muted-foreground/50 transition-all hover:bg-secondary hover:text-foreground"
-              aria-label="Clear input"
-              title="Clear"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+          {/* Top Row: Lotus Medallion Pedestal (Asset 4) + Textarea */}
+          <div className="relative z-10 flex items-center gap-3 sm:gap-4 pl-1">
+            {/* Sacred Golden Lotus Medallion Pedestal (Asset 4) */}
+            <div className="relative flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center rounded-full border-2 border-gold/60 bg-gradient-to-br from-[#2D2111] via-[#1A140B] to-[#0E0B07] shadow-xl shadow-black/80 p-0.5 group/lotus overflow-hidden">
+              <img
+                src="/images/khmer-assets/khmer-medallion-lotus-4.png"
+                alt="Khmer Sacred Lotus"
+                className="h-full w-full object-contain filter drop-shadow group-hover/lotus:rotate-45 group-hover/lotus:scale-110 transition-transform duration-500"
+              />
+            </div>
 
-          {/* Action buttons row */}
-          <div className="flex items-center gap-0.5 p-1.5">
-            {/* Attach image */}
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-                "text-muted-foreground hover:bg-secondary hover:text-foreground active:scale-90",
-              )}
-              aria-label="Attach image"
-              title="Attach image (or paste / drop)"
-            >
-              <ImagePlus className="h-4 w-4" />
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              multiple
-              hidden
-              onChange={(e) => {
-                if (e.target.files?.length) handleImages(e.target.files);
-                e.target.value = "";
-              }}
-            />
+            {/* Multilingual Text Input Area */}
+            <div className="min-w-0 flex-1">
+              <textarea
+                ref={ref}
+                value={value}
+                onChange={(e) => {
+                  setValue(e.target.value);
+                  userTypedRef.current = true;
+                }}
+                onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
+                onCompositionStart={() => (composingRef.current = true)}
+                onCompositionEnd={() => (composingRef.current = false)}
+                placeholder="សួរ Sastra AI ធ្វើកិច្ចការអ្វី ឬវាយ / ស្វែងរក Directory... / Type / for directory..."
+                disabled={disabled}
+                rows={1}
+                maxLength={MAX_LENGTH}
+                className="w-full resize-none bg-transparent font-khmer text-[14.5px] sm:text-[15.5px] leading-[1.75] text-stone-100 placeholder:text-stone-500 placeholder:font-khmer placeholder:text-xs sm:placeholder:text-[13.5px] focus:outline-none scrollbar-none py-1.5"
+              />
+            </div>
+          </div>
 
-            {/* Paperclip (tools toggle) */}
-            <button
-              type="button"
-              onClick={() => dispatch(setUseTools(!useTools))}
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all active:scale-90",
-                useTools
-                  ? "bg-primary/15 text-primary hover:bg-primary/25"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-              )}
-              aria-label="Toggle tool calling"
-              title="Enable tools (web fetch, search, calculator)"
-            >
-              <Paperclip className="h-4 w-4" />
-            </button>
+          {/* Bottom Toolbar: Mode Dropdown on left, Tools & Golden Send on right */}
+          <div className="relative z-10 mt-3 flex items-center justify-between gap-2 border-t border-[#3B2C17] pt-2.5 pl-1 pr-0.5">
+            {/* Mode Dropdown Selector */}
+            <div className="flex items-center">
+              <ModeDropdown />
+            </div>
 
-            {/* Voice input button */}
-            {micSupported && (
-              <>
-                {isListening ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        speech.toggleLang();
-                        speech.stop();
-                        setTimeout(() => speech.start(), 200);
-                      }}
-                      className="absolute -top-8 left-1/2 -translate-x-1/2 animate-fade-in rounded-full border border-destructive/30 bg-card px-2 py-1 text-[9px] font-medium text-destructive whitespace-nowrap shadow-sm hover:bg-destructive/10"
-                      title="Switch language"
-                    >
-                      <Languages className="mr-1 inline-block h-2.5 w-2.5" />
-                      {getLangLabel(speech.lang === "km-KH" ? "en-US" : "km-KH")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleMicClick}
-                      className={cn(
-                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-                        "bg-destructive text-destructive-foreground shadow-sm",
-                        "active:scale-90",
-                      )}
-                      aria-label="Stop recording"
-                      title="Stop recording"
-                    >
-                      <MicOff className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleMicClick}
-                    className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-                      "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                      "active:scale-90",
-                    )}
-                    aria-label="Start voice input"
-                    title={`Voice input (${getLangLabel(speech.lang)})`}
-                    disabled={disabled || isStreaming}
-                  >
+            {/* Right Action Tools */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Image upload hidden file input */}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleFileChange}
+              />
+
+              {/* Attach button */}
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="flex h-8 w-8 items-center justify-center rounded-xl text-stone-400 hover:text-gold hover:bg-[#1E1810] transition-colors"
+                title="Attach images"
+                aria-label="Attach images"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+
+              {/* Voice input button */}
+              {speech.supported && (
+                <button
+                  type="button"
+                  onClick={speech.listening ? speech.stop : speech.start}
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-xl transition-colors",
+                    speech.listening
+                      ? "bg-rose-500/20 text-rose-400 animate-pulse"
+                      : "text-stone-400 hover:text-gold hover:bg-[#1E1810]",
+                  )}
+                  title={speech.listening ? "Stop listening" : "Voice input"}
+                  aria-label="Voice input"
+                >
+                  {speech.listening ? (
+                    <MicOff className="h-4 w-4" />
+                  ) : (
                     <Mic className="h-4 w-4" />
-                  </button>
-                )}
-              </>
-            )}
+                  )}
+                </button>
+              )}
 
-            {/* Send / Stop button */}
-            {isStreaming ? (
-              <Button
-                size="icon"
-                onClick={onStop}
-                className="h-9 w-9 shrink-0 rounded-xl bg-destructive text-destructive-foreground shadow-sm transition-all hover:bg-destructive/90 active:scale-95"
-                aria-label="Stop generation"
-                title="Stop (Esc)"
-              >
-                <Square className="h-3.5 w-3.5 fill-current" />
-              </Button>
-            ) : (
-              <Button
-                size="icon"
-                onClick={submit}
-                disabled={!canSend}
-                className={cn(
-                  "h-9 w-9 shrink-0 rounded-xl transition-all active:scale-95",
-                  canSend
-                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                    : "",
-                )}
-                aria-label="Send message"
-                title="Send (Enter)"
-              >
-                {disabled ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
-                )}
-              </Button>
-            )}
+              {/* Main Golden Circular Send Button */}
+              {isStreaming ? (
+                <button
+                  type="button"
+                  onClick={onStop}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-600 text-white shadow-lg shadow-amber-600/30 hover:bg-amber-500 transition-all"
+                  title="Stop generating"
+                  aria-label="Stop generating"
+                >
+                  <Square className="h-4 w-4 fill-current" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={!value.trim() && attachments.length === 0}
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 shadow-md",
+                    value.trim() || attachments.length > 0
+                      ? "bg-gradient-to-br from-[#F5D77F] via-[#D4AF37] to-[#996515] text-black font-bold shadow-gold/25 hover:scale-105 active:scale-95"
+                      : "bg-[#221A10] text-stone-500 cursor-not-allowed border border-[#3A2E1C]",
+                  )}
+                  title="Send message (Enter)"
+                  aria-label="Send message"
+                >
+                  <Send className="h-4 w-4 ml-0.5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Footer hints */}
-        <div className="mt-2 flex items-center justify-between gap-3 px-1 text-[11px] text-muted-foreground/60">
-          <span className="hidden sm:inline">
-            <kbd className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/80">
-              Enter
-            </kbd>
-            <span className="mx-1">send</span>
-            <kbd className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/80">
-              Shift+Enter
-            </kbd>
-            <span className="mx-1">new line</span>
-            {isStreaming && (
-              <>
-                <kbd className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/80">
-                  Esc
-                </kbd>
-                <span className="mx-1">stop</span>
-              </>
-            )}
-          </span>
-          <span className="flex-1 text-center sm:flex-initial">
-            {isListening
-              ? "🎤 Tap mic again to stop & send"
-              : "CAMBO AI may make mistakes. Verify important info."}
-          </span>
-          <span
-            className={cn(
-              "tabular-nums transition-colors",
-              showCounter && (overLimit ? "text-destructive" : "text-amber-400"),
-            )}
-          >
-            {showCounter ? `${remaining}` : ""}
-          </span>
-        </div>
+        {/* Footer Hint */}
+        <p className="mt-1.5 text-center text-[10.5px] text-stone-500">
+          Enter to send ✦ Shift + Enter for new line ✦ Type <span className="text-gold font-mono font-bold">/</span> for directory shortcuts
+        </p>
       </div>
     </div>
   );

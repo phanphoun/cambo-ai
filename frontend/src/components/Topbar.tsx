@@ -1,230 +1,281 @@
-import { useState, useEffect } from "react";
+import { memo, useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-hot-toast";
 import {
-  Menu,
-  Share2,
-  Sun,
-  Moon,
-  X,
+  PanelLeft,
+  PanelLeftClose,
+  BookOpen,
+  FileText,
+  User,
+  ChevronDown,
+  LogOut,
+  Settings,
+  UserCheck,
+  Shield,
+  ExternalLink,
+  Bell,
 } from "lucide-react";
-import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
-import { toggleTheme } from "../features/theme/themeSlice";
-import ShareMenu from "../features/share/ShareMenu";
+import { setDirectoryOpen } from "../features/directory/directorySlice";
+import { setAuthModalOpen, logout } from "../features/auth/authSlice";
+import { KhmerProfileAvatar } from "./KhmerProfileAvatar";
+import type { SettingsTab } from "./SettingsModal";
 import type { RootState } from "../store";
 
 interface TopbarProps {
-  onMenu: () => void;
-  onToggleSidebar: () => void;
-  sidebarVisible: boolean;
-  backendOnline: boolean;
+  onToggleMobileSidebar: () => void;
+  onToggleCollapse: () => void;
+  sidebarCollapsed: boolean;
+  onOpenDocs: () => void;
+  onOpenPins: () => void;
+  onOpenSettings?: (tab?: SettingsTab) => void;
+  onNewChat?: () => void;
 }
 
-export default function Topbar({
-  onMenu,
-  onToggleSidebar,
-  sidebarVisible,
-  backendOnline: _backendOnline,
+export default memo(function Topbar({
+  onToggleMobileSidebar,
+  onToggleCollapse,
+  sidebarCollapsed,
+  onOpenDocs,
+  onOpenSettings,
 }: TopbarProps) {
   const dispatch = useDispatch();
-  const currentTheme = useSelector((s: RootState) => s.theme.current);
-  const [shareOpen, setShareOpen] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [solid, setSolid] = useState(false);
+  const selectedDocsCount = useSelector((s: RootState) => s.documents.selected.length);
+  const { user, isAuthenticated, isGuest } = useSelector((s: RootState) => s.auth);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setSolid(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
-
-  const navLinks = [
-    { href: "#home", en: "Home", km: "ទំព័រដើម" },
-    { href: "#features", en: "Features", km: "ជម្រើស" },
-    { href: "#about", en: "About", km: "អំពី" },
-    { href: "#contact", en: "Contact", km: "ទំនាក់ទំនង" },
-  ];
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 border-b transition-all duration-300",
-        solid
-          ? "bg-charcoal/95 shadow-lg border-gold/10"
-          : "bg-transparent border-transparent"
-      )}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        {/* Left: Logo */}
-        <a href="#" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-crimson text-white">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="6" r="3" />
-              <path d="M12 9v6" />
-              <path d="M8 15c0 2 4 4 4 4s4-2 4-4" />
-              <path d="M6 21c0-3 3-5 6-5s6 2 6 5" />
-              <path d="M9 12l-2-2M15 12l2-2" />
-            </svg>
-          </span>
-          <span className="text-lg font-bold text-gold">Cambo AI</span>
-        </a>
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-[#2D2417] bg-[#0E0C09] px-3 sm:px-6 transition-all w-full max-w-full overflow-visible select-none shadow-md">
+      {/* Left: Sidebar Toggle + Brand Identity */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== "undefined" && window.innerWidth < 768) {
+              onToggleMobileSidebar();
+            } else {
+              onToggleCollapse();
+            }
+          }}
+          className={cn(
+            "h-8 w-8 items-center justify-center rounded-xl border border-[#3C301D] bg-[#16120C] text-gold/80 hover:text-gold hover:border-gold/60 hover:bg-[#1F1910] transition-all shrink-0 shadow-xs cursor-pointer",
+            sidebarCollapsed ? "flex" : "flex md:hidden",
+          )}
+          title={sidebarCollapsed ? "Expand sidebar (Ctrl+B)" : "Toggle sidebar"}
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Toggle sidebar"}
+        >
+          {sidebarCollapsed ? (
+            <PanelLeft className="h-4 w-4 text-gold" />
+          ) : (
+            <PanelLeftClose className="h-4 w-4 text-gold" />
+          )}
+        </button>
 
-        {/* Desktop menu */}
-        <div className="hidden items-center gap-6 md:flex">
-          {navLinks.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="group flex flex-col text-sm font-medium text-gray-300 transition-colors hover:text-gold"
-            >
-              <span>{item.en}</span>
-              <span className="font-khmer text-[10px] text-gray-400 transition-colors group-hover:text-gold/80">
-                {item.km}
-              </span>
-            </a>
-          ))}
-        </div>
-
-        {/* Right: CTA + controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <a
-            href="#"
-            className="hidden md:inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-gold via-yellow-300 to-gold px-4 py-2 text-sm font-semibold text-charcoal transition-transform hover:-translate-y-0.5"
-          >
-            Try Now
-          </a>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleSidebar}
-            className="hidden md:inline-flex h-8 w-8"
-            aria-label={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
-            title={`${sidebarVisible ? "Hide" : "Show"} sidebar (Ctrl+B)`}
-          >
-            <span className="text-lg">☰</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onMenu}
-            className="h-8 w-8 md:hidden"
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => dispatch(toggleTheme())}
-            className="hidden md:flex h-8 w-8"
-            aria-label={currentTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {currentTheme === "dark" ? (
-              <Sun className="h-4 w-4 text-amber-400" />
-            ) : (
-              <Moon className="h-4 w-4 text-foreground/70" />
-            )}
-          </Button>
-
-          <div className="relative hidden md:block">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShareOpen(!shareOpen)}
-              className="h-8 w-8"
-              aria-label="Share conversation"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
-            <ShareMenu open={shareOpen} onClose={() => setShareOpen(false)} />
+        {/* Brand Crest & Title */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#241D12] via-[#1A140D] to-[#100C08] text-gold shadow-md border border-gold/50 p-1 overflow-hidden">
+            <img
+              src="/images/khmer-assets/khmer-medallion-lotus-4.png"
+              alt="Sastra AI Sacred Lotus"
+              className="h-full w-full object-contain filter drop-shadow hover:rotate-45 transition-transform duration-500"
+            />
           </div>
-
-          {/* Mobile CTA in topbar */}
-          <a
-            href="#"
-            className="md:hidden inline-flex items-center rounded-lg bg-gradient-to-r from-gold via-yellow-300 to-gold px-3 py-1.5 text-xs font-semibold text-charcoal"
-          >
-            Try Now
-          </a>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5 leading-none">
+              <span className="font-heading font-bold text-sm sm:text-base text-gold tracking-normal">
+                Sastra AI
+              </span>
+            </div>
+            <span className="font-khmer text-[11px] text-gold/75 mt-0.5 leading-none">
+              ជំនួយការឆ្លាតវៃរបស់អ្នក
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity md:hidden",
-          mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-        aria-hidden="true"
-      />
-      <aside
-        className={cn(
-          "fixed top-0 right-0 z-50 h-full w-72 bg-charcoal/95 border-l border-gold/10 shadow-2xl transition-transform duration-300 md:hidden",
-          mobileOpen ? "translate-x-0" : "translate-x-full"
-        )}
-        aria-label="Mobile menu"
-      >
-        <div className="flex flex-col gap-1 p-4 pt-16">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-300">Menu</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileOpen(false)}
-              aria-label="Close menu"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+      {/* Right: Actions (Directory, Docs, Theme, Notifications, User Auth) */}
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Directory Button */}
+        <button
+          type="button"
+          onClick={() => dispatch(setDirectoryOpen(true))}
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#3C301D] bg-[#16120C] h-8 px-2.5 sm:px-3 text-xs font-medium text-stone-200 transition-all hover:border-gold/50 hover:text-gold shadow-xs cursor-pointer"
+          title="Browse Tech Directory"
+        >
+          <BookOpen className="h-3.5 w-3.5 text-gold" />
+          <span className="hidden md:inline">Directory</span>
+        </button>
 
-          {navLinks.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className="flex flex-col rounded-xl px-4 py-3 text-sm font-medium text-gray-300 transition-colors hover:bg-white/5 hover:text-gold"
-            >
-              <span>{item.en}</span>
-              <span className="font-khmer text-xs text-gray-400">{item.km}</span>
-            </a>
-          ))}
+        {/* Selected Docs Pill Indicator */}
+        {selectedDocsCount > 0 && (
+          <button
+            type="button"
+            onClick={onOpenDocs}
+            className="flex items-center gap-1 rounded-full border border-gold/40 bg-gold/15 px-2.5 py-1 text-xs font-medium text-gold transition-all hover:bg-gold/25 cursor-pointer shadow-xs"
+            title={`${selectedDocsCount} documents referenced`}
+          >
+            <FileText className="h-3.5 w-3.5 text-gold" />
+            <span className="font-bold">{selectedDocsCount}</span>
+            <span className="hidden sm:inline text-[10.5px]">docs</span>
+          </button>
+        )}
 
-          <div className="mt-4 border-t border-gold/10 pt-4">
-            <a
-              href="#"
-              onClick={() => setMobileOpen(false)}
-              className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-gold via-yellow-300 to-gold px-4 py-2.5 text-sm font-semibold text-charcoal"
+        {/* Notifications Button */}
+        <button
+          type="button"
+          onClick={() => toast("All systems operating smoothly at 100% health.", { icon: "🔔" })}
+          className="relative flex h-8 w-8 items-center justify-center rounded-xl text-stone-400 hover:text-gold hover:bg-[#1F1910] transition-colors cursor-pointer"
+          title="Notifications"
+          aria-label="Notifications"
+        >
+          <Bell className="h-4 w-4" />
+          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+        </button>
+
+        {/* User Authentication Pill / Menu */}
+        {isAuthenticated && user ? (
+          <div ref={menuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              className="flex items-center gap-2 rounded-full border border-gold/50 bg-[#16120C] p-1 sm:pl-1 sm:pr-3 sm:py-1 text-xs text-stone-200 cursor-pointer hover:border-gold hover:bg-[#1F1810] transition-all shadow-md group"
+              title="User Account"
             >
-              Try Now
-            </a>
+              <KhmerProfileAvatar
+                name={user.name}
+                avatar={user.avatar}
+                size="sm"
+                role={user.role as "admin" | "user"}
+                showCrown={user.role === "admin"}
+                glow={true}
+              />
+              <span className="text-xs font-semibold text-stone-200 hidden sm:inline max-w-[90px] truncate group-hover:text-gold transition-colors">
+                {user.name.split(" ")[0]}
+              </span>
+              <ChevronDown className="h-3 w-3 text-stone-400 hidden sm:inline group-hover:text-gold transition-colors" />
+            </button>
+
+            {/* 100% Solid Non-Transparent Profile Dropdown Menu */}
+            {menuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-76 rounded-2xl border-2 border-[#523E1E] bg-[#16120C] p-3.5 shadow-2xl shadow-black animate-fade-in z-50">
+                {/* User Info Header with Large Khmer Art Avatar */}
+                <div className="flex items-center gap-3.5 pb-3 border-b border-[#2C2114] bg-[#16120C]">
+                  <KhmerProfileAvatar
+                    name={user.name}
+                    avatar={user.avatar}
+                    size="lg"
+                    role={user.role as "admin" | "user"}
+                    showCrown={user.role === "admin"}
+                    showStatus={true}
+                    isOnline={true}
+                    glow={true}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-sm text-stone-100 truncate flex items-center gap-1.5">
+                      <span>{user.name}</span>
+                      {user.role === "admin" && <span title="Administrator">👑</span>}
+                    </p>
+                    <p className="text-[10.5px] text-stone-400 truncate font-mono mt-0.5">
+                      {user.email}
+                    </p>
+                    <span className="inline-block mt-1.5 rounded-full bg-gold/15 px-2.5 py-0.5 text-[9.5px] font-bold text-gold border border-gold/40">
+                      {isGuest ? "Guest Access" : user.role === "admin" ? "Royal Administrator" : "Verified Member"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Menu Items */}
+                <div className="mt-2 space-y-1 bg-[#16120C]">
+                  {/* Option 1: Profile */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (onOpenSettings) onOpenSettings("profile");
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs text-stone-200 hover:bg-[#241D13] hover:text-gold transition-all text-left cursor-pointer"
+                  >
+                    <UserCheck className="h-4 w-4 text-gold" />
+                    <span>User Profile (ព័ត៌មានគណនី)</span>
+                  </button>
+
+                  {/* Option 2: Settings & Engine */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (onOpenSettings) onOpenSettings("provider");
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs text-stone-200 hover:bg-[#241D13] hover:text-gold transition-all text-left cursor-pointer"
+                  >
+                    <Settings className="h-4 w-4 text-gold" />
+                    <span>Settings & Engine (ការកំណត់)</span>
+                  </button>
+
+
+
+                  {/* Option: Admin Console (ONLY visible to user.role === "admin") */}
+                  {user.role === "admin" && (
+                    <a
+                      href="http://localhost:5174"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full flex items-center justify-between rounded-xl px-2.5 py-2 text-xs font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 hover:text-amber-300 border border-amber-500/30 transition-all text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Shield className="h-4 w-4 text-amber-400" />
+                        <span>Admin Console (គ្រប់គ្រង)</span>
+                      </div>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+
+                  {/* Option 4: Sign Out */}
+                  <div className="pt-1 border-t border-[#2C2114]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        dispatch(logout());
+                        window.location.href = "http://localhost:5175";
+                      }}
+                      className="w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs text-rose-400 hover:bg-rose-500/15 transition-all text-left cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out (ចាកចេញ)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      </aside>
+        ) : (
+          <button
+            type="button"
+            onClick={() => dispatch(setAuthModalOpen(true))}
+            className="flex items-center gap-1.5 h-8 rounded-full border border-gold/50 bg-gradient-to-r from-gold/20 via-gold/10 to-transparent px-3 text-xs font-semibold text-gold shadow-xs hover:border-gold hover:bg-gold/25 transition-all cursor-pointer"
+            title="Sign In / Register"
+          >
+            <User className="h-3.5 w-3.5" />
+            <span>Sign In</span>
+          </button>
+        )}
+      </div>
     </header>
   );
-}
+});

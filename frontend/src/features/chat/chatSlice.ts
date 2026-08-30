@@ -1,8 +1,29 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { Message, Attachment, ToolCall, Citation } from "../../types/chat";
 
-const HISTORY_KEY = "cambo-history";
-const SESSION_KEY = "cambo-session";
+function getCurrentUserEmail(): string {
+  try {
+    const raw = localStorage.getItem("sastra_auth_user");
+    if (raw) {
+      const u = JSON.parse(raw);
+      if (u && u.email) return u.email.trim().toLowerCase();
+    }
+  } catch {
+    /* noop */
+  }
+  return "guest";
+}
+
+function getHistoryKey(userEmail?: string): string {
+  const email = userEmail || getCurrentUserEmail();
+  return `sastra_chat_history_${email}`;
+}
+
+function getSessionKey(userEmail?: string): string {
+  const email = userEmail || getCurrentUserEmail();
+  return `sastra_chat_session_${email}`;
+}
+
 const TOOLS_KEY = "cambo-use-tools";
 
 function load<T>(key: string, fallback: T): T {
@@ -14,10 +35,20 @@ function load<T>(key: string, fallback: T): T {
   }
 }
 
+function sanitizeForStorage(messages: Message[]): Message[] {
+  return messages.slice(-50).map((m) => ({
+    ...m,
+    images: m.images ? m.images.map((_, i) => `[Attachment ${i + 1}]`) : undefined,
+  }));
+}
+
 function save(key: string, value: unknown) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch { /* noop */ }
+    const toSave = Array.isArray(value) ? sanitizeForStorage(value as Message[]) : value;
+    localStorage.setItem(key, JSON.stringify(toSave));
+  } catch {
+    /* noop */
+  }
 }
 
 export interface ChatState {
@@ -29,8 +60,8 @@ export interface ChatState {
 }
 
 const initialState: ChatState = {
-  sessionId: load<string | null>(SESSION_KEY, null),
-  messages: load<Message[]>(HISTORY_KEY, []),
+  sessionId: load<string | null>(getSessionKey(), null),
+  messages: load<Message[]>(getHistoryKey(), []),
   isStreaming: false,
   useTools: load<boolean>(TOOLS_KEY, false),
   attachments: [],
@@ -40,13 +71,20 @@ const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
+    switchUserChat(state, action: PayloadAction<string | undefined>) {
+      const email = action.payload || getCurrentUserEmail();
+      state.sessionId = load<string | null>(getSessionKey(email), null);
+      state.messages = load<Message[]>(getHistoryKey(email), []);
+      state.isStreaming = false;
+      state.attachments = [];
+    },
     addMessage(state, action: PayloadAction<Message>) {
       state.messages.push(action.payload);
-      save(HISTORY_KEY, state.messages);
+      save(getHistoryKey(), state.messages);
     },
     setSessionId(state, action: PayloadAction<string>) {
       state.sessionId = action.payload;
-      save(SESSION_KEY, action.payload);
+      save(getSessionKey(), action.payload);
     },
     setStreaming(state, action: PayloadAction<boolean>) {
       state.isStreaming = action.payload;
@@ -68,29 +106,37 @@ const chatSlice = createSlice({
       const last = state.messages[state.messages.length - 1];
       if (last && last.role === "assistant") {
         last.content += action.payload;
-        save(HISTORY_KEY, state.messages);
       }
+    },
+    persistChat(state) {
+      save(getHistoryKey(), state.messages);
     },
     setAssistantMeta(state, action: PayloadAction<{ tool_calls?: ToolCall[]; citations?: Citation[] }>) {
       const last = state.messages[state.messages.length - 1];
       if (last && last.role === "assistant") {
         if (action.payload.tool_calls) last.tool_calls = action.payload.tool_calls;
         if (action.payload.citations) last.citations = action.payload.citations;
-        save(HISTORY_KEY, state.messages);
+        save(getHistoryKey(), state.messages);
       }
     },
-    resetChat(state) {
+    resetChat(state, action: PayloadAction<string | undefined>) {
+      const email = action?.payload || getCurrentUserEmail();
       state.sessionId = null;
       state.messages = [];
       state.isStreaming = false;
       state.attachments = [];
-      localStorage.removeItem(HISTORY_KEY);
-      localStorage.removeItem(SESSION_KEY);
+      try {
+        localStorage.removeItem(getHistoryKey(email));
+        localStorage.removeItem(getSessionKey(email));
+      } catch {
+        /* noop */
+      }
     },
   },
 });
 
 export const {
+  switchUserChat,
   addMessage,
   setSessionId,
   setStreaming,
@@ -99,6 +145,7 @@ export const {
   removeAttachment,
   clearAttachments,
   appendToLastAssistant,
+  persistChat,
   setAssistantMeta,
   resetChat,
 } = chatSlice.actions;

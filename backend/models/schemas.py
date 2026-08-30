@@ -22,12 +22,15 @@ class Message(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=8000)
+    message: str = Field(default="", max_length=16000)
     session_id: Optional[str] = None
-    mode: str = Field(default="chat", pattern="^(chat|translate|search|code)$")
-    provider: str = Field(default="gemini", pattern="^(gemini|ollama|ollama-cloud)$")
+    user_email: Optional[str] = None
+    user_id: Optional[str] = None
+    mode: str = Field(default="chat")
+    provider: str = Field(default="gemini")
+    model: Optional[str] = Field(default=None, description="Specific model identifier to execute (e.g. gemma4:latest, gemma3:4b, deepseek-coder:6.7b).")
     # Attachments
-    image_urls: List[HttpUrl] = Field(
+    image_urls: List[str] = Field(
         default_factory=list,
         description="Publicly reachable image URLs the model should see (multimodal).",
     )
@@ -38,12 +41,29 @@ class ChatRequest(BaseModel):
             "Useful for paste/drop in the chat UI."
         ),
     )
+    images: Optional[List[str]] = Field(
+        default=None,
+        description="Alias for image_data from frontend payloads.",
+    )
     document_ids: List[str] = Field(
         default_factory=list,
         description="RAG document IDs to ground the answer in.",
     )
+    selected_document_ids: Optional[List[str]] = Field(
+        default=None,
+        description="Alias for document_ids from frontend payloads.",
+    )
     use_tools: bool = Field(default=False, description="Enable tool calling for this turn.")
     history: Optional[List[Message]] = Field(default=None, deprecated=True)
+
+    class Config:
+        extra = "ignore"
+
+    def get_image_data(self) -> List[str]:
+        return self.images if self.images is not None else self.image_data
+
+    def get_document_ids(self) -> List[str]:
+        return self.selected_document_ids if self.selected_document_ids is not None else self.document_ids
 
 
 class ToolCallRecord(BaseModel):

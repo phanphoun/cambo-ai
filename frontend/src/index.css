@@ -3,89 +3,95 @@
 @tailwind utilities;
 
 @layer base {
-  /* ═══════════════ LIGHT THEME (default) ═══════════════ */
+  /* ═══════════════ LIGHT THEME (Royal Sandstone & Angkor Gold) ═══════════════ */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 10%;
+    --background: 38 30% 97%;
+    --foreground: 28 28% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 10%;
-    --primary: 262 84% 55%;
+    --card-foreground: 28 28% 10%;
+    --primary: 38 88% 40%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 10% 96%;
-    --secondary-foreground: 240 10% 10%;
-    --muted: 240 10% 96%;
-    --muted-foreground: 240 5% 45%;
-    --accent: 262 84% 55%;
+    --secondary: 36 24% 93%;
+    --secondary-foreground: 28 28% 10%;
+    --muted: 36 24% 93%;
+    --muted-foreground: 28 15% 35%;
+    --accent: 38 88% 40%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 50%;
+    --destructive: 0 84% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 10% 88%;
-    --input: 240 10% 88%;
-    --ring: 262 84% 55%;
-    --radius: 0.75rem;
+    --border: 36 20% 82%;
+    --input: 36 20% 82%;
+    --ring: 38 88% 40%;
+    --radius: 0.85rem;
 
     /* Chat-specific colors */
-    --chat-user: 262 84% 55%;
+    --chat-user: 38 88% 40%;
     --chat-user-foreground: 0 0% 100%;
     --chat-assistant: 0 0% 100%;
-    --chat-assistant-foreground: 240 10% 10%;
+    --chat-assistant-foreground: 28 28% 10%;
     --chat-ai-accent: 160 60% 35%;
 
     /* Code block */
-    --code-bg: 240 10% 96%;
-    --code-header: 240 10% 92%;
-    --code-border: 240 10% 88%;
+    --code-bg: 36 25% 96%;
+    --code-header: 36 22% 90%;
+    --code-border: 36 20% 80%;
 
     /* Sidebar */
-    --sidebar-bg: 240 20% 97%;
-    --sidebar-border: 240 10% 88%;
+    --sidebar-bg: 38 32% 96%;
+    --sidebar-border: 36 20% 82%;
+
+    /* ═══════════════ GLOBAL TYPOGRAPHY TOKENS ═══════════════ */
+    --font-ui: "Inter", "Noto Sans Khmer", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-khmer: "Noto Sans Khmer", "Inter", sans-serif;
+    --font-khmer-heading: "Kantumruy Pro", "Noto Sans Khmer", "Inter", sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
     /* Scrollbar */
-    --scrollbar-thumb: 240 10% 80%;
+    --scrollbar-thumb: 36 20% 72%;
   }
 
-  /* ═══════════════ DARK THEME ═══════════════ */
+  /* ═══════════════ DARK THEME (Obsidian Sanctuary & Radiant Gold) ═══════════════ */
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 240 6% 93%;
-    --card: 240 10% 9%;
-    --card-foreground: 240 6% 93%;
-    --primary: 262 84% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 6% 14%;
-    --secondary-foreground: 240 6% 93%;
-    --muted: 240 6% 14%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 262 84% 55%;
-    --accent-foreground: 0 0% 100%;
+    --background: 28 22% 5%;
+    --foreground: 38 25% 96%;
+    --card: 28 18% 8%;
+    --card-foreground: 38 25% 96%;
+    --primary: 43 85% 52%;
+    --primary-foreground: 28 25% 6%;
+    --secondary: 28 16% 12%;
+    --secondary-foreground: 38 25% 96%;
+    --muted: 28 16% 12%;
+    --muted-foreground: 35 18% 75%;
+    --accent: 43 85% 52%;
+    --accent-foreground: 28 25% 6%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 21%;
-    --input: 240 6% 21%;
-    --ring: 262 84% 55%;
-    --radius: 0.75rem;
+    --border: 35 25% 18%;
+    --input: 35 25% 18%;
+    --ring: 43 85% 52%;
+    --radius: 0.85rem;
 
     /* Chat-specific colors */
-    --chat-user: 262 84% 55%;
+    --chat-user: 43 85% 52%;
     --chat-user-foreground: 0 0% 100%;
-    --chat-assistant: 240 10% 9%;
-    --chat-assistant-foreground: 240 6% 93%;
+    --chat-assistant: 28 18% 8%;
+    --chat-assistant-foreground: 38 25% 96%;
     --chat-ai-accent: 160 84% 39%;
 
     /* Code block */
-    --code-bg: 240 6% 11%;
-    --code-header: 240 6% 15%;
-    --code-border: 240 6% 21%;
+    --code-bg: 28 22% 6%;
+    --code-header: 28 20% 10%;
+    --code-border: 35 25% 18%;
 
     /* Sidebar */
-    --sidebar-bg: 240 10% 7%;
-    --sidebar-border: 240 6% 18%;
+    --sidebar-bg: 28 22% 5.5%;
+    --sidebar-border: 35 25% 15%;
 
     /* Scrollbar */
-    --scrollbar-thumb: 240 6% 21%;
+    --scrollbar-thumb: 35 25% 25%;
   }
 
-  /* Khmer font fallback */
+  /* Khmer local font fallback */
   @font-face {
     font-family: "Noto Sans Khmer";
     src: local("Noto Sans Khmer"), url("/src/assets/fonts/NotoSansKhmer-Regular.woff2") format("woff2");
@@ -100,15 +106,34 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Inter", "Noto Sans Khmer", -apple-system, sans-serif;
+    font-family: var(--font-ui);
     height: 100vh;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    line-height: 1.6;
   }
 
-  /* Force a clean Khmer font stack on relevant elements */
+  /* ═══════════════ GLOBAL TYPOGRAPHY UTILITIES ═══════════════ */
+  .font-ui {
+    font-family: var(--font-ui);
+  }
+
+  .font-khmer {
+    font-family: var(--font-khmer);
+    line-height: 1.8;
+    letter-spacing: normal;
+  }
+
+  .font-khmer-heading,
+  .font-heading {
+    font-family: var(--font-khmer-heading);
+    letter-spacing: normal;
+    line-height: 1.35;
+  }
+
+  /* Force balanced line-height on all Khmer & Chat message content */
   .font-khmer,
   .markdown,
   .markdown *,
@@ -116,7 +141,8 @@
   .chat-bubble *,
   .chat-message,
   .chat-message * {
-    font-family: "Noto Sans Khmer", "Inter", -apple-system, sans-serif;
+    letter-spacing: normal;
+    text-transform: none !important;
   }
 
   html {
@@ -149,10 +175,15 @@
     background: transparent;
   }
 
-  /* ── Typing cursor ── */
-  .typing-cursor::after {
-    content: "▊";
-    @apply text-primary animate-blink;
+  /* ── Shimmer & Thinking Loading Animations ── */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, hsl(var(--muted)/0.4) 0%, hsl(var(--secondary)) 50%, hsl(var(--muted)/0.4) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
   }
 
   /* ── Voice waveform bars ── */
@@ -206,62 +237,166 @@
   }
   .animate-scale-in { animation: scale-in 0.2s ease-out; }
 
-  /* ── Sidebar ── */
-  .sidebar-bg { background: hsl(var(--sidebar-bg)); }
-  .light .sidebar-bg { background: hsl(var(--sidebar-bg)); }
+  /* ── High Contrast Markdown Content with Kantumruy Pro Headings & Noto Sans Khmer Body ── */
+  .markdown {
+    font-family: var(--font-khmer);
+    font-size: 1.05rem;
+    line-height: 1.85;
+    color: hsl(var(--foreground));
+    max-width: 920px;
+    letter-spacing: normal;
+  }
+  .markdown p {
+    margin-top: 0.85rem;
+    margin-bottom: 0.85rem;
+    color: hsl(var(--foreground));
+    line-height: 1.85;
+  }
+  .markdown p:first-child { margin-top: 0; }
+  .markdown p:last-child { margin-bottom: 0; }
+  
+  .markdown ul {
+    margin-top: 0.85rem;
+    margin-bottom: 0.85rem;
+    padding-left: 1.35rem;
+    list-style-type: disc;
+    color: hsl(var(--foreground));
+  }
+  .markdown ol {
+    margin-top: 0.85rem;
+    margin-bottom: 0.85rem;
+    padding-left: 1.35rem;
+    list-style-type: decimal;
+    color: hsl(var(--foreground));
+  }
+  .markdown li {
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
+    line-height: 1.8;
+    color: hsl(var(--foreground));
+  }
+  
+  .markdown h1 {
+    font-family: var(--font-khmer-heading);
+    margin-top: 1.75rem;
+    margin-bottom: 0.85rem;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #B45309;
+    letter-spacing: normal;
+  }
+  .dark .markdown h1 {
+    color: #FCD34D;
+  }
+  
+  .markdown h2 {
+    font-family: var(--font-khmer-heading);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #B45309;
+    letter-spacing: normal;
+  }
+  .dark .markdown h2 {
+    color: #FCD34D;
+  }
+  
+  .markdown h3 {
+    font-family: var(--font-khmer-heading);
+    margin-top: 1.25rem;
+    margin-bottom: 0.6rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: #B45309;
+    letter-spacing: normal;
+  }
+  .dark .markdown h3 {
+    color: #FCD34D;
+  }
 
-  /* ── Markdown content ── */
-  .markdown { @apply leading-relaxed; }
-  .markdown p { @apply my-2 first:mt-0 last:mb-0; }
-  .markdown ul { @apply my-2 ml-5 list-disc space-y-1 first:mt-0 last:mb-0; }
-  .markdown ol { @apply my-2 ml-5 list-decimal space-y-1 first:mt-0 last:mb-0; }
-  .markdown li { @apply leading-relaxed; }
-  .markdown h1 { @apply mb-2 mt-4 text-xl font-bold first:mt-0; }
-  .markdown h2 { @apply mb-2 mt-4 text-lg font-semibold first:mt-0; }
-  .markdown h3 { @apply mb-1.5 mt-3 text-base font-semibold first:mt-0; }
+  .markdown strong {
+    font-weight: 700;
+    color: #111827;
+  }
+  .dark .markdown strong {
+    color: #FFFFFF;
+  }
+  
+  .markdown em {
+    font-style: italic;
+  }
+
   .markdown blockquote {
-    @apply my-2 border-l-2 py-1 pl-3 italic first:mt-0 last:mb-0;
-    border-color: hsl(var(--primary) / 0.4);
-    background: hsl(var(--secondary) / 0.5);
-    color: hsl(var(--muted-foreground));
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-left: 3px solid #D97706;
+    padding: 0.85rem 1.2rem;
+    background: rgba(217, 119, 6, 0.08);
+    border-radius: 0.6rem;
+    line-height: 1.8;
   }
-  .markdown a { @apply text-primary underline-offset-4 hover:underline; }
-  .markdown strong { @apply font-semibold; color: hsl(var(--foreground)); }
-  .markdown em { @apply italic; }
-  .markdown pre {
-    @apply relative my-3 overflow-x-auto rounded-lg p-4 text-[13px] leading-relaxed first:mt-0 last:mb-0;
-    background: hsl(var(--code-bg));
-    border: 1px solid hsl(var(--code-border));
+  .dark .markdown blockquote {
+    border-left-color: #FBBF24;
+    background: rgba(251, 191, 36, 0.08);
   }
-  .markdown code { @apply font-mono text-[13px]; }
+
+  .markdown a {
+    color: #B45309;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-weight: 600;
+  }
+  .dark .markdown a {
+    color: #FBBF24;
+  }
+
   .markdown :not(pre) > code {
-    @apply rounded px-1.5 py-0.5;
-    background: hsl(var(--secondary));
-    color: hsl(var(--primary));
+    border-radius: 0.375rem;
+    padding: 0.15rem 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    font-weight: 600;
+    background-color: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FCD34D;
   }
-  .markdown table { @apply my-3 min-w-full border-collapse text-sm first:mt-0 last:mb-0; }
+  .dark .markdown :not(pre) > code {
+    background-color: #241A0E;
+    color: #FDE047;
+    border: 1px solid #523E1E;
+  }
+
+  .markdown table {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
   .markdown th {
-    @apply px-3 py-1.5 text-left font-semibold;
-    border: 1px solid hsl(var(--border));
-    background: hsl(var(--secondary));
+    font-family: var(--font-khmer-heading);
+    padding: 0.6rem 0.85rem;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #D1D5DB;
+    background-color: #F3F4F6;
+    color: #1F2937;
+  }
+  .dark .markdown th {
+    border-color: #374151;
+    background-color: #1F2937;
+    color: #F9FAFB;
   }
   .markdown td {
-    @apply px-3 py-1.5;
-    border: 1px solid hsl(var(--border));
+    padding: 0.6rem 0.85rem;
+    border: 1px solid #E5E7EB;
   }
-  .markdown hr { @apply my-4; border-color: hsl(var(--border)); }
-
-  /* ── Cambo-branded chat helpers ── */
-  .cambo-ai-bubble {
-    border-color: rgba(212, 175, 55, 0.25);
-    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-  }
-  .dark .cambo-ai-bubble {
-    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-  }
-
-  .cambo-user-bubble {
-    background: linear-gradient(135deg, #7C3AED, #6D28D9);
-    color: #fff;
+  .dark .markdown td {
+    border-color: #374151;
   }
 }
