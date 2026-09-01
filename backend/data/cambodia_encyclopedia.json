@@ -1,0 +1,159 @@
+{
+  "history": [
+    {
+      "era": "Pre-Angkorian (Funan & Chenla)",
+      "period": "1st Century CE – 802 CE",
+      "summary": "Funan (Nokor Phnom) centered in the Mekong Delta (Oc Eo, Angkor Borei) was a powerful maritime trading empire. Chenla (Zhenla), centered in Isanapura (Sambor Prei Kuk) and Bhavapura, succeeded Funan.",
+      "key_figures": ["Queen Soma (Neang Neak)", "Kaundinya (Preah Thong)", "Isanavarman I", "Bhavavarman I", "Jayavarman I"],
+      "key_sites": ["Angkor Borei", "Phnom Da", "Sambor Prei Kuk (UNESCO)", "Vat Phou"],
+      "significance": "Established the foundational Khmer religious syncretism (Hinduism & Buddhism), hydraulic irrigation, and maritime trade routes."
+    },
+    {
+      "era": "Angkor Empire (Khmer Empire / Yashodharapura)",
+      "period": "802 CE – 1431 CE",
+      "summary": "Golden age of Khmer civilization. Founded when Jayavarman II declared independence on Mount Mahendraparvata (Phnom Kulen) establishing the Devaraja (God-King) cult. Reached zenith in architecture, engineering, territorial expansion, and hydraulic mastery spanning mainland Southeast Asia.",
+      "key_figures": [
+        "Jayavarman II (802-835) - Founded the Angkor Empire at Phnom Kulen",
+        "Indravarman I (877-889) - Built Preah Ko, Bakong, and Indratataka reservoir at Hariharalaya (Roluos)",
+        "Yasovarman I (889-910) - Moved capital to Yashodharapura (Angkor) and built Phnom Bakheng",
+        "Rajendravarman II (944-968) - Built Pre Rup and East Mebon",
+        "Jayavarman V (968-1001) - Patron of Banteay Srei (built by guru Yajnavaraha) and Ta Keo",
+        "Suryavarman I (1002-1050) - Expanded empire to include most of modern Thailand and Laos; built West Baray",
+        "Suryavarman II (1113-1150) - Built Angkor Wat dedicated to Vishnu, world's largest religious structure; diplomatic ties with Song China",
+        "Jayavarman VII (1181-1218) - Greatest builder king; Mahayana Buddhist; built Angkor Thom, Bayon (54 towers with Avalokiteshvara/Lokeshvara smiling faces), Ta Prohm, Preah Khan, Neak Pean, and 102 Arogyasala (hospitals) and Dharamsala (rest houses)"
+      ],
+      "key_monuments": ["Angkor Wat", "Bayon", "Ta Prohm", "Banteay Srei", "Preah Vihear", "Koh Ker", "Beng Mealea", "Preah Khan", "Baphuon", "Phnom Bakheng", "West Baray"],
+      "significance": "Mastery of advanced hydrology, monumental stone architecture, epigraphy, Sanskrit & Old Khmer literature."
+    },
+    {
+      "era": "Middle Period (Longvek, Oudong & Chaktomuk)",
+      "period": "1431 – 1863 CE",
+      "summary": "Capital shifted southwards to Chaktomuk (Phnom Penh), Longvek, and Oudong. Longvek was a thriving international trade hub in the 16th century under King Ang Chan I.",
+      "key_figures": ["King Ponhea Yat (shifted capital to Phnom Penh)", "King Ang Chan I (golden age of Longvek)", "King Chey Chettha II", "King Ang Duong (revived Khmer arts, literature, and Buddhism at Oudong)"],
+      "key_sites": ["Oudong Mountain (Royal Stupas)", "Longvek", "Wat Phnom", "Silver Pagoda grounds"],
+      "significance": "Preserved Khmer identity, classical literature (Reamker), Theravada Buddhism resurgence, and legal codes."
+    },
+    {
+      "era": "French Protectorate & Modern Independence",
+      "period": "1863 – Present",
+      "summary": "Protectorate established in 1863 by King Norodom. Complete independence achieved on November 9, 1953 under King Norodom Sihanouk. Following the tragic 1975-1979 Khmer Rouge regime, Cambodia was liberated on January 7, 1979. Full peace achieved through the 1991 Paris Peace Agreements and Prime Minister Hun Sen's 1998 Win-Win Policy.",
+      "key_figures": ["King Norodom", "King Sisowath", "King Norodom Sihanouk (Father King / Preah Borom Ratanak Kaudh)", "King Norodom Sihamoni (Current Reigning King)", "Samdech Techo Hun Sen", "Samdech Thipadei Hun Manet (Current Prime Minister)"],
+      "key_events": ["November 9, 1953: Independence Day", "January 7, 1979: Victory Day over Genocide", "October 23, 1991: Paris Peace Agreements", "December 29, 1998: Complete Peace through Win-Win Policy", "October 29, 2004: Coronation of HM King Norodom Sihamoni"],
+      "significance": "Democratic constitutional monarchy, rapid economic growth, digital transformation, and regional integration into ASEAN."
+    }
+  ],
+  "geography_provinces": {
+    "total_divisions": "24 Provinces and 1 Autonomous Municipality (Phnom Penh)",
+    "capital": {
+      "name": "Phnom Penh (រាជធានីភ្នំពេញ)",
+      "geography": "Located at the confluence of the Mekong, Tonle Sap, and Bassac rivers (Chaktomuk).",
+      "landmarks": ["Royal Palace", "Silver Pagoda", "Wat Phnom", "National Museum of Cambodia", "Central Market (Phsar Thmei)", "Independence Monument", "Techo Takhmao International Airport (KTI)"],
+      "role": "Political, economic, cultural, educational, and tech hub of Cambodia."
+    },
+    "provinces": [
+      { "name": "Siem Reap (សៀមរាប)", "highlights": "Home of Angkor Archaeological Park (Angkor Wat, Bayon, Ta Prohm), Tonle Sap floating villages (Chong Kneas, Kampong Phluk), Siem Reap-Angkor International Airport (SAI)." },
+      { "name": "Battambang (បាត់ដំបង)", "highlights": "Rice bowl of Cambodia, French colonial architecture, Bamboo Train (Norry), Phnom Sampov, Banan Temple, vibrant arts and creative scene (Phare Ponleu Selpak)." },
+      { "name": "Preah Sihanouk / Sihanoukville (ព្រះសីហនុ)", "highlights": "Deep-water seaport, special economic zones (SEZ), beach resorts, islands (Koh Rong, Koh Rong Sanloem), Phnom Penh-Sihanoukville Expressway." },
+      { "name": "Kampot (កំពត)", "highlights": "World-renowned GI Kampot Pepper, Bokor National Park, Teuk Chhou rapids, French colonial riverside, durian capital." },
+      { "name": "Kep (កែប)", "highlights": "Famous Blue Swimming Crab Market (Phsar Kdam), Kep National Park, Rabbit Island (Koh Tonsay), former elite French seaside retreat." },
+      { "name": "Kandal (កណ្តាល)", "highlights": "Surrounds Phnom Penh; home to Oudong ancient capital, Koh Dach (Silk Island), and the new Techo International Airport." },
+      { "name": "Kampong Cham (កំពង់ចាម)", "highlights": "Kizuna Bridge across Mekong, Wat Nokor Bachey, rubber plantations, bamboo bridge to Koh Pen." },
+      { "name": "Kampong Thom (កំពង់ធំ)", "highlights": "Home to Sambor Prei Kuk (UNESCO World Heritage pre-Angkorian capital of Isanapura), Santuk mountain." },
+      { "name": "Kampong Chhnang (កំពង់ឆ្នាំង)", "highlights": "Traditional pottery craft (Chhnang means pot), floating villages on Tonle Sap, gold and palm sugar." },
+      { "name": "Kampong Speu (កំពង់ស្ពឺ)", "highlights": "Phnom Aural (Cambodia's highest peak at 1,813m), GI Kampong Speu Palm Sugar, Kirirom National Park." },
+      { "name": "Pursat (ពោធិ៍សាត់)", "highlights": "Marble stone carving (Phnom Kravanh), Cardamom Mountains biodiversity, Kampong Luong floating town." },
+      { "name": "Koh Kong (កោះកុង)", "highlights": "Pristine Cardamom rainforest, Peam Krasop Mangrove Sanctuary, Tatai Waterfall, Koh Kong Safari World." },
+      { "name": "Banteay Meanchey (បន្ទាយមានជ័យ)", "highlights": "Banteay Chhmar temple complex (Jayavarman VII masterwork), Poipet border economic gateway." },
+      { "name": "Oddar Meanchey (ឧត្តរមានជ័យ)", "highlights": "Dangrek mountain range, historical sites, border crossings with Thailand (O'Smach)." },
+      { "name": "Preah Vihear (ព្រះវិហារ)", "highlights": "UNESCO World Heritage Temple of Preah Vihear on the cliff edge of the Dangrek Mountains, Koh Ker pyramid complex." },
+      { "name": "Stung Treng (ស្ទឹងត្រែង)", "highlights": "Confluence of Sekong, Sesan, Srepok, and Mekong rivers; Irrawaddy river dolphin sanctuary; Ramsar wetlands." },
+      { "name": "Ratanakiri (រតនគិរី)", "highlights": "Volcanic crater lake Yeak Laom, indigenous minority cultures (Tampuan, Jarai), waterfalls (Kachang, Katieng), gem mining." },
+      { "name": "Mondulkiri (មណ្ឌលគិរី)", "highlights": "Cool highland plateaus, pine forests, Bousra Waterfall, Elephant Valley Project sanctuary, indigenous Bunong culture." },
+      { "name": "Kratie (ក្រចេះ)", "highlights": "Home of endangered Mekong Irrawaddy dolphins at Kampi, Koh Trong eco-tourism island, French colonial architecture." },
+      { "name": "Prey Veng (ព្រៃវែង)", "highlights": "Neak Loeung Bridge (Tsubasa Bridge) crossing the Mekong, agricultural heartland, ancient Ba Phnom hill." },
+      { "name": "Svay Rieng (ស្វាយរៀង)", "highlights": "Bavet border economic zone and international trade corridor connecting Phnom Penh with Ho Chi Minh City." },
+      { "name": "Takeo (តាកែវ)", "highlights": "Cradle of Khmer civilization (Funan period), Phnom Da, Angkor Borei, Tonle Bati & Ta Prohm of Takeo." },
+      { "name": "Pailin (ប៉ៃលិន)", "highlights": "Gem-rich province near Thai border, Cardamom mountain foothills, Wat Phnom Yat." },
+      { "name": "Tboung Khmum (ត្បូងឃ្មុំ)", "highlights": "Established in 2013 from eastern Kampong Cham; fertile red-soil rubber, pepper, and cashew nut hub." }
+    ]
+  },
+  "unesco_heritage": {
+    "tangible": [
+      { "site": "Angkor Archaeological Park", "year": 1992, "description": "Over 400 sq km containing Angkor Wat, Angkor Thom, Bayon, and hydraulic networks." },
+      { "site": "Temple of Preah Vihear", "year": 2008, "description": "11th-century cliff-top Hindu sanctuary dedicated to Shiva with unique architectural orientation." },
+      { "site": "Temple Zone of Sambor Prei Kuk (Isanapura)", "year": 2017, "description": "7th-century pre-Angkorian brick octagonal temples and architecture." },
+      { "site": "Koh Ker: Archaeological Site of Ancient Lingapura", "year": 2023, "description": "10th-century capital under Jayavarman IV featuring the 7-tiered pyramid temple Prasat Prang." }
+    ],
+    "intangible": [
+      { "element": "Royal Ballet of Cambodia (Robam Preah Reach Trop / Apsara Dance)", "year": 2003, "description": "Sacred classical dance embodying divine spirits and royal ceremonies." },
+      { "element": "Sbek Thom (Khmer Shadow Theatre)", "year": 2005, "description": "Sacred shadow puppet performances reenacting the Reamker (Khmer Ramayana)." },
+      { "element": "Tugging Rituals and Games (Teanh Prot)", "year": 2015, "description": "Traditional agrarian ritual for rainfall and fertility during Khmer New Year." },
+      { "element": "Chapei Dang Veng", "year": 2016, "description": "Traditional two-string long-necked lute music accompanied by improvisational satirical and moral poetry." },
+      { "element": "Lakhon Khol Wat Svay Andet", "year": 2018, "description": "Masked dance theatre performed exclusively by male dancers to invoke rain and community blessings." },
+      { "element": "Kun Lbokator (Traditional Martial Arts)", "year": 2022, "description": "Ancient Khmer battlefield martial art depicting animal fighting forms engraved on Angkor bas-reliefs." }
+    ]
+  },
+  "culture_and_festivals": [
+    {
+      "name": "Choul Chnam Thmey (Khmer New Year / ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ)",
+      "timing": "Mid-April (April 13/14 to 16)",
+      "rituals": [
+        "Day 1: Maha Sangkran (មហាសង្ក្រាន្ត) - Welcoming the new Tevada angel, lighting candles, cleaning homes.",
+        "Day 2: Virak Vanabat (វារៈវ័នបត) - Offering gifts to parents and elders, charity to the needy.",
+        "Day 3: Vearak Loeng Sak (វារៈឡើងស័ក) - Washing Buddha statues and parents (Pithi Srang Preah), traditional games (Chol Chhoung, Bos Angkunh, Teanh Prot)."
+      ]
+    },
+    {
+      "name": "Pchum Ben (Festival for Ancestors / ពិធីបុណ្យភ្ជុំបិណ្ឌ)",
+      "timing": "September / October (15-day observance during the 10th month of the Khmer calendar, Pheaktrobot)",
+      "rituals": "14 days of Kan Ben followed by the main Pchum Ben day. At dawn (around 4 AM), families throw rice balls (Bay Ben) around temple pagodas to feed wandering spirits (Pret) and dedicate merit to 7 generations of ancestors."
+    },
+    {
+      "name": "Bon Om Touk (Water and Moon Festival / ពិធីបុណ្យអុំទូក បណ្តែតប្រទីប និងសំពះព្រះខែ)",
+      "timing": "November Full Moon (marking the reversal of Tonle Sap river flow)",
+      "rituals": [
+        "Dragon Boat Races (អុំទូក) on the Tonle Sap river commemorating ancient Khmer naval victories under Jayavarman VII.",
+        "Loy Pratip (បណ្តែតប្រទីប) - Illuminated floating barges glowing on the river at night.",
+        "Sampeah Preah Khe (សំពះព្រះខែ) & Ak Ambok (អកអំបុក) - Saluting the Full Moon with flattened roasted rice, bananas, and coconut."
+      ]
+    },
+    {
+      "name": "Preah Reach Pithi Chrot Preah Neangkoal (Royal Ploughing Ceremony / ព្រះរាជពិធីច្រត់ព្រះនង្គ័ល)",
+      "timing": "May (start of the rice-planting rainy season)",
+      "rituals": "Sacred royal oxen (Preah Reach Troap) are offered seven trays of grains (rice, corn, beans, sesame, water, wine, grass) to forecast the nation's harvest and weather."
+    }
+  ],
+  "culinary_treasures": [
+    { "dish": "Fish Amok (អាម៉ុកត្រី)", "description": "National steamed curry mousse made of fresh Mekong river fish (Trey Riel or Trey Chhpin), kroeung paste (lemongrass, galangal, kaffir lime, turmeric, garlic), coconut milk, and noni leaves (Sloeuk Nhor), steamed in a banana leaf basket." },
+    { "dish": "Samlor Korko (សម្លកកូរ)", "description": "Traditional vegetable soup regarded as Cambodia's true heritage dish, containing roasted ground rice, prahok, pumpkin, green papaya, bitter melon leaves, and catfish or pork." },
+    { "dish": "Nom Banh Chok (នំបញ្ចុក)", "description": "Fresh fermented rice noodles served with green fish curry broth (Samlor Proher) infused with lemongrass and kaffir lime, garnished with water lily stems, cucumber, banana blossom, and fresh herbs." },
+    { "dish": "Beef Lok Lak (ឡុកឡាក់សាច់គោ)", "description": "Stir-fried marinated tender beef cubes served on a bed of fresh lettuce, tomatoes, and onions, paired with a dipping sauce of Kampot black pepper, sea salt, and fresh lime juice." },
+    { "dish": "Kuy Teav Phnom Penh (គុយទាវភ្នំពេញ)", "description": "Fragrant clear pork and dry squid broth with rice noodles, sliced pork, minced pork, liver, heart, shrimp, crispy garlic, and scallions." },
+    { "dish": "Prahok Ktiss (ប្រហុកខ្ទិះ)", "description": "Savory dipping sauce made of fermented fish paste (Prahok), coconut milk, minced pork, pea eggplants, and kroeung, served with raw crunchy vegetables." },
+    { "dish": "Kdam Chaa with Kampot Green Pepper (ក្តាមឆាម្រេចខ្ចីកំពត)", "description": "Fresh Kep blue crab stir-fried with fragrant whole sprigs of world-famous Protected Geographical Indication (PGI) Kampot green peppercorns." }
+  ],
+  "fintech_and_digital_economy": {
+    "bakong_system": {
+      "developed_by": "National Bank of Cambodia (NBC) in partnership with Soramitsu",
+      "technology": "Hyperledger Iroha permissioned blockchain",
+      "significance": "Pioneering payment system integrating all Cambodian commercial banks and e-wallets into a unified zero-friction real-time settlement network using mobile phone numbers and KHQR.",
+      "cross_border_interoperability": "Connected with Thailand (PromptPay), Vietnam (NAPAS), Laos (LAPNet), UnionPay International, Alipay+, and South Korea."
+    },
+    "khqr_standard": {
+      "description": "Universal national QR payment standard launched by the National Bank of Cambodia allowing any banking app to scan and pay at any merchant across the Kingdom in Khmer Riel (KHR) or US Dollars (USD)."
+    },
+    "major_institutions": [
+      { "name": "National Bank of Cambodia (NBC / ធនាគារជាតិនៃកម្ពុជា)", "role": "Central bank and monetary regulator, creator of Bakong and KHQR." },
+      { "name": "CADT (Cambodia Academy of Digital Technology)", "role": "Leading national research and higher education institution for AI, cybersecurity, and software engineering." },
+      { "name": "Techo Startup Center (TSC)", "role": "Government incubator under the Ministry of Economy and Finance facilitating CamDX (Cambodia Data Exchange)." },
+      { "name": "Khmer Enterprise (KE)", "role": "National platform supporting entrepreneurship, SME digitalization, and startup funding." }
+    ]
+  },
+  "khmer_language_linguistics": {
+    "alphabet_overview": "Khmer script is an abugida descended from the Brahmi script via the Pallava script. It holds the Guinness World Record for the alphabet with the largest number of letters.",
+    "consonants": "33 Consonants divided into two series: First Series (A-Series / អ) and Second Series (O-Series / អ៊).",
+    "vowels": "24 Dependent Vowels (ស្រៈនិស្ស័យ) whose pronunciations shift based on the consonant series, plus 15 Independent Vowels (ស្រៈពេញតួ).",
+    "subscripts": "Each consonant has a subscript form (ជើងអក្សរ) written underneath or to the side of base consonants to create complex consonant clusters without vocalic separators.",
+    "registers_politeness": "Khmer features nuanced polite linguistic registers: Everyday speech, Polite speech with elders (ការគួរសម), Monastic language (សង្ឃសព្ទ), and Royal vocabulary (រាជសព្ទ)."
+  }
+}

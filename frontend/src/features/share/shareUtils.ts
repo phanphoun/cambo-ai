@@ -2,18 +2,7 @@ import type { Message } from "../../types/chat";
 
 function compress(data: string): string {
   try {
-    const uint8 = new TextEncoder().encode(data);
-    const deflated = new Uint8Array(uint8.length);
-    let offset = 0;
-    for (let i = 0; i < uint8.length; i++) {
-      if (uint8[i] >= 32 && uint8[i] <= 126) {
-        deflated[offset++] = uint8[i];
-      } else {
-        deflated[offset++] = 0xc0 | (uint8[i] >> 6);
-        deflated[offset++] = 0x80 | (uint8[i] & 0x3f);
-      }
-    }
-    return btoa(String.fromCharCode(...deflated.slice(0, offset)));
+    return btoa(encodeURIComponent(data));
   } catch {
     return "";
   }
@@ -21,12 +10,7 @@ function compress(data: string): string {
 
 function decompress(data: string): string {
   try {
-    const binary = atob(data);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return new TextDecoder().decode(bytes);
+    return decodeURIComponent(atob(data));
   } catch {
     return "";
   }
@@ -60,7 +44,7 @@ export function buildShareUrl(messages: Message[]): string {
 export function formatTranscript(messages: Message[]): string {
   return messages
     .map((m) => {
-      const role = m.role === "user" ? "You" : "CAMBO AI";
+      const role = m.role === "user" ? "You" : "Sastra AI";
       return `**${role}** [${new Date(m.timestamp).toLocaleString()}]\n${m.content}\n`;
     })
     .join("\n---\n");

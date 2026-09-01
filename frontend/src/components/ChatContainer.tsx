@@ -1,41 +1,198 @@
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback, useEffect } from "react";
+import { useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
-  Bot,
   Check,
   Copy,
   Sparkles,
-  User,
   AlertTriangle,
   ThumbsUp,
   ThumbsDown,
+  Wrench,
+  X,
+  ExternalLink,
+  BookOpen,
+  Globe,
+  Calculator,
+  Database,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  Download,
+  Volume2,
+  Square,
+  Loader2,
 } from "lucide-react";
 import { cn, formatTime } from "../lib/utils";
 import type { Message } from "../types/chat";
+import type { AiProvider } from "../features/provider/providerSlice";
+import type { RootState } from "../store";
 import PinButton from "../features/pin/PinButton";
+import { KbachCorner } from "./KhmerOrnaments";
+import { parseGeneratedDoc, GeneratedDocCard } from "./GeneratedDocCard";
+import { ExportDocButton } from "../features/documents/ExportDocButton";
+import { KhmerProfileAvatar } from "./KhmerProfileAvatar";
 
 interface ChatContainerProps {
   messages: Message[];
   isStreaming: boolean;
+  provider: AiProvider;
+}
+
+interface LightboxState {
+  images: string[];
+  index: number;
 }
 
 export default function ChatContainer({
   messages,
   isStreaming,
+  provider,
 }: ChatContainerProps) {
+  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
+
+  // Keyboard navigation for Lightbox
+  useEffect(() => {
+    if (!lightbox) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+      if (e.key === "ArrowLeft" && lightbox.images.length > 1) {
+        setLightbox((prev) =>
+          prev
+            ? {
+                ...prev,
+                index: (prev.index - 1 + prev.images.length) % prev.images.length,
+              }
+            : null,
+        );
+      }
+      if (e.key === "ArrowRight" && lightbox.images.length > 1) {
+        setLightbox((prev) =>
+          prev
+            ? {
+                ...prev,
+                index: (prev.index + 1) % prev.images.length,
+              }
+            : null,
+        );
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightbox]);
+
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-5 pb-4">
-      {messages.map((m, i) => (
-        <MessageBubble
-          key={m.timestamp || i}
-          message={m}
-          isLast={i === messages.length - 1}
-          isStreaming={isStreaming}
-          messageIndex={i}
-        />
-      ))}
-    </div>
+    <>
+      {/* Fullscreen Image Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md animate-fade-in select-none"
+          onClick={() => setLightbox(null)}
+        >
+          <div
+            className="relative flex max-h-[92vh] max-w-[92vw] flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Toolbar */}
+            <div className="absolute -top-12 inset-x-0 flex items-center justify-between text-white/90 px-2">
+              <span className="text-xs font-mono font-medium">
+                {lightbox.images.length > 1
+                  ? `${lightbox.index + 1} / ${lightbox.images.length}`
+                  : "Image Preview"}
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={lightbox.images[lightbox.index]}
+                  download={`cambo-ai-image-${lightbox.index + 1}.png`}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                  title="Download image"
+                >
+                  <Download className="h-4 w-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setLightbox(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                  aria-label="Close preview"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Main Image */}
+            <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-black/40 shadow-2xl">
+              <img
+                src={lightbox.images[lightbox.index]}
+                alt={`Preview ${lightbox.index + 1}`}
+                className="max-h-[82vh] max-w-full object-contain rounded-2xl"
+              />
+            </div>
+
+            {/* Previous / Next Navigation Controls */}
+            {lightbox.images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLightbox((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            index:
+                              (prev.index - 1 + prev.images.length) %
+                              prev.images.length,
+                          }
+                        : null,
+                    )
+                  }
+                  className="absolute -left-12 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/30 transition-all"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLightbox((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            index: (prev.index + 1) % prev.images.length,
+                          }
+                        : null,
+                    )
+                  }
+                  className="absolute -right-12 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/30 transition-all"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Centered reading container */}
+      <div className="mx-auto w-full max-w-3xl sm:max-w-3.5xl lg:max-w-4xl space-y-6 pb-6 pt-2">
+        {messages.map((m, i) => (
+          <MessageBubble
+            key={`${m.role}-${m.timestamp || i}-${i}`}
+            message={m}
+            isLast={i === messages.length - 1}
+            isStreaming={isStreaming}
+            messageIndex={i}
+            provider={provider}
+            onOpenImageGallery={(images, index) =>
+              setLightbox({ images, index })
+            }
+          />
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -44,146 +201,395 @@ const MessageBubble = memo(function MessageBubble({
   isLast,
   isStreaming,
   messageIndex,
+  onOpenImageGallery,
 }: {
   message: Message;
   isLast: boolean;
   isStreaming: boolean;
   messageIndex: number;
+  provider?: AiProvider;
+  onOpenImageGallery: (images: string[], index: number) => void;
 }) {
+  const currentUser = useSelector((s: RootState) => s.auth.user);
   const isUser = message.role === "user";
-  const isEmpty = !message.content;
-  const showCursor = isLast && !isUser && isStreaming && isEmpty;
+  const { cleanContent, docMeta } = parseGeneratedDoc(message.content || "");
+  const isEmpty = !cleanContent && !docMeta;
   const isLoading = isLast && !isUser && isStreaming && !isEmpty;
   const hasError =
-    !isUser && message.content.includes("quota") && /⚠️|❌/.test(message.content);
+    !isUser && cleanContent.includes("quota") && /⚠️|❌/.test(cleanContent);
 
   return (
     <div
       className={cn(
-        "group flex animate-slide-in gap-3",
-        isUser ? "flex-row-reverse" : "flex-row",
+        "group flex w-full animate-slide-in gap-3 sm:gap-4",
+        isUser ? "justify-end" : "justify-start",
       )}
       style={{ animationDelay: `${Math.min(messageIndex * 30, 300)}ms` }}
     >
-      {/* Avatar */}
-      <div
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-medium shadow-sm ring-1 ring-black/10 transition-transform hover:scale-110",
-          isUser
-            ? "bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 text-white"
-            : "bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 text-white",
-        )}
-      >
-        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-      </div>
+      {/* Assistant Avatar on Left with Authentic Khmer Medallion Art */}
+      {!isUser && (
+        <KhmerProfileAvatar
+          isAi={true}
+          size="sm"
+          glow={true}
+          className="mt-0.5"
+        />
+      )}
 
+      {/* Bubble Container: Assistant fills available width of centered container, User hugs right */}
       <div
         className={cn(
-          "flex max-w-[85%] flex-col gap-1",
-          isUser ? "items-end" : "items-start",
+          "flex flex-col gap-1.5 min-w-0",
+          isUser
+            ? "max-w-[90%] sm:max-w-[82%] items-end"
+            : "flex-1 w-full items-start",
         )}
       >
-        {/* Header */}
+        {/* Header Metadata */}
         <div
           className={cn(
-            "flex items-center gap-2 text-[11px] text-muted-foreground",
+            "flex items-center gap-2 text-xs text-stone-400 px-1 font-sans",
             isUser ? "flex-row-reverse" : "flex-row",
           )}
         >
-          <span className="font-medium">{isUser ? "You" : "CAMBO AI"}</span>
-          <span aria-hidden>·</span>
-          <time dateTime={message.timestamp} className="tabular-nums">
+          <span className="font-heading font-semibold text-xs sm:text-[13px] text-stone-200">
+            {isUser ? (currentUser?.name?.split(" ")[0] || "You") : "Sastra AI"}
+          </span>
+          <span aria-hidden className="opacity-40">
+            ·
+          </span>
+          <time
+            dateTime={message.timestamp}
+            className="tabular-nums text-[11px] sm:text-xs opacity-75 font-sans"
+          >
             {formatTime(message.timestamp)}
           </time>
-          {!isUser && (
-            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-              style={{
-                backgroundColor: "hsl(var(--chat-ai-accent) / 0.15)",
-                color: "hsl(var(--chat-ai-accent))",
-              }}
-            >
-              <Sparkles className="h-2.5 w-2.5" /> Gemini
-            </span>
-          )}
         </div>
 
-        {/* Content */}
+        {/* Message Body Card */}
         <div
           className={cn(
-            "rounded-2xl px-4 py-3 text-[15px] leading-relaxed break-words shadow-sm transition-shadow hover:shadow-md",
+            "relative text-[15.5px] sm:text-[16.5px] leading-[1.8] break-words transition-all",
             isUser
-              ? "rounded-tr-sm bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 text-white"
-              : "rounded-tl-sm border bg-card text-card-foreground",
-            hasError && "border-destructive/30 bg-destructive/5",
-            showCursor && "typing-cursor min-h-[1.5em]",
+              ? "rounded-2xl border border-amber-300/80 dark:border-gold/40 bg-[#FAF3E0] dark:bg-[#221A10] px-4 py-3 font-khmer text-right shadow-md text-stone-900 dark:text-stone-100 max-w-[880px]"
+              : "w-full bg-transparent border-0 shadow-none px-0 py-1 text-stone-900 dark:text-stone-100 max-w-[900px]",
+            hasError &&
+              "border-destructive/40 bg-destructive/5 text-destructive",
           )}
-          style={!isUser ? {
-            borderColor: "hsl(var(--border))",
-            backgroundColor: "hsl(var(--chat-assistant))",
-            color: "hsl(var(--chat-assistant-foreground))",
-          } : undefined}
         >
+
           {hasError && (
-            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-destructive">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              API issue
+            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <span>Service Notice</span>
             </div>
           )}
+
+          {/* User Image Attachments Gallery */}
+          {isUser && message.images && message.images.length > 0 && (
+            <div className="mb-3">
+              <UserImageGallery
+                images={message.images}
+                onOpen={(idx) => onOpenImageGallery(message.images!, idx)}
+              />
+            </div>
+          )}
+
           {isUser ? (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            message.content ? (
+              <p className="whitespace-pre-wrap leading-[1.8] text-stone-950 dark:text-stone-100 font-normal text-right text-[15px] sm:text-[16px] font-khmer">
+                {message.content}
+              </p>
+            ) : null
+          ) : isEmpty && isStreaming ? (
+            <div className="space-y-3.5 py-2 animate-fade-in">
+              <div className="flex items-center gap-2.5 text-xs font-semibold text-amber-600 dark:text-gold">
+                <Sparkles
+                  className="h-4 w-4 animate-spin text-amber-600 dark:text-gold"
+                  style={{ animationDuration: "3s" }}
+                />
+                <span className="font-khmer font-medium text-stone-800 dark:text-stone-200 text-xs sm:text-[13px]">
+                  កំពុងគិត និងបង្កើតចម្លើយ... (Thinking & Generating)
+                </span>
+              </div>
+              <div className="space-y-2 pt-1">
+                <div className="h-3 w-11/12 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/40 to-amber-500/10 dark:from-gold/20 dark:via-gold/40 dark:to-gold/10 animate-pulse" />
+                <div
+                  className="h-3 w-4/5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/40 to-amber-500/10 dark:from-gold/20 dark:via-gold/40 dark:to-gold/10 animate-pulse"
+                  style={{ animationDelay: "0.2s" }}
+                />
+                <div
+                  className="h-3 w-3/5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/40 to-amber-500/10 dark:from-gold/20 dark:via-gold/40 dark:to-gold/10 animate-pulse"
+                  style={{ animationDelay: "0.4s" }}
+                />
+              </div>
+            </div>
           ) : (
-            <div className="markdown">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  code({ className, children, inline, ...props }) {
-                    const codeStr = String(children).replace(/\n$/, "");
-                    // Fenced code blocks: inline === false, regardless of language
-                    if (inline === false) {
-                      const lang = className?.startsWith("language-")
-                        ? className.replace("language-", "")
-                        : "";
-                      return <CodeBlock code={codeStr} language={lang} />;
-                    }
-                    // Inline code (single backticks)
+            <div className="markdown text-stone-900 dark:text-stone-100 leading-[1.85] font-khmer text-[15.5px] sm:text-[16.5px]">
+              {docMeta && <GeneratedDocCard doc={docMeta} />}
+              {cleanContent && (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                  p({ children }) {
                     return (
-                      <code className={cn("rounded bg-secondary px-1.5 py-0.5 font-mono text-[13px] text-primary", className)} {...props}>
+                      <p className="my-3.5 first:mt-0 last:mb-0 leading-[1.85] text-stone-900 dark:text-stone-100 text-[15.5px] sm:text-[16.5px] font-normal tracking-normal">
+                        {children}
+                      </p>
+                    );
+                  },
+                  ul({ children }) {
+                    return (
+                      <ul className="my-3.5 ml-5 list-disc space-y-2 text-stone-900 dark:text-stone-100 marker:text-amber-600 dark:marker:text-gold">
+                        {children}
+                      </ul>
+                    );
+                  },
+                  ol({ children }) {
+                    return (
+                      <ol className="my-3.5 ml-5 list-decimal space-y-2 text-stone-900 dark:text-stone-100 marker:text-amber-600 dark:marker:text-gold">
+                        {children}
+                      </ol>
+                    );
+                  },
+                  li({ children }) {
+                    return <li className="leading-[1.8] text-stone-900 dark:text-stone-100 text-[15.5px] sm:text-[16.5px] font-normal">{children}</li>;
+                  },
+                  h1({ children }) {
+                    return (
+                      <h1 className="mb-3.5 mt-6 font-heading text-xl sm:text-2xl font-bold text-amber-800 dark:text-[#FCD34D] first:mt-0 tracking-normal leading-[1.35] flex items-center gap-2">
+                        {children}
+                      </h1>
+                    );
+                  },
+                  h2({ children }) {
+                    return (
+                      <h2 className="mb-3 mt-5 font-heading text-lg sm:text-xl font-semibold text-amber-800 dark:text-[#FCD34D] first:mt-0 tracking-normal leading-[1.4] flex items-center gap-2">
+                        {children}
+                      </h2>
+                    );
+                  },
+                  h3({ children }) {
+                    return (
+                      <h3 className="mb-2 mt-4 font-heading text-base sm:text-lg font-semibold text-amber-800 dark:text-[#FCD34D] first:mt-0 tracking-normal leading-[1.45]">
+                        {children}
+                      </h3>
+                    );
+                  },
+                  strong({ children }) {
+                    return (
+                      <strong className="font-bold text-black dark:text-white">
+                        {children}
+                      </strong>
+                    );
+                  },
+                  blockquote({ children }) {
+                    return (
+                      <div className="relative my-4 rounded-2xl border border-amber-600/40 bg-gradient-to-r from-[#1A140E]/40 via-[#241A10]/40 to-[#140F09]/40 p-4 sm:p-5 shadow-xl shadow-black/40 backdrop-blur-sm overflow-hidden">
+                        {/* Corner Ornaments */}
+                        <div className="absolute top-1.5 left-1.5 text-gold/70 pointer-events-none">
+                          <KbachCorner className="h-4 w-4" />
+                        </div>
+                        <div className="absolute top-1.5 right-1.5 rotate-90 text-gold/70 pointer-events-none">
+                          <KbachCorner className="h-4 w-4" />
+                        </div>
+                        <div className="absolute bottom-1.5 left-1.5 -rotate-90 text-gold/70 pointer-events-none">
+                          <KbachCorner className="h-4 w-4" />
+                        </div>
+                        <div className="absolute bottom-1.5 right-1.5 rotate-180 text-gold/70 pointer-events-none">
+                          <KbachCorner className="h-4 w-4" />
+                        </div>
+
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="text-center sm:text-left flex-1 font-khmer italic text-[#F5D77F] text-xs sm:text-sm leading-relaxed px-2">
+                            {children}
+                          </div>
+                          <div className="hidden sm:block shrink-0 h-16 w-16 opacity-80 filter drop-shadow">
+                            <img
+                              src="/src/assets/images/bayon-head.png"
+                              alt="Bayon Buddha Head"
+                              className="h-full w-full object-contain"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  },
+                  hr() {
+                    return <hr className="my-4 border-t border-[#382C1B]/80" />;
+                  },
+                  table({ children }) {
+                    return (
+                      <div className="my-4 overflow-x-auto rounded-2xl border border-[#483B24]/70 bg-black/25 shadow-xl backdrop-blur-sm">
+                        <table className="w-full text-left text-xs sm:text-sm border-collapse font-khmer">
+                          {children}
+                        </table>
+                      </div>
+                    );
+                  },
+                  th({ children }) {
+                    return (
+                      <th className="border-b border-[#352B19]/80 bg-[#1C1710]/70 px-4 py-2.5 font-bold text-[#E5C058]">
+                        {children}
+                      </th>
+                    );
+                  },
+                  td({ children }) {
+                    return (
+                      <td className="border-b border-[#241C10]/60 px-4 py-2.5 text-stone-200 hover:bg-gold/5 transition-colors">
+                        {children}
+                      </td>
+                    );
+                  },
+                  code({ className, children, ...props }) {
+                    const codeStr = String(children).replace(/\n$/, "");
+                    const match = /language-(\w+)/.exec(className || "");
+                    if (match || codeStr.includes("\n")) {
+                      return (
+                        <CodeBlock
+                          code={codeStr}
+                          language={match?.[1] ?? ""}
+                        />
+                      );
+                    }
+                    return (
+                      <code
+                        className={cn(
+                          "rounded-md bg-amber-100 dark:bg-[#251F14] px-2 py-0.5 font-mono text-[13px] text-amber-950 dark:text-[#FDE047] font-bold border border-amber-300/80 dark:border-[#3E321E]",
+                          className,
+                        )}
+                        {...props}
+                      >
                         {children}
                       </code>
                     );
                   },
                   pre({ children }) {
-                    // pre is handled inside CodeBlock above
                     return <>{children}</>;
+                  },
+                  a({ href, children }) {
+                    return (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-0.5 text-amber-700 dark:text-[#FCD34D] font-bold underline underline-offset-4 hover:opacity-80"
+                      >
+                        {children}
+                        <ExternalLink className="inline h-3 w-3 ml-0.5" />
+                      </a>
+                    );
                   },
                 }}
               >
-                {message.content}
+                {cleanContent}
               </ReactMarkdown>
+              )}
+              {isLast && isStreaming && (
+                <span
+                  className="inline-block h-3.5 w-1.5 ml-1 translate-y-0.5 rounded-full bg-gold animate-blink"
+                  aria-hidden="true"
+                />
+              )}
             </div>
           )}
         </div>
 
-        {/* Streaming dots indicator */}
+        {/* Assistant Tool Calls */}
+        {!isUser &&
+        (message.tool_calls?.length || message.citations?.length) ? (
+          <div className="mt-1 flex flex-col gap-1.5 w-full">
+            {message.tool_calls?.map((tc, i) => {
+              const ToolIcon = getToolIcon(tc.name);
+              return (
+                <div
+                  key={i}
+                  className="flex items-start gap-2.5 rounded-xl border border-[#382E1C]/80 bg-[#16120C]/80 px-3.5 py-2 text-xs shadow-xs"
+                >
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-gold/10 text-gold">
+                    <ToolIcon className="h-3 w-3" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-stone-200">
+                        {formatToolName(tc.name)}
+                      </span>
+                      <span className="text-[10px] text-stone-400 font-mono">
+                        {Object.keys(tc.args || {}).length > 0
+                          ? `(${Object.entries(tc.args)
+                              .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
+                              .join(", ")})`
+                          : ""}
+                      </span>
+                    </div>
+                    {tc.result_preview && (
+                      <p className="mt-1 text-[11px] text-stone-400 line-clamp-2 bg-black/60 rounded p-1.5 font-mono">
+                        {tc.result_preview}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Citations block */}
+            {message.citations && message.citations.length > 0 && (
+              <details className="group/cit rounded-xl border border-[#382E1C]/80 bg-[#16120C]/60 px-3.5 py-2 text-xs shadow-xs">
+                <summary className="cursor-pointer font-semibold text-stone-200 hover:text-gold transition-colors list-none flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <BookOpen className="h-3.5 w-3.5 text-gold" />
+                    <span>
+                      {message.citations.length} Grounded Source
+                      {message.citations.length > 1 ? "s" : ""}
+                    </span>
+                  </span>
+                  <span className="text-[10px] text-stone-400">
+                    View details
+                  </span>
+                </summary>
+                <div className="mt-2 space-y-2 pt-2 border-t border-[#382E1C]/50">
+                  {message.citations.map((c, i) => (
+                    <div
+                      key={c.chunk_id ?? i}
+                      className="rounded-lg bg-black/60 p-2 text-[11px] border border-[#382E1C]/50"
+                    >
+                      <span className="font-bold text-gold block mb-0.5">
+                        {c.source}
+                      </span>
+                      <p className="text-stone-300 leading-relaxed">
+                        {c.snippet}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        ) : null}
+
+        {/* Live streaming dots */}
         {isLoading && (
           <div className="flex items-center gap-1 px-2 py-1" aria-hidden="true">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-streaming-dot" />
-            <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-streaming-dot" />
-            <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-streaming-dot" />
+            <span className="h-1.5 w-1.5 rounded-full bg-gold animate-streaming-dot" />
+            <span className="h-1.5 w-1.5 rounded-full bg-gold animate-streaming-dot" />
+            <span className="h-1.5 w-1.5 rounded-full bg-gold animate-streaming-dot" />
           </div>
         )}
 
-        {/* Action buttons */}
+        {/* Message Action Toolbar */}
         {!isEmpty && (
           <div
             className={cn(
-              "flex items-center gap-1 text-muted-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 focus-within:opacity-100",
+              "flex items-center gap-1 text-stone-400 transition-opacity duration-200 opacity-80 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 px-1",
               isUser ? "flex-row-reverse" : "flex-row",
             )}
           >
             <CopyButton text={message.content} />
             {!isUser && (
               <>
+                <SpeakButton messageId={message.timestamp || message.content.slice(0, 32)} text={message.content} />
+                <ExportDocButton content={cleanContent} />
                 <PinButton message={message} />
                 <FeedbackButtons />
               </>
@@ -191,11 +597,105 @@ const MessageBubble = memo(function MessageBubble({
           </div>
         )}
       </div>
+
+      {isUser && (
+        <KhmerProfileAvatar
+          name={currentUser?.name || "You"}
+          avatar={currentUser?.avatar}
+          size="sm"
+          role={currentUser?.role as "admin" | "user"}
+          showCrown={currentUser?.role === "admin"}
+          glow={true}
+          className="mt-0.5"
+        />
+      )}
     </div>
   );
 });
 
-/** Code block with copy button */
+/** Responsive, high-elegance Image Gallery for Single & Multiple attachments */
+function UserImageGallery({
+  images,
+  onOpen,
+}: {
+  images: string[];
+  onOpen: (index: number) => void;
+}) {
+  const count = images.length;
+
+  if (count === 1) {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-white/25 bg-black/25 shadow-md transition-all hover:border-white/40">
+        <button
+          type="button"
+          onClick={() => onOpen(0)}
+          className="group/single relative block max-h-[300px] w-full overflow-hidden text-left focus:outline-none"
+        >
+          <img
+            src={images[0]}
+            alt="Uploaded attachment"
+            className="max-h-[280px] w-auto max-w-full rounded-2xl object-contain transition-transform duration-300 group-hover/single:scale-[1.02]"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover/single:opacity-100">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white shadow backdrop-blur">
+              <Maximize2 className="h-3.5 w-3.5" />
+              <span>Click to enlarge</span>
+            </span>
+          </div>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "grid gap-2 overflow-hidden rounded-2xl",
+        count === 2 && "grid-cols-2 max-w-md",
+        count === 3 && "grid-cols-3 max-w-lg",
+        count >= 4 && "grid-cols-2 sm:grid-cols-2 max-w-md",
+      )}
+    >
+      {images.map((src, idx) => (
+        <button
+          key={idx}
+          type="button"
+          onClick={() => onOpen(idx)}
+          className="group/multi relative aspect-square overflow-hidden rounded-xl border border-white/25 bg-black/20 shadow-sm transition-all hover:scale-[1.03] hover:border-white/40 focus:outline-none"
+        >
+          <img
+            src={src}
+            alt={`Attachment ${idx + 1}`}
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover/multi:opacity-100">
+            <Maximize2 className="h-4 w-4 text-white drop-shadow" />
+          </div>
+          <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[9px] font-mono font-medium text-white/90">
+            #{idx + 1}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function getToolIcon(name: string) {
+  if (name.includes("fetch") || name.includes("url")) return Globe;
+  if (name.includes("directory")) return BookOpen;
+  if (name.includes("calc")) return Calculator;
+  if (name.includes("rag") || name.includes("doc")) return Database;
+  if (name.includes("search")) return Search;
+  return Wrench;
+}
+
+function formatToolName(name: string) {
+  return name
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** High-Contrast Code Block with Obsidian Basalt theme & syntax highlighting */
 function CodeBlock({ code, language }: { code: string; language: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -219,50 +719,103 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
   }, [code]);
 
   return (
-    <div className="group/code relative my-3 overflow-hidden rounded-lg first:mt-0 last:mb-0"
-      style={{
-        border: "1px solid hsl(var(--code-border))",
-        backgroundColor: "hsl(var(--code-bg))",
-      }}
-    >
-      {/* Header bar */}
-      <div className="flex items-center justify-between px-3 py-1.5"
-        style={{
-          borderBottom: "1px solid hsl(var(--code-border))",
-          backgroundColor: "hsl(var(--code-header))",
-        }}
-      >
-        <span className="text-[11px] font-medium text-muted-foreground">
-          {language || "code"}
-        </span>
+    <div className="group/code relative my-4 overflow-hidden rounded-2xl border border-[#2B2936] bg-[#0E0D12] shadow-xl shadow-black/30 first:mt-0 last:mb-0">
+      {/* Header Bar */}
+      <div className="flex items-center justify-between border-b border-[#25232E] bg-[#16151D] px-4 py-2">
+        <div className="flex items-center gap-2">
+          <span className="flex h-2 w-2 rounded-full bg-gold" />
+          <span className="font-mono text-[11px] font-bold text-gold uppercase tracking-wider">
+            {language || "code"}
+          </span>
+        </div>
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground/70 opacity-0 transition-all hover:bg-background hover:text-foreground group-hover/code:opacity-100"
-          aria-label="Copy code"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#353342] bg-[#201F29] px-2.5 py-1 text-[11px] font-semibold text-stone-300 transition-all hover:bg-[#2B2938] hover:text-white"
+          aria-label="Copy code snippet"
           title="Copy code"
         >
           {copied ? (
             <>
-              <Check className="h-3 w-3 text-emerald-400" />
-              <span className="text-emerald-400">Copied!</span>
+              <Check className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="text-emerald-400 font-semibold">Copied!</span>
             </>
           ) : (
             <>
-              <Copy className="h-3 w-3" />
+              <Copy className="h-3.5 w-3.5" />
               <span>Copy</span>
             </>
           )}
         </button>
       </div>
-      {/* Code content */}
-      <pre className="!my-0 !border-0 !rounded-none overflow-x-auto p-4 text-[13px] leading-relaxed"
-        style={{ backgroundColor: "hsl(var(--code-bg))" }}
-      >
-        <code>{code}</code>
+
+      {/* Code Text with Guaranteed High Contrast */}
+      <pre className="!my-0 !border-0 !rounded-none overflow-x-auto p-4 sm:p-5 font-mono text-[13.5px] leading-relaxed bg-[#0E0D12] text-[#F8FAFC] scrollbar-thin">
+        <code className="!bg-transparent !p-0 !text-[#F8FAFC] font-mono">
+          {highlightTokens(code)}
+        </code>
       </pre>
     </div>
   );
+}
+
+/** Guaranteed High-Contrast Syntax Tokenizer */
+function highlightTokens(code: string) {
+  const lines = code.split("\n");
+  return lines.map((line, lineIdx) => {
+    const trimmed = line.trim();
+    // Whole line comment
+    if (trimmed.startsWith("#") || trimmed.startsWith("//") || trimmed.startsWith("--")) {
+      return (
+        <span key={lineIdx} className="text-[#94A3B8] italic block">
+          {line || " "}
+        </span>
+      );
+    }
+
+    const tokenRegex = /(#[^\n]*|\/\/[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b(?:def|class|import|from|return|if|else|elif|for|while|try|except|finally|with|as|lambda|async|await|const|let|var|function|export|default|null|true|false|None|True|False|in|is|not|and|or|type|interface|select|from|where|insert|update|delete|create|table|pip|npm|mkdir|cd|curl|source|git|brew|docker)\b|\b\d+\b|[{}()[\],;])/g;
+
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = tokenRegex.exec(line)) !== null) {
+      if (match.index > lastIndex) {
+        const rawText = line.substring(lastIndex, match.index);
+        parts.push(<span key={`txt-${lastIndex}`} className="text-[#F8FAFC]">{rawText}</span>);
+      }
+      const token = match[0];
+      if (token.startsWith("#") || token.startsWith("//")) {
+        parts.push(<span key={`tok-${match.index}`} className="text-[#94A3B8] italic">{token}</span>);
+      } else if (token.startsWith('"') || token.startsWith("'") || token.startsWith("`")) {
+        parts.push(<span key={`tok-${match.index}`} className="text-[#86EFAC] font-medium">{token}</span>);
+      } else if (/^\d+$/.test(token)) {
+        parts.push(<span key={`tok-${match.index}`} className="text-[#FDBA74] font-medium">{token}</span>);
+      } else if (/^(pip|npm|mkdir|cd|curl|source|git|brew|docker)$/i.test(token)) {
+        parts.push(<span key={`tok-${match.index}`} className="text-[#38BDF8] font-bold">{token}</span>);
+      } else if (/^(def|class|function|const|let|var|import|from|export|default|return|async|await|select|from|where)$/i.test(token)) {
+        parts.push(<span key={`tok-${match.index}`} className="text-[#D8B4FE] font-semibold">{token}</span>);
+      } else if (/^(if|else|elif|for|while|try|except|finally|with|as|in|is|not|and|or)$/i.test(token)) {
+        parts.push(<span key={`tok-${match.index}`} className="text-[#FDE047] font-semibold">{token}</span>);
+      } else if (/^(True|False|true|false|None|null)$/i.test(token)) {
+        parts.push(<span key={`tok-${match.index}`} className="text-[#FDA4AF] font-semibold">{token}</span>);
+      } else {
+        parts.push(<span key={`tok-${match.index}`} className="text-[#F8FAFC]">{token}</span>);
+      }
+      lastIndex = tokenRegex.lastIndex;
+    }
+
+    if (lastIndex < line.length) {
+      const remaining = line.substring(lastIndex);
+      parts.push(<span key={`rem-${lastIndex}`} className="text-[#F8FAFC]">{remaining}</span>);
+    }
+
+    return (
+      <span key={lineIdx} className="block">
+        {parts.length > 0 ? parts : " "}
+      </span>
+    );
+  });
 }
 
 function FeedbackButtons() {
@@ -274,25 +827,27 @@ function FeedbackButtons() {
         type="button"
         onClick={() => setFeedback(feedback === "up" ? null : "up")}
         className={cn(
-          "inline-flex h-7 w-7 items-center justify-center rounded-md text-xs transition-all hover:bg-secondary hover:text-foreground",
-          feedback === "up" && "text-emerald-400",
+          "inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs transition-colors hover:bg-[#1E1810] hover:text-stone-100",
+          feedback === "up" && "text-emerald-400 bg-emerald-500/10",
         )}
-        aria-label="Like"
-        title="Helpful"
+        aria-label="Helpful response"
       >
-        <ThumbsUp className={cn("h-3 w-3", feedback === "up" && "fill-current")} />
+        <ThumbsUp
+          className={cn("h-3 w-3", feedback === "up" && "fill-current")}
+        />
       </button>
       <button
         type="button"
         onClick={() => setFeedback(feedback === "down" ? null : "down")}
         className={cn(
-          "inline-flex h-7 w-7 items-center justify-center rounded-md text-xs transition-all hover:bg-secondary hover:text-foreground",
-          feedback === "down" && "text-destructive",
+          "inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs transition-colors hover:bg-[#1E1810] hover:text-stone-100",
+          feedback === "down" && "text-destructive bg-destructive/10",
         )}
-        aria-label="Dislike"
-        title="Not helpful"
+        aria-label="Not helpful response"
       >
-        <ThumbsDown className={cn("h-3 w-3", feedback === "down" && "fill-current")} />
+        <ThumbsDown
+          className={cn("h-3 w-3", feedback === "down" && "fill-current")}
+        />
       </button>
     </div>
   );
@@ -328,19 +883,226 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs transition-colors hover:bg-secondary hover:text-foreground"
+      className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-medium text-stone-400 transition-colors hover:bg-[#1E1810] hover:text-stone-100"
       aria-label="Copy message"
       title="Copy"
     >
       {copied ? (
         <>
           <Check className="h-3 w-3 text-emerald-400" />
-          <span className="text-emerald-400">Copied</span>
+          <span className="text-emerald-400 font-medium">Copied</span>
         </>
       ) : (
         <>
           <Copy className="h-3 w-3" />
           <span>Copy</span>
+        </>
+      )}
+    </button>
+  );
+}
+
+function stripMarkdown(text: string): string {
+  return text
+    // remove code blocks
+    .replace(/```[\s\S]*?```/g, " ")
+    // remove inline code
+    .replace(/`([^`]+)`/g, "$1")
+    // remove image markdown
+    .replace(/!\[(.*?)\]\(.*?\)/g, "$1")
+    // remove link markdown
+    .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+    // remove headings
+    .replace(/#{1,6}\s+/g, "")
+    // remove blockquotes
+    .replace(/^\s*>\s+/gm, "")
+    // remove bold/italic
+    .replace(/(\*\*|__)(.*?)\1/g, "$2")
+    .replace(/(\*|_)(.*?)\1/g, "$2")
+    // remove list bullets
+    .replace(/^\s*[-*+]\s+/gm, "")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    // clean excess whitespace
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+
+interface GlobalAudioState {
+  currentId: string | null;
+  loadingId: string | null;
+}
+
+let globalAudio: HTMLAudioElement | null = null;
+let currentBlobUrl: string | null = null;
+let audioListeners: Array<(state: GlobalAudioState) => void> = [];
+let audioState: GlobalAudioState = { currentId: null, loadingId: null };
+
+function notifyAudioState() {
+  audioListeners.forEach((fn) => fn({ ...audioState }));
+}
+
+function stopGlobalSpeech() {
+  if (globalAudio) {
+    globalAudio.pause();
+    globalAudio.currentTime = 0;
+    globalAudio = null;
+  }
+  if (currentBlobUrl) {
+    URL.revokeObjectURL(currentBlobUrl);
+    currentBlobUrl = null;
+  }
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+  audioState = { currentId: null, loadingId: null };
+  notifyAudioState();
+}
+
+async function playGlobalSpeech(id: string, text: string) {
+  // If clicking the one currently playing or loading, stop it
+  if (audioState.currentId === id || audioState.loadingId === id) {
+    stopGlobalSpeech();
+    return;
+  }
+
+  // Immediately stop any other message that was playing
+  stopGlobalSpeech();
+
+  const cleanText = stripMarkdown(text);
+  if (!cleanText) return;
+
+  audioState = { currentId: null, loadingId: id };
+  notifyAudioState();
+
+  const hasKhmer = /[\u1780-\u17FF]/.test(cleanText);
+  const lang = hasKhmer ? "km" : "en";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: cleanText, lang }),
+    });
+
+    if (res.ok) {
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      currentBlobUrl = blobUrl;
+
+      const audio = new Audio(blobUrl);
+      globalAudio = audio;
+
+      audio.onplay = () => {
+        audioState = { currentId: id, loadingId: null };
+        notifyAudioState();
+      };
+
+      audio.onended = () => {
+        stopGlobalSpeech();
+      };
+
+      audio.onerror = () => {
+        stopGlobalSpeech();
+      };
+
+      await audio.play();
+      return;
+    }
+  } catch {
+    // fallback
+  }
+
+  // Fallback to browser SpeechSynthesis
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = hasKhmer ? "km-KH" : "en-US";
+    utterance.rate = 0.95;
+
+    utterance.onstart = () => {
+      audioState = { currentId: id, loadingId: null };
+      notifyAudioState();
+    };
+
+    utterance.onend = () => {
+      stopGlobalSpeech();
+    };
+
+    utterance.onerror = () => {
+      stopGlobalSpeech();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } else {
+    stopGlobalSpeech();
+  }
+}
+
+function SpeakButton({ messageId, text }: { messageId: string; text: string }) {
+  const [state, setState] = useState<GlobalAudioState>(audioState);
+
+  useEffect(() => {
+    const listener = (newState: GlobalAudioState) => setState(newState);
+    audioListeners.push(listener);
+    return () => {
+      audioListeners = audioListeners.filter((l) => l !== listener);
+    };
+  }, []);
+
+  const isPlaying = state.currentId === messageId;
+  const isLoading = state.loadingId === messageId;
+
+  return (
+    <button
+      type="button"
+      onClick={() => playGlobalSpeech(messageId, text)}
+      className={cn(
+        "inline-flex h-7 items-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-all",
+        isPlaying
+          ? "bg-gold/25 text-gold border border-gold/50 shadow-xs"
+          : isLoading
+            ? "bg-gold/10 text-gold border border-gold/30"
+            : "text-stone-400 hover:bg-[#1E1810] hover:text-stone-100",
+      )}
+      aria-label={isPlaying ? "Stop reading" : "Read aloud"}
+      title={
+        isPlaying
+          ? "Stop reading (បញ្ឈប់ការអាន)"
+          : "Read aloud with AI Voice (អានជាសំឡេង)"
+      }
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="h-3 w-3 animate-spin text-gold" />
+          <span className="text-gold">Audio...</span>
+        </>
+      ) : isPlaying ? (
+        <>
+          <Square className="h-3 w-3 fill-gold text-gold" />
+          <span className="text-gold font-bold">Stop</span>
+          <span className="flex items-center gap-0.5 ml-0.5">
+            <span
+              className="h-1.5 w-0.5 bg-gold animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            />
+            <span
+              className="h-2.5 w-0.5 bg-gold animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            />
+            <span
+              className="h-1.5 w-0.5 bg-gold animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            />
+          </span>
+        </>
+      ) : (
+        <>
+          <Volume2 className="h-3 w-3 text-gold" />
+          <span>Read aloud</span>
         </>
       )}
     </button>

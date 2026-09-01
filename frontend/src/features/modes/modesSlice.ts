@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-export type AiMode = "chat" | "translate" | "search" | "code";
+export type AiMode = "chat" | "translate" | "search" | "code" | "image";
 
 interface ModesState {
   current: AiMode;

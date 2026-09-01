@@ -1,0 +1,32 @@
+[
+  {
+    "id": "gemini",
+    "name": "Google Gemini 3.7 Flash",
+    "type": "builtin",
+    "status": "active",
+    "base_url": "https://generativelanguage.googleapis.com",
+    "model": "gemini-2.5-flash",
+    "latency_ms": 180,
+    "description": "Primary sovereign multimodal engine with Khmer NLP and web grounding."
+  },
+  {
+    "id": "ollama-cloud",
+    "name": "MiniMax M3 / Cloud AI",
+    "type": "builtin",
+    "status": "active",
+    "base_url": "https://api.minimax.cloud",
+    "model": "minimax-m3",
+    "latency_ms": 420,
+    "description": "Accelerated cloud reasoning model for technical coding."
+  },
+  {
+    "id": "ollama",
+    "name": "Ollama (Local Engine)",
+    "type": "builtin",
+    "status": "active",
+    "base_url": "http://localhost:11434",
+    "model": "qwen2.5:7b",
+    "latency_ms": 95,
+    "description": "On-premise zero-egress open-source model engine."
+  }
+]

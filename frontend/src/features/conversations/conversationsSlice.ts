@@ -1,7 +1,24 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { Message } from "../../types/chat";
 
-const STORAGE_KEY = "cambo-conversations";
+function getCurrentUserEmail(): string {
+  try {
+    const raw = localStorage.getItem("sastra_auth_user");
+    if (raw) {
+      const u = JSON.parse(raw);
+      if (u && u.email) return u.email.trim().toLowerCase();
+    }
+  } catch {
+    /* noop */
+  }
+  return "guest";
+}
+
+function getStorageKey(userEmail?: string): string {
+  const email = userEmail || getCurrentUserEmail();
+  return `sastra_conversations_${email}`;
+}
+
 const MAX_CONVERSATIONS = 50;
 
 export interface SavedConversation {
@@ -14,19 +31,31 @@ export interface SavedConversation {
   messageCount: number;
 }
 
-function load(): SavedConversation[] {
+function load(userEmail?: string): SavedConversation[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStorageKey(userEmail));
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
 }
 
-function save(conversations: SavedConversation[]) {
+function sanitizeConversations(conversations: SavedConversation[]): SavedConversation[] {
+  return conversations.slice(0, MAX_CONVERSATIONS).map((c) => ({
+    ...c,
+    messages: c.messages.slice(-50).map((m) => ({
+      ...m,
+      images: m.images ? m.images.map((_, i) => `[Attachment ${i + 1}]`) : undefined,
+    })),
+  }));
+}
+
+function save(conversations: SavedConversation[], userEmail?: string) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations.slice(0, MAX_CONVERSATIONS)));
-  } catch { /* noop */ }
+    localStorage.setItem(getStorageKey(userEmail), JSON.stringify(sanitizeConversations(conversations)));
+  } catch {
+    /* noop */
+  }
 }
 
 function generateTitle(messages: Message[]): string {
@@ -49,8 +78,12 @@ const conversationsSlice = createSlice({
   name: "conversations",
   initialState,
   reducers: {
-    saveConversation(state, action: PayloadAction<{ messages: Message[]; sessionId: string | null }>) {
-      const { messages, sessionId } = action.payload;
+    switchUserConversations(state, action: PayloadAction<string | undefined>) {
+      state.list = load(action.payload);
+    },
+
+    saveConversation(state, action: PayloadAction<{ messages: Message[]; sessionId: string | null; userEmail?: string }>) {
+      const { messages, sessionId, userEmail } = action.payload;
       if (messages.length === 0) return;
 
       const existingIdx = state.list.findIndex(
@@ -73,20 +106,32 @@ const conversationsSlice = createSlice({
         state.list.unshift(entry);
       }
 
-      save(state.list);
+      save(state.list, userEmail);
     },
 
-    deleteConversation(state, action: PayloadAction<string>) {
-      state.list = state.list.filter((c) => c.id !== action.payload);
-      save(state.list);
+    deleteConversation(state, action: PayloadAction<{ id: string; userEmail?: string } | string>) {
+      const id = typeof action.payload === "string" ? action.payload : action.payload.id;
+      const userEmail = typeof action.payload === "object" ? action.payload.userEmail : undefined;
+      state.list = state.list.filter((c) => c.id !== id);
+      save(state.list, userEmail);
     },
 
-    clearAllConversations(state) {
+    clearAllConversations(state, action: PayloadAction<string | undefined>) {
       state.list = [];
-      save(state.list);
+      try {
+        localStorage.removeItem(getStorageKey(action.payload));
+      } catch {
+        /* noop */
+      }
     },
   },
 });
 
-export const { saveConversation, deleteConversation, clearAllConversations } = conversationsSlice.actions;
+export const {
+  switchUserConversations,
+  saveConversation,
+  deleteConversation,
+  clearAllConversations,
+} = conversationsSlice.actions;
+
 export default conversationsSlice.reducer;

@@ -61,19 +61,19 @@ export default function ShareMenu({ open, onClose }: ShareMenuProps) {
   function handleDownloadMarkdown() {
     const md = messages
       .map((m) => {
-        const role = m.role === "user" ? "## You" : "## CAMBO AI";
+        const role = m.role === "user" ? "## You" : "## SASTRA AI";
         return `${role}\n> ${new Date(m.timestamp).toLocaleString()}\n\n${m.content}\n`;
       })
       .join("\n---\n");
     downloadAsFile(
-      `# CAMBO AI Conversation\n\n${md}`,
-      `cambo-conversation-${Date.now()}.md`,
+      `# SASTRA AI Conversation\n\n${md}`,
+      `sastra-conversation-${Date.now()}.md`,
     );
     toast.success("Downloaded as .md", { duration: 2000 });
   }
 
   function handleDownloadTxt() {
-    downloadAsFile(transcript, `cambo-conversation-${Date.now()}.txt`);
+    downloadAsFile(transcript, `sastra-conversation-${Date.now()}.txt`);
     toast.success("Downloaded as .txt", { duration: 2000 });
   }
 

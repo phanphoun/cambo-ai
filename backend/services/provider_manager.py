@@ -1,29 +1,24 @@
-"""Routes AI requests to the configured provider (Gemini, Ollama local, or Ollama Cloud)."""
-from typing import Optional, Generator
-from config import settings
-from services.gemini_service import GeminiService
-from services.ollama_service import OllamaService
+"""Provider Manager & Chat Gateway.
+
+Provides a unified interface to the provider factory and chat orchestration service.
+Maintains full backward compatibility.
+"""
+
+from typing import Optional, AsyncGenerator, List, Dict, Any
+
+from providers.factory import provider_factory
+from services.chat_service import chat_service
 
 
 class ProviderManager:
+    """Facade for provider management and chat execution."""
+    
     def __init__(self):
-        self._gemini = GeminiService()
-        self._ollama_local = OllamaService(
-            base_url=settings.ollama_base_url,
-            default_model=settings.ollama_model,
-        )
-        self._ollama_cloud = OllamaService(
-            base_url=settings.ollama_cloud_base_url,
-            api_key=settings.ollama_api_key,
-            default_model=settings.ollama_cloud_model,
-        )
+        self.factory = provider_factory
+        self.chat = chat_service
 
     def _resolve(self, provider: str):
-        if provider == "ollama":
-            return self._ollama_local
-        if provider == "ollama-cloud":
-            return self._ollama_cloud
-        return self._gemini
+        return self.factory.get(provider)
 
     async def ask(
         self,
@@ -31,19 +26,47 @@ class ProviderManager:
         history: Optional[list[dict]] = None,
         mode: str = "chat",
         provider: str = "gemini",
+        model: Optional[str] = None,
+        image_data: Optional[List[str]] = None,
+        image_urls: Optional[List[str]] = None,
+        rag_context: Optional[str] = None,
+        use_tools: bool = False,
     ) -> dict:
-        svc = self._resolve(provider)
-        return await svc.ask(message, history=history, mode=mode)
+        prov = self.factory.get(provider, model=model)
+        return await prov.ask(
+            message=message,
+            history=history,
+            mode=mode,
+            image_data=image_data,
+            image_urls=image_urls,
+            rag_context=rag_context,
+            use_tools=use_tools,
+        )
 
-    def ask_stream(
+    async def ask_stream(
         self,
         message: str,
         history: Optional[list[dict]] = None,
         mode: str = "chat",
         provider: str = "gemini",
-    ) -> Generator[str, None, None]:
-        svc = self._resolve(provider)
-        return svc.ask_stream(message, history=history, mode=mode)
+        model: Optional[str] = None,
+        image_data: Optional[List[str]] = None,
+        image_urls: Optional[List[str]] = None,
+        rag_context: Optional[str] = None,
+    ) -> AsyncGenerator[str, None]:
+        async for chunk in self.chat.execute_stream(
+            message=message,
+            history=history,
+            mode=mode,
+            provider=provider,
+            model=model,
+            image_data=image_data,
+            image_urls=image_urls,
+            document_ids=None,
+            rag_context=rag_context,
+            use_tools=False,
+        ):
+            yield chunk
 
 
 provider_manager = ProviderManager()

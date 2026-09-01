@@ -1,209 +1,277 @@
-import { useState, useEffect } from "react";
+import { memo } from "react";
+import { useSelector } from "react-redux";
 import {
-  Building2,
-  CreditCard,
-  GraduationCap,
-  Lightbulb,
-  Rocket,
-  Search,
-  ShieldCheck,
-  Smartphone,
-  Wifi,
-  Bot,
-  Sparkles,
+  Languages,
+  BookOpen,
+  Code2,
+  TrendingUp,
   ArrowRight,
+  Flame,
+  Landmark,
+  Scale,
+  FileText,
+  Lightbulb,
 } from "lucide-react";
-import { cn } from "../lib/utils";
+import { KhmerAngkorCrest } from "./KhmerOrnaments";
+import type { RootState } from "../store";
 
-interface Suggestion {
+interface HeroCard {
+  id: string;
+  badge: string;
+  badgeColor?: string;
+  imgSrc: string;
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
+  titleKm: string;
+  titleEn: string;
+  descKm: string;
   prompt: string;
-  category: string;
 }
 
-const SUGGESTIONS: Suggestion[] = [
+const HERO_CARDS: HeroCard[] = [
   {
-    icon: Building2,
-    label: "Phnom Penh tech scene",
-    prompt: "Tell me about the tech scene in Phnom Penh",
-    category: "Ecosystem",
+    id: "angkor",
+    badge: "Heritage",
+    imgSrc: "/images/cards/card-angkor.png",
+    icon: KhmerAngkorCrest,
+    titleKm: "អង្គរវត្ត",
+    titleEn: "Angkor Wat",
+    descKm: "ស្វែងយល់ពីប្រវត្តិសាស្ត្រ សំណង់ និងវប្បធម៌",
+    prompt: "សូមរៀបរាប់អំពីស្ថាបត្យកម្មដ៏មហិមា និងបច្ចេកទេសសាងសង់ប្រាសាទអង្គរវត្តរបស់បុព្វបុរសខ្មែរ។",
   },
   {
-    icon: Rocket,
-    label: "Top Khmer startups",
-    prompt: "What are the top tech startups in Cambodia?",
-    category: "Ecosystem",
+    id: "language",
+    badge: "Language",
+    imgSrc: "/images/cards/card-language.png",
+    icon: Languages,
+    titleKm: "ភាសាខ្មែរ",
+    titleEn: "Khmer Language",
+    descKm: "រៀនភាសា និង របៀបប្រើប្រាស់ពាក្យពេចន៍សន្ទនា",
+    prompt: "សូមបង្រៀនពាក្យគួរសម របៀបនិយាយស្វាគមន៍ និងការសន្ទនាជាភាសាខ្មែរដែលត្រឹមត្រូវតាមកាលៈទេសៈ។",
   },
   {
-    icon: GraduationCap,
-    label: "Tech education in KH",
-    prompt: "What are the best universities to study tech in Cambodia?",
-    category: "Ecosystem",
+    id: "history",
+    badge: "History",
+    imgSrc: "/images/cards/card-history.png",
+    icon: BookOpen,
+    titleKm: "ប្រវត្តិសាស្ត្រខ្មែរ",
+    titleEn: "Khmer History",
+    descKm: "ស្វែងយល់ពីប្រវត្តិសាស្ត្រ និងអរិយធម៌",
+    prompt: "សូមរៀបរាប់អំពីប្រវត្តិសាស្ត្រប្រទេសកម្ពុជាពីសម័យហ្វូណន ចេនឡា រហូតដល់បច្ចុប្បន្ន។",
   },
   {
-    icon: CreditCard,
-    label: "Cambodia fintech",
-    prompt: "Tell me about fintech in Cambodia (ABA, Wing, Pi Pay, Bakong)",
-    category: "Industry",
+    id: "tech",
+    badge: "Technology",
+    imgSrc: "/images/cards/card-tech.png",
+    icon: Code2,
+    titleKm: "បច្ចេកវិទ្យា",
+    titleEn: "Technology",
+    descKm: "សិក្សា និងស្វែងរកគំនិត បច្ចេកវិទ្យាទំនើប",
+    prompt: "សូមណែនាំវិធីសាស្ត្រ និងការអនុវត្តល្អបំផុតក្នុងការបង្កើតកម្មវិធី Full-Stack AI ដោយប្រើ Python, FastAPI និង React។",
   },
   {
-    icon: Smartphone,
-    label: "Local apps & platforms",
-    prompt: "What popular apps are made by Cambodian companies?",
-    category: "Industry",
-  },
-  {
-    icon: ShieldCheck,
-    label: "Cybersecurity in KH",
-    prompt: "Tell me about cybersecurity companies and initiatives in Cambodia",
-    category: "Industry",
-  },
-  {
-    icon: Bot,
-    label: "Explain AI agents",
-    prompt: "Explain AI agents in simple terms",
-    category: "AI & Tech",
-  },
-  {
-    icon: Search,
-    label: "What is RAG?",
-    prompt: "What is RAG in AI and how does it work?",
-    category: "AI & Tech",
-  },
-  {
-    icon: Wifi,
-    label: "Internet & telcos",
-    prompt: "Who are the main internet and telecom providers in Cambodia?",
-    category: "AI & Tech",
-  },
-  {
-    icon: Lightbulb,
-    label: "Co-working spaces",
-    prompt: "List the best co-working spaces and tech hubs in Phnom Penh",
-    category: "Ecosystem",
+    id: "economy",
+    badge: "Economy",
+    imgSrc: "/images/cards/card-economy.png",
+    icon: TrendingUp,
+    titleKm: "សេដ្ឋកិច្ច",
+    titleEn: "Economy",
+    descKm: "វិភាគ និងស្វែងយល់ពី សេដ្ឋកិច្ចកម្ពុជា",
+    prompt: "តើប្រព័ន្ធទូទាត់បាគង (Bakong) និងស្តង់ដារ KHQR ដំណើរការយ៉ាងដូចម្តេច ហើយបានផ្លាស់ប្តូរសេដ្ឋកិច្ចឌីជីថលកម្ពុជាដូចម្តេច?",
   },
 ];
 
-const TIPS = [
-  "Try asking in Khmer (ភាសាខ្មែរ)",
-  "Use /code to write code",
-  "Use /translate for translations",
-  "Press Ctrl+B to toggle sidebar",
-  "Pin important responses for later",
-  "Press ? for keyboard shortcuts",
+const SUGGESTED_QUICK_PILLS = [
+  {
+    label: "ផ្តល់សំណូមពរនិយម",
+    icon: Flame,
+    active: true,
+    prompt: "សូមណែនាំមុខងារ និងគន្លឹះសំខាន់ៗដែលអ្នកប្រើប្រាស់និយមសួរច្រើនជាងគេក្នុង Sastra AI។",
+  },
+  {
+    label: "ប្រាសាទអង្គរវត្ត",
+    icon: Landmark,
+    prompt: "សូមរៀបរាប់អំពីប្រវត្តិប្រាសាទអង្គរវត្ត និងបច្ចេកទេសស្ថាបត្យកម្មដ៏អស្ចារ្យ។",
+  },
+  {
+    label: "ច្បាប់សំខាន់ៗ",
+    icon: Scale,
+    prompt: "សូមសង្ខេបច្បាប់ស្តីពីការវិនិយោគ និងក្រមការងារនៃព្រះរាជាណាចក្រកម្ពុជា។",
+  },
+  {
+    label: "ច្បាប់ និងគោលនយោបាយ",
+    icon: FileText,
+    prompt: "តើក្របខ័ណ្ឌគោលនយោបាយសេដ្ឋកិច្ច និងសង្គមឌីជីថលកម្ពុជា ២០២១-២០៣៥ មានទិសដៅសំខាន់អ្វីខ្លះ?",
+  },
+  {
+    label: "Startup នៅកម្ពុជា",
+    icon: Lightbulb,
+    prompt: "តើប្រព័ន្ធអេកូឡូស៊ី Tech Startup នៅភ្នំពេញបច្ចុប្បន្នមានឱកាស និងបញ្ហាប្រឈមអ្វីខ្លះ?",
+  },
+  {
+    label: "Python & FastAPI",
+    icon: Code2,
+    prompt: "សូមបង្ហាញកូដគំរូ FastAPI សម្រាប់បង្កើត Streaming Chatbot API ជាមួយ Python Asyncio។",
+  },
 ];
 
 interface WelcomeScreenProps {
   onPick: (prompt: string) => void;
 }
 
-export default function WelcomeScreen({ onPick }: WelcomeScreenProps) {
-  const categories = Array.from(new Set(SUGGESTIONS.map((s) => s.category)));
-  const [currentTip, setCurrentTip] = useState(0);
-
-  // Rotate tips
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTip((prev) => (prev + 1) % TIPS.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+export default memo(function WelcomeScreen({ onPick }: WelcomeScreenProps) {
+  const currentUser = useSelector((s: RootState) => s.auth.user);
+  const displayName = currentUser?.name?.split(" ")[0] || "Admin";
 
   return (
-    <div className="mx-auto max-w-3xl pt-6 sm:pt-12 pb-6 animate-fade-in">
-      {/* Hero */}
-      <div className="text-center">
-        <div className="relative inline-flex">
-          {/* Glow effect */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-500/30 via-violet-500/20 to-emerald-500/30 blur-3xl" />
-          <div className="relative inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-emerald-500 shadow-lg shadow-indigo-500/30 glow-soft sm:h-20 sm:w-20">
-            <span className="text-4xl sm:text-5xl" aria-hidden>
-              🇰🇭
-            </span>
-          </div>
-        </div>
+    <div className="relative mx-auto w-full max-w-7xl px-3 sm:px-6 pt-2 sm:pt-4 pb-6 animate-fade-in flex flex-col items-center justify-center select-none overflow-hidden">
+      {/* ── Asset 5: Vertical Golden Naga Pillars on Side Flanks ── */}
+      <div className="hidden xl:block absolute -left-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40 hover:opacity-75 transition-opacity duration-700 z-0">
+        <img
+          src="/images/khmer-assets/khmer-naga-pillar-5.png"
+          alt="Khmer Naga Left Pillar"
+          className="h-[480px] w-auto object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+        />
+      </div>
+      <div className="hidden xl:block absolute -right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40 hover:opacity-75 transition-opacity duration-700 z-0">
+        <img
+          src="/images/khmer-assets/khmer-naga-pillar-5.png"
+          alt="Khmer Naga Right Pillar"
+          className="h-[480px] w-auto object-contain drop-shadow-[0_0_20px_rgba(212,175,55,0.3)] -scale-x-100"
+        />
+      </div>
 
-        <h1 className="mt-5 bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-          How can I help you today?
+      {/* ── Asset 6: Grand Angkor Wat Silhouette Pedestal Monument ── */}
+      <div className="relative z-10 flex flex-col items-center justify-center mb-1">
+        <img
+          src="/images/khmer-assets/khmer-angkor-monument-6.png"
+          alt="Angkor Wat Monument"
+          className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_8px_24px_rgba(212,175,55,0.45)] hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+
+      {/* ── 2. Greeting & Grand Header with Asset 4 Lotus Medallion & Asset 2 Crest ── */}
+      <div className="relative z-10 text-center space-y-2 max-w-3xl mx-auto">
+        <h3 className="font-heading text-sm sm:text-base font-semibold text-stone-200 flex items-center justify-center gap-2">
+          <span>សួស្តី {displayName}!</span>
+          <span>👋</span>
+        </h3>
+
+        <h1 className="font-heading text-[26px] sm:text-[32px] lg:text-[40px] font-bold text-stone-100 tracking-normal leading-[1.3]">
+          តោះ! ចាប់ផ្តើមស្វែងរក ចំណេះដឹងពី{" "}
+          <span className="font-heading text-transparent bg-clip-text bg-gradient-to-b from-[#FFF2B2] via-[#E5C058] to-[#B88E1B] inline-block drop-shadow-[0_2px_14px_rgba(212,175,55,0.45)]">
+            សាស្ត្រា AI
+          </span>
         </h1>
-        <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground sm:text-base">
-          Ask about Cambodia&apos;s tech scene, AI, startups, fintech, or anything
-          else. I&apos;m tuned to{" "}
-          <span className="font-medium text-foreground">Cambodia-first</span>.
+
+        <p className="font-khmer text-xs sm:text-sm text-stone-400 font-normal leading-[1.75]">
+          ជំនួយការឆ្លើយសំឡេងជាតិខ្មែរ ដោយបច្ចេកវិទ្យា AI ជំនាន់ថ្មី
         </p>
 
-        {/* Value props */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] text-muted-foreground">
-          <Pill icon={Sparkles}>Cambodia-tuned</Pill>
-          <Pill icon={Bot}>Powered by Gemini</Pill>
-          <Pill icon={ShieldCheck}>Private & ephemeral</Pill>
-        </div>
-
-        {/* Rotating tips */}
-        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground/70">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary/50" />
-          <span className="transition-all duration-500" key={currentTip}>
-            💡 {TIPS[currentTip]}
-          </span>
+        {/* ── Asset 2: Royal Golden Lotus Pediment Crest ── */}
+        <div className="flex justify-center pt-1">
+          <img
+            src="/images/khmer-assets/khmer-crest-lotus-2.png"
+            alt="Khmer Royal Lotus Crest"
+            className="h-6 sm:h-8 w-auto object-contain drop-shadow-[0_2px_12px_rgba(212,175,55,0.4)]"
+          />
         </div>
       </div>
 
-      {/* Categorized suggestions */}
-      <div className="mt-8 space-y-5">
-        {categories.map((cat, ci) => (
-          <section key={cat} className="animate-slide-up" style={{ animationDelay: `${ci * 80}ms` }}>
-            <h2 className="mb-2.5 flex items-center gap-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-              <span>{cat}</span>
-              <span className="h-px flex-1 bg-border" aria-hidden />
-            </h2>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {SUGGESTIONS.filter((s) => s.category === cat).map((s) => {
-                const Icon = s.icon;
-                return (
-                  <button
-                    key={s.prompt}
-                    onClick={() => onPick(s.prompt)}
-                    className={cn(
-                      "group flex items-center gap-3 rounded-xl border bg-card px-3.5 py-3",
-                      "text-left text-sm text-foreground",
-                      "transition-all duration-200",
-                      "border-border hover:-translate-y-0.5 hover:border-primary/60 hover:bg-secondary hover:shadow-md hover:shadow-primary/5",
-                    )}
-                  >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary/80 transition-transform group-hover:scale-110 group-hover:bg-primary/10">
-                      <Icon className="h-3.5 w-3.5 text-primary" />
-                    </div>
-                    <span className="flex-1 truncate">{s.label}</span>
-                    <ArrowRight className="h-3.5 w-3.5 shrink-0 -translate-x-1 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-                  </button>
-                );
-              })}
+      {/* ── 3. The 5 Rich Hero Cards with Asset 1 Corner Filigree & Asset 4 Medallions ── */}
+      <div className="relative z-10 w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 mt-6 max-w-6.5xl">
+        {HERO_CARDS.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={card.id}
+              onClick={() => onPick(card.prompt)}
+              className="group relative flex flex-col justify-between rounded-2xl border-2 border-[#4A381C] bg-[#120E0A]/95 hover:border-gold hover:bg-[#1A140D] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 shadow-xl shadow-black/90 backdrop-blur-md overflow-hidden cursor-pointer p-0"
+            >
+              {/* Asset 1: Kbach Golden Filigree in Top Corners */}
+              <img
+                src="/images/khmer-assets/khmer-corner-1.png"
+                alt="Khmer Corner Decor"
+                className="absolute top-0 left-0 h-9 w-9 object-contain pointer-events-none z-20 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]"
+              />
+              <img
+                src="/images/khmer-assets/khmer-corner-1.png"
+                alt="Khmer Corner Decor"
+                className="absolute top-0 right-0 h-9 w-9 object-contain pointer-events-none z-20 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all -scale-x-100 drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]"
+              />
+
+              {/* Card Banner Image Thumbnail */}
+              <div className="relative h-28 w-full overflow-hidden bg-stone-900 border-b border-[#342615]">
+                <img
+                  src={card.imgSrc}
+                  alt={card.titleKm}
+                  className="h-full w-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#120E0A] via-transparent to-black/30" />
+
+                {/* Badge Tag in Top Right */}
+                <span className="absolute top-2.5 right-2.5 rounded-full border border-gold/50 bg-black/80 px-2.5 py-0.5 text-[9.5px] font-sans font-bold text-gold backdrop-blur-xs shadow-md z-10 tracking-wide">
+                  {card.badge}
+                </span>
+
+                {/* Center Circular Medallion Emblem with Asset 4 / Icon */}
+                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex h-10 w-10 items-center justify-center rounded-full border-2 border-gold bg-[#15100A] text-gold shadow-[0_0_12px_rgba(212,175,55,0.5)] group-hover:scale-115 transition-transform z-10 overflow-hidden p-0.5">
+                  <img
+                    src="/images/khmer-assets/khmer-medallion-lotus-4.png"
+                    alt="Lotus Emblem"
+                    className="absolute inset-0 h-full w-full object-contain opacity-90 group-hover:rotate-45 transition-transform duration-500"
+                  />
+                  <Icon className="relative z-10 h-4 w-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+                </div>
+              </div>
+
+              {/* Card Content */}
+              <div className="p-4 pt-6 text-center flex flex-col justify-between flex-1 space-y-2">
+                <div className="space-y-0.5">
+                  <h4 className="font-heading font-semibold text-[14.5px] text-stone-100 group-hover:text-gold transition-colors leading-snug">
+                    {card.titleKm}
+                  </h4>
+                  <p className="text-[11px] font-sans text-stone-400 font-medium tracking-wide">
+                    {card.titleEn}
+                  </p>
+                </div>
+
+                <p className="font-khmer text-xs text-stone-400 font-normal leading-[1.7] line-clamp-2">
+                  {card.descKm}
+                </p>
+
+                {/* Circular Arrow Button at bottom */}
+                <div className="pt-2 flex justify-center">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#453621] bg-[#18130C] text-gold group-hover:border-gold group-hover:bg-gold group-hover:text-black transition-all shadow-xs">
+                    <ArrowRight className="h-3.5 w-3.5 stroke-[2.5]" />
+                  </div>
+                </div>
+              </div>
             </div>
-          </section>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Tip footer */}
-      <div className="mt-8 rounded-xl border border-dashed border-border bg-gradient-to-r from-primary/5 to-emerald-500/5 px-4 py-3 text-center text-xs text-muted-foreground">
-        💡 Tip: ask in <span className="font-medium text-foreground">Khmer</span>{" "}
-        (ភាសាខ្មែរ) — I&apos;ll respond in your language.
+      {/* ── 4. Quick Suggested Topic Filter Pills ── */}
+      <div className="relative z-10 w-full flex items-center justify-center gap-2 flex-wrap mt-6 max-w-4xl">
+        {SUGGESTED_QUICK_PILLS.map((pill, idx) => {
+          const Icon = pill.icon;
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => onPick(pill.prompt)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-khmer font-medium transition-all duration-200 border cursor-pointer ${
+                pill.active
+                  ? "border-gold/70 bg-gradient-to-r from-amber-600/25 to-gold/25 text-gold shadow-md shadow-gold/15"
+                  : "border-[#3E2F1A] bg-[#14100C]/85 text-stone-300 hover:border-gold/60 hover:text-gold hover:bg-[#1E1710]"
+              }`}
+            >
+              <Icon className={`h-3.5 w-3.5 ${pill.active ? "text-amber-400 fill-amber-400/20" : "text-gold/80"}`} />
+              <span>{pill.label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
-}
-
-function Pill({
-  icon: Icon,
-  children,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  children: React.ReactNode;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-2.5 py-1">
-      <Icon className="h-3 w-3 text-primary" />
-      <span>{children}</span>
-    </span>
-  );
-}
+});
