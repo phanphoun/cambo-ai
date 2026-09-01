@@ -150,7 +150,7 @@ export default memo(function SettingsModal({ open, onClose, initialTab = "profil
         avatar: avatarPreview,
       }));
       toast.success("Profile picture and name updated successfully!");
-    } catch (err: any) {
+    } catch {
       // Fallback local update for offline/demo mode
       dispatch(updateUserProfile({
         name: nameInput.trim(),

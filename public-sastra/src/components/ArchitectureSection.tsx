@@ -23,7 +23,7 @@ export function ArchitectureSection() {
     },
     {
       label: language === "km" ? "ស្វែងរកទិន្នន័យ (Vector RAG)" : "Vector Search (RAG)",
-      tech: "Sentence-Transformers + ChromaDB",
+      tech: "Sentence-Transformers + Custom Vector Store",
       desc: language === "km" ? "ប្រព័ន្ធទាញយកទិន្នន័យផ្អែកលើបរិបទច្បាប់ និងឯកសាររដ្ឋកម្ពុជា" : "Contextual embedding retrieval grounded on local Cambodian datasets",
     },
     {
@@ -33,7 +33,7 @@ export function ArchitectureSection() {
     },
     {
       label: language === "km" ? "ទិន្នន័យ & សុវត្ថិភាព" : "Relational Storage",
-      tech: "PostgreSQL 16 + Redis Cache",
+      tech: "PostgreSQL 16 + Async Session Store",
       desc: language === "km" ? "រក្សាទុកទិន្នន័យគណនី និងប្រវត្តិសន្ទនាដោយសុវត្ថិភាពខ្ពស់" : "Encrypted user sessions, conversation persistence and telemetry logs",
     },
   ];

@@ -333,7 +333,7 @@ export default function ChatInput({
       try {
         const dataUrl = await fileToDataUrl(file);
         dispatch(addAttachment({ id: crypto.randomUUID(), dataUrl, name: file.name }));
-      } catch (err) {
+      } catch {
         toast.error(`Failed to load ${file.name}`);
       }
     }

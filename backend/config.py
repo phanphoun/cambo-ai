@@ -7,7 +7,7 @@ from pathlib import Path
 class Settings(BaseSettings):
     # --- Gemini ---
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-3.5-flash"
+    gemini_model: str = "gemini-3.7-flash"
     gemini_temperature: float = 0.3
     gemini_max_tokens: int = 8192
     gemini_thinking_budget: int = 0

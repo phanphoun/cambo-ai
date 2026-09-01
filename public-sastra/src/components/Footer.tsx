@@ -40,7 +40,7 @@ export function Footer() {
             <ul className="space-y-1.5 text-stone-400 text-xs font-sans">
               <li><span>Google Gemini 3.7 Flash</span></li>
               <li><span>MiniMax M3 Cloud Engine</span></li>
-              <li><span>Ollama Qwen 2.5 Offline</span></li>
+              <li><span>Ollama Gemma 4 Local</span></li>
               <li><span>ReportLab TrueType UTF-8</span></li>
             </ul>
           </div>

@@ -44,7 +44,7 @@ export default function DocumentsPanel({
       try {
         await uploadDoc({ file: f, name: f.name }).unwrap();
         toast.success(`Added ${f.name}`);
-      } catch (e) {
+      } catch {
         toast.error(`Failed to add ${f.name}`);
       }
     }

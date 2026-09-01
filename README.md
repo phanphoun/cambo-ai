@@ -4,10 +4,10 @@ A production-ready, full-stack sovereign AI intelligence ecosystem powered by **
 
 ![Status](https://img.shields.io/badge/status-active-success)
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.141-green)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.141+-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
 ![React](https://img.shields.io/badge/React-19-61dafb)
-![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178c6)
+![TypeScript](https://img.shields.io/badge/TypeScript-6+-3178c6)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ed)
 ![License](https://img.shields.io/badge/license-MIT-purple)
 
@@ -32,7 +32,7 @@ A production-ready, full-stack sovereign AI intelligence ecosystem powered by **
                                                        ▼
                                         ┌─────────────────────────────┐
                                         │       FastAPI Backend       │
-                                        │   (backend/ — Port 8000)    │
+                                        │   (backend/ — Port 8001)    │
                                         │  Auth + Telemetry + RAG     │
                                         └──────────────┬──────────────┘
                                                        │
@@ -107,11 +107,11 @@ cd backend
 # Install dependencies with uv (or pip)
 uv pip install -r requirements.txt
 
-# Start backend server with auto-reload (port 8000)
-uv run uvicorn app:app --reload --port 8000
+# Start backend server with auto-reload (port 8001)
+uv run uvicorn app:app --reload --port 8001
 ```
 
-> **API Documentation (Swagger)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+> **API Documentation (Swagger)**: [http://localhost:8001/docs](http://localhost:8001/docs)
 
 ---
 
@@ -198,7 +198,7 @@ DEBUG=True
 ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174
 
 # --- PostgreSQL Connection ---
-DATABASE_URL=postgresql+asyncpg://postgres:password123@localhost:5432/cambo_ai
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/cambo_ai
 
 # --- AI Providers & API Keys ---
 DEFAULT_PROVIDER=gemini
@@ -236,26 +236,66 @@ cambo-ai/
 │   ├── database/
 │   │   ├── models.py              # SQLAlchemy 2.0 async ORM models
 │   │   └── session.py             # PostgreSQL session factory & auto-migration
+│   ├── models/
+│   │   └── schemas.py             # Pydantic request/response schemas
+│   ├── providers/
+│   │   ├── base.py                # Abstract provider interface
+│   │   ├── factory.py             # Provider registry & instantiation
+│   │   ├── gemini_provider.py     # Google Gemini implementation
+│   │   └── ollama_provider.py     # Ollama local/cloud implementation
+│   ├── prompts/
+│   │   ├── builder.py             # System prompt assembly
+│   │   ├── cultural_rules.py      # Khmer cultural enrichment rules
+│   │   └── mode_prompts.py        # Per-mode prompt templates
 │   ├── routes/
 │   │   ├── auth.py                # Register, login, guest, profile endpoints
 │   │   ├── admin.py               # Admin user CRUD, provider management, telemetry
 │   │   ├── chat.py                # Streaming chat completions & tools
 │   │   ├── documents.py           # Document uploads & RAG queries
+│   │   ├── tools.py               # Function-calling tool definitions
 │   │   └── health.py              # System health check
-│   └── services/
-│       ├── auth_service.py        # PBKDF2 hashing & JWT tokens
-│       ├── telemetry_service.py   # In-memory & DB telemetry tracker
-│       ├── provider_manager.py    # Multi-provider routing (Gemini/Ollama)
-│       └── rag_service.py         # Vector similarity search
+│   ├── services/
+│   │   ├── auth_service.py        # PBKDF2 hashing & JWT tokens
+│   │   ├── chat_service.py        # Chat orchestration & intent classification
+│   │   ├── chat_history.py        # Conversation persistence
+│   │   ├── doc_generator.py       # PDF/DOCX/Markdown generation
+│   │   ├── embeddings.py          # Sentence-transformer embedding engine
+│   │   ├── gemini_service.py      # Gemini API streaming client
+│   │   ├── image_service.py       # Image generation & OCR
+│   │   ├── ollama_service.py      # Ollama API streaming client
+│   │   ├── provider_manager.py    # Multi-provider routing (Gemini/Ollama)
+│   │   ├── rag_service.py         # Vector similarity search
+│   │   ├── rag_context.py         # RAG context assembly
+│   │   ├── rag_store.py           # Chunk storage & index
+│   │   ├── telemetry_service.py   # In-memory & DB telemetry tracker
+│   │   ├── tool_runner.py         # Tool execution engine
+│   │   ├── tools.py               # Tool implementations
+│   │   └── user_chat_store.py     # Per-user chat persistence
+│   └── tests/
+│       ├── test_architecture.py   # Prompt builder & provider tests
+│       ├── test_rag.py            # RAG pipeline tests
+│       └── test_tools.py          # Tool definition & execution tests
 │
 ├── frontend/                      # User Chat Application (Port 5173)
 │   ├── src/
 │   │   ├── components/            # ChatContainer, ChatInput, Topbar, Sidebar
+│   │   │   ├── ChatContainer.tsx  # Message bubbles, lightbox, code blocks
+│   │   │   ├── ChatInput.tsx      # Input composer with slash commands
+│   │   │   ├── SettingsModal.tsx  # Profile, provider, privacy settings
+│   │   │   ├── Sidebar.tsx        # Conversation history & navigation
+│   │   │   ├── Topbar.tsx         # Top header bar
+│   │   │   └── ui/               # Reusable UI primitives (Button, etc.)
 │   │   ├── features/
 │   │   │   ├── auth/              # Auth slice, RTK Query api, AuthModal
 │   │   │   ├── chat/              # Chat API & state
+│   │   │   ├── conversations/     # Saved conversation history
 │   │   │   ├── directory/         # Cambodia 58-company sector directory
-│   │   │   └── provider/          # Provider state & SettingsModal
+│   │   │   ├── documents/         # RAG document uploads & management
+│   │   │   ├── modes/             # AI mode switching (chat/translate/code/search)
+│   │   │   ├── pin/               # Message pinning & bookmarks
+│   │   │   ├── provider/          # AI provider state & model selection
+│   │   │   ├── share/             # Conversation sharing
+│   │   │   └── theme/            # Theme persistence
 │   │   ├── App.tsx                # Main app orchestration
 │   │   └── store.ts               # Redux store
 │   └── package.json
@@ -263,10 +303,13 @@ cambo-ai/
 └── admin-site/                    # Standalone Admin Portal (Port 5174)
     ├── src/
     │   ├── components/
+    │   │   ├── AdminAuthGate.tsx  # Admin login & auth guard
     │   │   ├── TelemetryView.tsx  # Workload charts & performance stats
     │   │   ├── UsersView.tsx      # User management & role control
     │   │   ├── ProvidersView.tsx  # AI model endpoints & connection test
-    │   │   └── LogsView.tsx       # Live audit activity trace
+    │   │   ├── LogsView.tsx       # Live audit activity trace
+    │   │   ├── Sidebar.tsx        # Admin navigation sidebar
+    │   │   └── Topbar.tsx         # Admin header bar
     │   ├── services/api.ts        # Admin REST API client
     │   └── App.tsx                # Admin cockpit layout & navigation
     └── package.json

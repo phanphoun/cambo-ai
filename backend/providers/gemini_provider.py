@@ -87,7 +87,7 @@ class GeminiProvider(BaseProvider):
             max_output_tokens=settings.gemini_max_tokens,
         )
 
-        models_to_try = [self._model, "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-31b-it"]
+        models_to_try = [self._model, "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemma-4-31b-it"]
         unique_models = list(dict.fromkeys(models_to_try))
 
         last_err = None
@@ -153,7 +153,7 @@ class GeminiProvider(BaseProvider):
             max_output_tokens=settings.gemini_max_tokens,
         )
 
-        models_to_try = [self._model, "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-31b-it"]
+        models_to_try = [self._model, "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemma-4-31b-it"]
         unique_models = list(dict.fromkeys(models_to_try))
 
         success = False

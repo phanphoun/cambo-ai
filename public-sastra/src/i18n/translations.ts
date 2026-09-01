@@ -14,7 +14,7 @@ export const translations = {
       tagline: "បញ្ញាសិប្បនិម្មិតអធិបតេយ្យភាពកម្ពុជា",
     },
     hero: {
-      badge: "🇰🇭 ប្រព័ន្ធបញ្ញាសិប្បនិម្មិតអធិបតេយ្យភាពកម្ពុជា • កំណែ ២.០",
+      badge: "🇰🇭 ប្រព័ន្ធបញ្ញាសិប្បនិម្មិតអធិបតេយ្យភាពកម្ពុជា • កំណែ ១.០",
       titleMain: "បញ្ញាសិប្បនិម្មិតកម្ពុជា",
       titleSub: "សម្រាប់យុគសម័យឌីជីថល",
       subtitle: "ស្វែងយល់ពីបញ្ញាសិប្បនិម្មិតជំនាន់ថ្មីដែលយល់ដឹងភាសាខ្មែរស៊ីជម្រៅ បង្កើតឯកសារ PDF & Word កម្រិតអាជីព ស្វែងរកទិន្នន័យច្បាប់កម្ពុជា (RAG) និងដំណើរការ Offline ដោយសុវត្ថិភាពខ្ពស់។",
@@ -62,7 +62,7 @@ export const translations = {
           tag: "🏛️ ប្រវត្តិសាស្ត្រអង្គរ & បាលី-សំស្ក្រឹត",
           prompt: "រៀបរាប់អំពីប្រវត្តិ និងស្ថាបត្យកម្មប្រាសាទបាយ័ន ក្នុងរាជ្យព្រះបាទជ័យវរ្ម័នទី៧",
           response: `### ប្រាសាទបាយ័ន៖ មហាសោភ័ណភាពនៃសិល្បៈបាយ័ន\n\n**ប្រាសាទបាយ័ន (Bayon Temple)** ត្រូវបានកសាងឡើងនៅចុងសតវត្សរ៍ទី១២ និងដើមសតវត្សរ៍ទី១៣ ក្នុងរជ្ជកាល **ព្រះបាទជ័យវរ្ម័នទី៧** ស្ថិតនៅចំកណ្តាលនៃរាជធានីអង្គរធំ។\n\n#### លក្ខណៈស្ថាបត្យកម្មដ៏ពិសិដ្ឋ\n1. **កំពូលព្រហ្មមុខបួន**៖ មានប្រាង្គចំនួន ៥៤ ដែលមានព្រះភក្ត្រញញឹមដ៏ល្បីល្បាញ (*ស្នាមញញឹមបាយ័ន*) តំណាងឱ្យព្រហ្មវិហារធម៌ទាំងបួន (មេត្តា ករុណា មុទិតា ឧបេក្ខា)។\n2. **ចម្លាក់ថែវបាតក្រោម**៖ ឆ្លុះបញ្ចាំងពីជីវភាពរស់នៅប្រចាំថ្ងៃរបស់ប្រជាជនខ្មែរនាសម័យអង្គរ និងចម្បាំងជើងទឹក-ជើងគោកជាមួយកងទ័ពចាម។\n\n*«វិជ្ជាជាប្រទីបបំភ្លឺផ្លូវ វប្បធម៌ជាគ្រឹះនៃជាតិ»*`,
-          model: "Ollama Qwen 2.5 · 100% Offline",
+          model: "Ollama Gemma 4 · 100% Offline",
         },
       ],
     },
@@ -160,7 +160,7 @@ export const translations = {
       tagline: "SOVEREIGN CAMBODIAN AI",
     },
     hero: {
-      badge: "🇰🇭 CAMBODIA'S SOVEREIGN AI ECOSYSTEM • VERSION 2.0",
+      badge: "🇰🇭 CAMBODIA'S SOVEREIGN AI ECOSYSTEM • VERSION 1.0",
       titleMain: "Cambodia's Sovereign AI",
       titleSub: "For the Digital Era",
       subtitle: "Experience next-generation artificial intelligence with deep Khmer script comprehension, multi-page professional PDF & Word synthesis, enterprise legal RAG grounding, and 100% offline sovereign privacy.",
@@ -208,7 +208,7 @@ export const translations = {
           tag: "🏛️ Khmer History & Sanskrit Heritage",
           prompt: "Describe the history and sacred architecture of Bayon Temple during the reign of King Jayavarman VII.",
           response: `### Bayon Temple: Masterpiece of Mahayana Angkorian Art\n\n**Bayon Temple** was constructed in the late 12th and early 13th centuries under **King Jayavarman VII**, standing at the exact geometric center of Angkor Thom.\n\n#### Sacred Architectural Attributes\n1. **54 Four-Faced Towers**: Featuring the famous *Bayon Smile* representing the four Buddhist virtues (Metta, Karuna, Mudita, Upekkha).\n2. **Bas-Relief Galleries**: Depicting everyday life of 12th-century Cambodians alongside historical naval battles against the Cham forces.\n\n*«Knowledge is the lamp that illuminates the path, culture is the foundation of the nation.»*`,
-          model: "Ollama Qwen 2.5 · 100% Offline",
+          model: "Ollama Gemma 4 · 100% Offline",
         },
       ],
     },
@@ -225,7 +225,7 @@ export const translations = {
         {
           badge: "Hybrid Tri-Engine",
           title: "Gemini 3.7 + MiniMax M3 + Local Ollama",
-          desc: "Seamlessly route prompts between ultra-low latency Google Gemini 3.7 Flash, heavy cloud reasoning (MiniMax M3), and 100% offline local servers (Qwen 2.5 / DeepSeek).",
+          desc: "Seamlessly route prompts between ultra-low latency Google Gemini 3.7 Flash, heavy cloud reasoning (MiniMax M3), and 100% offline local servers (Gemma 4).",
         },
         {
           badge: "ReportLab & Unicode",
