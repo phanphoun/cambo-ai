@@ -1,6 +1,7 @@
 import { Landmark, CreditCard, Scale, GraduationCap, Building2, Stethoscope } from "lucide-react";
 import { KhmerCardCorners } from "./KhmerOrnaments";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useScrollReveal } from "../hooks/useScrollReveal";
 
 const ICONS = [Landmark, CreditCard, Scale, GraduationCap, Building2, Stethoscope];
 
@@ -27,7 +28,7 @@ const CASES_KM = [
     category: "ការអប់រំ & ការស្រាវជ្រាវវប្បធម៌",
     categoryEn: "Higher Education & Cultural Heritage",
     description: "គាំទ្រនិស្សិត និងអ្នកស្រាវជ្រាវក្នុងការសិក្សាឬសគល់ពាក្យបាលី-សំស្ក្រឹត ប្រវត្តិសាស្ត្រអង្គរ និងមុខវិជ្ជា STEM។",
-    tags: ["អក្សរសាស្ត្រខ្មែរ", "បង្រៀន STEM", "ទម្រង់និក្ខេបបទ"],
+    tags: ["អក្សរសាស្ត្រខ្មែរ", "បង្រៀន STEM", "ទម្រងនិក្ខេបបទ"],
   },
   {
     category: "សហគ្រាសធុនតូច & មធ្យម (SME)",
@@ -85,11 +86,12 @@ const CASES_EN = [
 export function UseCases() {
   const { t, language } = useLanguage();
   const cases = language === "km" ? CASES_KM : CASES_EN;
+  const { ref, visible } = useScrollReveal();
 
   return (
     <section id="use-cases" className="py-24 bg-[#080604] relative select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+        <div ref={ref} className={`text-center max-w-3xl mx-auto space-y-4 mb-16 transition-all duration-700 ${visible ? 'animate-fade-in-up' : 'opacity-0 translate-y-4'}`}>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-1 text-xs font-semibold text-gold font-mono">
             <Building2 className="h-3.5 w-3.5" />
             <span>{t.useCases.badge}</span>
@@ -105,10 +107,12 @@ export function UseCases() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cases.map((uc, i) => {
             const Icon = ICONS[i] || Building2;
+            const base = visible ? "animate-fade-in-up" : "opacity-0 translate-y-4";
             return (
               <div
                 key={i}
-                className="rounded-3xl border border-[#342718] bg-[#120E09]/95 p-6 space-y-4 shadow-lg hover:border-gold/60 hover:bg-[#18130C] transition-all group relative"
+                className={`rounded-3xl border border-[#342718] bg-[#120E09]/95 p-6 space-y-4 shadow-lg hover:border-gold/60 hover:bg-[#18130C] transition-all group relative ${base}`}
+                style={visible ? { animationDelay: `${i * 0.08}s` } : undefined}
               >
                 <KhmerCardCorners size="w-4 h-4" opacity="opacity-30 group-hover:opacity-75 transition-opacity" />
 
@@ -144,4 +148,3 @@ export function UseCases() {
     </section>
   );
 }
-

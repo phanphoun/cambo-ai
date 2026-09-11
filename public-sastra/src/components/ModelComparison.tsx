@@ -1,9 +1,11 @@
 import { Check, X, Sparkles, Cloud, Cpu, ArrowRight } from "lucide-react";
 import { KhmerCardCorners } from "./KhmerOrnaments";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useScrollReveal } from "../hooks/useScrollReveal";
 
 export function ModelComparison() {
   const { t, language } = useLanguage();
+  const { ref, visible } = useScrollReveal();
 
   const models = [
     {
@@ -59,7 +61,7 @@ export function ModelComparison() {
   return (
     <section id="models" className="py-24 bg-[#0A0805] relative select-none border-t border-[#261E13]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+        <div ref={ref} className={`text-center max-w-3xl mx-auto space-y-4 mb-16 transition-all duration-700 ${visible ? 'animate-fade-in-up' : 'opacity-0 translate-y-4'}`}>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-1 text-xs font-semibold text-gold font-mono">
             <Cpu className="h-3.5 w-3.5" />
             <span>{t.models.badge}</span>
@@ -76,14 +78,16 @@ export function ModelComparison() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {models.map((m, idx) => {
             const Icon = m.icon;
+            const base = visible ? "animate-fade-in-up" : "opacity-0 translate-y-4";
             return (
               <div
                 key={idx}
-                className={`rounded-3xl p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-xl transition-all relative group ${
+                className={`rounded-3xl p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-xl transition-all relative group ${base} ${
                   m.featured
                     ? "border-2 border-gold/70 bg-[#15100A] glow-gold"
                     : "border border-[#3A2D1A] bg-[#120E09] hover:border-gold/50"
                 }`}
+                style={visible ? { animationDelay: `${idx * 0.12}s` } : undefined}
               >
                 <KhmerCardCorners size="w-4 h-4" opacity={m.featured ? "opacity-60" : "opacity-30 group-hover:opacity-60 transition-opacity"} />
 
@@ -160,4 +164,3 @@ export function ModelComparison() {
     </section>
   );
 }
-

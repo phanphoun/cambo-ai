@@ -8,6 +8,7 @@ export interface Company {
   location: string;
   founded?: number;
   tags: string[];
+  prompt?: string;
 }
 
 export interface SectorDefinition {
@@ -110,6 +111,7 @@ export const companies: Company[] = [
     website: "https://www.skaitechnology.com",
     location: "Phnom Penh",
     tags: ["software agency", "web development", "mobile apps", "AI solutions", "cloud", "digital transformation"],
+    prompt: "សូមជួយណែនាំ និងរៀបរាប់លម្អិតអំពីក្រុមហ៊ុន «ស្កាយ ថេកណឡជី (SKAI Technology)» នៅកម្ពុជា៖ សេវាកម្មអភិវឌ្ឍន៍គេហទំព័រ កម្មវិធីទូរស័ព្ទ (Mobile Apps) និងដំណោះស្រាយបញ្ញាសិប្បនិម្មិត (AI) ដែលពួកគេផ្តល់ជូនអាជីវកម្ម និងសហគ្រាស ព្រមទាំងបច្ចេកវិទ្យាស្នូល និងរបៀបទាក់ទងសហការ។",
   },
   {
     id: "koompi",
@@ -121,6 +123,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2018,
     tags: ["hardware", "open source", "Linux", "laptops", "deep tech"],
+    prompt: "សូមរៀបរាប់អំពីគម្រោងកុំព្យូទ័របច្ចេកវិទ្យាខ្មែរ «គម្ពីរ (KOOMPI)»៖ តើ Koompi មានប្រវត្តិ និងចក្ខុវិស័យយ៉ាងដូចម្តេច? សូមបង្ហាញអំពីប្រព័ន្ធប្រតិបត្តិការ Koompi OS (Linux) ផលិតផលកុំព្យូទ័រយួរដៃ ថេប្លេតសម្រាប់ការអប់រំ STEM នៅកម្ពុជា និងការចូលរួមចំណែកក្នុងសហគមន៍ Open-Source។",
   },
   {
     id: "codingate",
@@ -132,6 +135,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2013,
     tags: ["software agency", "mobile apps", "ERP", "digitalization"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពីក្រុមហ៊ុន «ខូឌីងហ្គេត (Codingate)»៖ សមិទ្ធផល និងពានរង្វាន់ដែលទទួលបាន សេវាកម្មអភិវឌ្ឍន៍សូហ្វវែរ ប្រព័ន្ធគ្រប់គ្រងសហគ្រាស (ERP) និងដំណោះស្រាយបរិវត្តកម្មឌីជីថល (Digital Transformation) សម្រាប់អាជីវកម្មនៅកម្ពុជា។",
   },
   {
     id: "china-cambodia-ai-lab",
@@ -143,6 +147,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2021,
     tags: ["AI", "Khmer NLP", "OCR", "machine learning"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «មន្ទីរពិសោធន៍ AI កម្ពុជា-ចិន (China-Cambodia AI Lab)»៖ តួនាទី និងការស្រាវជ្រាវលើបច្ចេកវិទ្យាភាសាខ្មែរ (Khmer NLP) ការសម្គាល់សំឡេង (Speech Recognition) ការបំប្លែងអក្សរពីរូបភាព (Khmer OCR) និងសារៈសំខាន់ចំពោះការរីកចម្រើននៃ AI នៅកម្ពុជា។",
   },
   {
     id: "slash-foundry",
@@ -154,6 +159,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2016,
     tags: ["product studio", "agile", "cloud engineering", "SaaS"],
+    prompt: "សូមរៀបរាប់អំពីស្ទូឌីយោអភិវឌ្ឍន៍បច្ចេកវិទ្យា «ស្លាស ហ្វោនឌ្រី (Slash Foundry)» នៅភ្នំពេញ៖ សេវាកម្មបង្កើត Scalable Digital Products, Cloud Engineering និង SaaS សម្រាប់ធុរកិច្ចថ្មី និងសហគ្រាសក្នុងតំបន់អាស៊ាន។",
   },
   {
     id: "satra-360",
@@ -165,6 +171,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2020,
     tags: ["POS", "SaaS", "restaurant tech", "retail"],
+    prompt: "សូមណែនាំអំពីប្រព័ន្ធគ្រប់គ្រង «សាស្ត្រា ៣៦០ (Satra 360)»៖ មុខងារប្រព័ន្ធ POS លើ Cloud សម្រាប់ហាងទំនិញ និងភោជនីយដ្ឋាន ការគ្រប់គ្រងស្តុក ការបញ្ជាទិញតាមតុ និងការភ្ជាប់ជាមួយការទូទាត់ KHQR ស្វ័យប្រវត្តិនៅកម្ពុជា។",
   },
   {
     id: "mango-byte",
@@ -176,6 +183,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2015,
     tags: ["software", "UX/UI", "cloud", "consultancy"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីក្រុមហ៊ុន «ម៉ង់ហ្គោ បៃ (Mango Byte)»៖ ជំនាញក្នុងការរចនា UX/UI បង្កើតផលិតផលឌីជីថល សូហ្វវែរសហគ្រាស និងដំណោះស្រាយ Cloud Architecture សម្រាប់ក្រុមហ៊ុន និងធុរកិច្ចនៅកម្ពុជា។",
   },
 
   // ==========================================
@@ -191,6 +199,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2010,
     tags: ["fashion", "e-commerce", "marketplace", "retail"],
+    prompt: "សូមរៀបរាប់អំពីផ្សារពាណិជ្ជកម្មអេឡិចត្រូនិច «អិល១៩២ (L192 / Little Fashion)»៖ ប្រវត្តិការចាប់ផ្តើម ការរីកចម្រើនជាវេទិកា e-Commerce ម៉ូដសម្លៀកបំពាក់ និងទំនិញប្រើប្រាស់ធំជាងគេនៅកម្ពុជា ប្រព័ន្ធដឹកជញ្ជូនរហ័ស និងបទពិសោធន៍ទិញទំនិញលើ App។",
   },
   {
     id: "khmum-eshop",
@@ -202,6 +211,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2019,
     tags: ["e-commerce", "local products", "marketplace", "SME"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពីកម្មវិធី «ឃ្មុំ អ៊ីសប (Khmum eShop)»៖ តួនាទីក្នុងការគាំទ្រ និងលើកកម្ពស់ផលិតផលខ្មែរក្នុងស្រុក (Local Products) សិប្បកម្ម និងផលិតផលកសិកម្មរបស់សហគ្រាសធុនតូច និងមធ្យម (SMEs) នៅកម្ពុជា។",
   },
   {
     id: "tenbox",
@@ -213,6 +223,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2021,
     tags: ["B2B", "wholesale", "supply chain", "FMCG"],
+    prompt: "សូមពន្យល់អំពីវេទិកាលក់ដុំឌីជីថល B2B «ថេនបក្ស (Tenbox Cambodia)»៖ របៀបដែល Tenbox ភ្ជាប់អាជីវកម្មម្ហូបអាហារ ភោជនីយដ្ឋាន សណ្ឋាគារ (HoReCa) និងហាងលក់រាយ ជាមួយអ្នកផ្គត់ផ្គង់ទំនិញ FMCG ផ្ទាល់ និងអត្ថប្រយោជន៍នៃខ្សែច្រវាក់ផ្គត់ផ្គង់នេះ។",
   },
   {
     id: "delishop-asia",
@@ -224,6 +235,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2018,
     tags: ["supermarket", "groceries", "organic", "delivery"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីផ្សារទំនើបអនឡាញ «ដេលីសប (Delishop.asia)» នៅរាជធានីភ្នំពេញ៖ សេវាកម្មកុម្ម៉ង់អាហារស្រស់ ផលិតផលសរីរាង្គ (Organic) ទំនិញនាំចូលពិសេសៗ និងសេវាដឹកជញ្ជូនដល់គេហដ្ឋាន។",
   },
   {
     id: "shop168",
@@ -235,6 +247,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2015,
     tags: ["electronics", "online retail", "consumer goods"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីហាងលក់ទំនិញអនឡាញ «សប១៦៨ (Shop168 Cambodia)»៖ ប្រភេទផលិតផលអេឡិចត្រូនិច គ្រឿងបន្លាស់បច្ចេកវិទ្យា គ្រឿងសម្អាង និងរបៀបបញ្ជាទិញ និងដឹកជញ្ជូនទូទាំងប្រទេសកម្ពុជា។",
   },
 
   // ==========================================
@@ -250,6 +263,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2020,
     tags: ["CBDC", "blockchain", "KHQR", "National Bank", "interoperability"],
+    prompt: "សូមពន្យល់លម្អិតអំពីប្រព័ន្ធទូទាត់ជាតិ «បាគង (Bakong)» របស់ធនាគារជាតិនៃកម្ពុជា (NBC)៖ តើបច្ចេកវិទ្យា Blockchain ដំណើរការយ៉ាងដូចម្តេច? ការទូទាត់ឆ្លងធនាគារតាមស្តង់ដារ KHQR និងការតភ្ជាប់ការទូទាត់ឆ្លងដែនអន្តរជាតិ (Cross-Border Payment) ជួយជំរុញសេដ្ឋកិច្ចកម្ពុជាយ៉ាងដូចម្តេច?",
   },
   {
     id: "aba-bank",
@@ -261,6 +275,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1996,
     tags: ["commercial bank", "mobile app", "ABA Pay", "digital banking"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «ធនាគារ អាប៊ីអេ (ABA Bank)»៖ ភាពជោគជ័យនៃកម្មវិធី ABA Mobile, សេវាទូទាត់ ABA Pay, ការទូទាត់គ្មានសាច់ប្រាក់ និងដំណោះស្រាយធនាគារឌីជីថលសម្រាប់បុគ្គល និងអាជីវកម្មនៅកម្ពុជា។",
   },
   {
     id: "wing-bank",
@@ -272,6 +287,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2008,
     tags: ["digital bank", "agent network", "remittance", "financial inclusion"],
+    prompt: "សូមរៀបរាប់អំពី «វីង ធនាគារ (Wing Bank Cambodia)»៖ ការវិវត្តពីសេវាផ្ទេរប្រាក់តាមភ្នាក់ងារ Wing មកជាធនាគារពាណិជ្ជឌីជីថលពេញលេញ បណ្តាញភ្នាក់ងារទូទាំងប្រទេស ការផ្ទេរប្រាក់ឆ្លងប្រទេស និងតួនាទីក្នុងការលើកកម្ពស់បរិយាបន្នហិរញ្ញវត្ថុ។",
   },
   {
     id: "acleda-bank",
@@ -283,6 +299,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1993,
     tags: ["listed bank", "nationwide", "microfinance", "ACLEDA Mobile"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ធនាគារ អេស៊ីលីដា (ACLEDA Bank Plc.)»៖ ប្រវត្តិ និងភាពរឹងមាំជាធនាគារពាណិជ្ជចុះបញ្ជីក្នុងផ្សារមូលបត្រ បណ្តាញសាខាគ្រប់ ២៥ រាជធានី-ខេត្ត សេវា ACLEDA Mobile និងការគាំទ្រកម្ចីកសិកម្ម និងសហគ្រាសធុនតូច។",
   },
   {
     id: "canadia-bank",
@@ -294,17 +311,19 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1991,
     tags: ["commercial bank", "trade finance", "corporate"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ធនាគារ កាណាឌីយ៉ា (Canadia Bank)»៖ ប្រវត្តិជាធនាគារពាណិជ្ជឈានមុខដ៏យូរអង្វែង សេវាហិរញ្ញប្បទានពាណិជ្ជកម្ម កម្ចីទិញផ្ទះ សេវា Smart Banking និងការរួមចំណែកដល់ការអភិវឌ្ឍសេដ្ឋកិច្ចកម្ពុជា។",
   },
   {
     id: "sathapana-bank",
     name: "Sathapana Bank",
-    khmerName: "ធនាគារ សាថ powerAll (Sathapana)",
+    khmerName: "ធនាគារ សាថាពរណា (Sathapana Bank)",
     description: "Leading commercial bank providing digital payroll, micro-enterprise loans, international money transfers, and smart ATMs nationwide.",
     category: "Fintech & Banking",
     website: "https://sathapana.com.kh",
     location: "Phnom Penh",
     founded: 1995,
     tags: ["commercial bank", "SME loans", "digital banking"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ធនាគារ សាថាពរណា (Sathapana Bank)»៖ សេវាធនាគារឌីជីថល Sathapana Mobile កម្ចីសម្រាប់សហគ្រាសធុនតូច និងមធ្យម (SME Loans) សេវាបើកប្រាក់បៀវត្សរ៍ និងបណ្តាញម៉ាស៊ីន Smart ATM ទូទាំងប្រទេស។",
   },
   {
     id: "chip-mong-bank",
@@ -316,6 +335,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2019,
     tags: ["digital bank", "retail", "innovation"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ធនាគារ ជីប ម៉ុង (Chip Mong Bank)»៖ ចក្ខុវិស័យធនាគារឌីជីថលទំនើប ការភ្ជាប់ទំនាក់ទំនងជាមួយប្រព័ន្ធអេកូឡូស៊ី Chip Mong Group (ផ្សារទំនើប លំនៅឋាន រោងចក្រ) និងសេវាកម្មហិរញ្ញវត្ថុប្រកបដោយភាពច្នៃប្រឌិត។",
   },
   {
     id: "morakot-tech",
@@ -327,6 +347,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2014,
     tags: ["core banking", "SaaS", "cloud MFI"],
+    prompt: "សូមរៀបរាប់អំពីក្រុមហ៊ុន «មរកត ថេកណឡជី (Morakot Technology)»៖ ដំណោះស្រាយប្រព័ន្ធស្នូលធនាគារលើ Cloud (Core Banking SaaS) សម្រាប់គ្រឹះស្ថានមីក្រូហិរញ្ញវត្ថុ និងឥណទានជនបទនៅកម្ពុជា និងក្នុងតំបន់អាស៊ីអាគ្នេយ៍។",
   },
   {
     id: "banhji",
@@ -338,6 +359,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2016,
     tags: ["accounting", "SME software", "tax compliance"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីវេទិកាគណនេយ្យ «បញ្ជី (BanhJi Accounting)»៖ ប្រព័ន្ធគ្រប់គ្រងហិរញ្ញវត្ថុ និងបញ្ជីគណនេយ្យតាម Cloud សម្រាប់សហគ្រាសធុនតូច និងមធ្យម (SMEs) នៅកម្ពុជា ការអនុលោមតាមច្បាប់ពន្ធដារ និងការតភ្ជាប់ជាមួយធនាគារ។",
   },
   {
     id: "pi-pay",
@@ -349,6 +371,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2017,
     tags: ["e-wallet", "QR payment", "lifestyle"],
+    prompt: "សូមរៀបរាប់អំពីកាបូបលុយអេឡិចត្រូនិក «ភី បេ (Pi Pay)»៖ តួនាទីជាអ្នកត្រួសត្រាយការទូទាត់ cashless តាម QR Code នៅកម្ពុជា ការទូទាត់វិក្កយបត្រ និងការភ្ជាប់ប្រព័ន្ធទូទាត់តាមហាងទំនិញ និងភោជនីយដ្ឋានធំៗ។",
   },
 
   // ==========================================
@@ -364,6 +387,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2014,
     tags: ["university", "software engineering", "AI research", "cybersecurity"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «បណ្ឌិត្យសភាបច្ចេកវិទ្យាឌីជីថលកម្ពុជា (CADT)» ក្រោមឱវាទក្រសួងប្រៃសណីយ៍ និងទូរគមនាគមន៍៖ កម្មវិធីបណ្តុះបណ្តាលបរិញ្ញាបត្រផ្នែកវិទ្យាសាស្ត្រកុំព្យូទ័រ ទិន្នន័យ បញ្ញាសិប្បនិម្មិត (AI) និងសន្តិសុខស៊ីប៊ឺ ព្រមទាំងអាហារូបករណ៍ និងមជ្ឈមណ្ឌលស្រាវជ្រាវ និងនវានុវត្តន៍ឌីជីថល។",
   },
   {
     id: "itc",
@@ -375,6 +399,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1964,
     tags: ["engineering", "higher education", "technology"],
+    prompt: "សូមរៀបរាប់អំពី «វិទ្យាស្ថានបច្ចេកវិទ្យាកម្ពុជា (តិចណូ - ITC)»៖ ប្រវត្តិ និងកេរ្តិ៍ឈ្មោះជាគ្រឹះស្ថានឧត្តមសិក្សាផ្នែកវិស្វកម្ម និងបច្ចេកវិទ្យាឈានមុខគេនៅកម្ពុជា ជំនាញវិស្វកម្មកុំព្យូទ័រ សំណង់ អគ្គិសនី និងការស្រាវជ្រាវវិទ្យាសាស្ត្រ។",
   },
   {
     id: "rupp-cs",
@@ -386,6 +411,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1960,
     tags: ["university", "computer science", "data science"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីដេប៉ាតឺម៉ង់វិទ្យាសាស្ត្រកុំព្យូទ័រ នៃ «សាកលវិទ្យាល័យភូមិន្ទភ្នំពេញ (RUPP)»៖ កម្មវិធីសិក្សាផ្នែកព័ត៌មានវិទ្យា (IT) វិស្វកម្មទិន្នន័យ មន្ទីរពិសោធន៍ស្រាវជ្រាវ និងការបណ្តុះបណ្តាលធនធានមនុស្សផ្នែកបច្ចេកវិទ្យានៅកម្ពុជា។",
   },
   {
     id: "camtech-university",
@@ -397,6 +423,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2021,
     tags: ["STEM", "AI", "robotics", "university"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «សាកលវិទ្យាល័យខេមថេក (CamTech University)»៖ ចក្ខុវិស័យអប់រំជំនាន់ថ្មីផ្ដោតលើមុខវិជ្ជា STEM, បញ្ញាសិប្បនិម្មិត (AI), មនុស្សយន្ត (Robotics), FinTech និងបរិយាកាសសិក្សាទំនើបនៅកម្ពុជា។",
   },
   {
     id: "sala-tech",
@@ -408,6 +435,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2019,
     tags: ["EdTech", "school management", "SaaS"],
+    prompt: "សូមរៀបរាប់អំពីវេទិកាបច្ចេកវិទ្យាអប់រំ «សាលា ថេក (Sala Tech)»៖ ប្រព័ន្ធគ្រប់គ្រងសាលារៀន (School Management SaaS) ការគ្រប់គ្រងពិន្ទុ និងវត្តមានសិស្ស ការបង់ថ្លៃសិក្សាឌីជីថល និងដំណោះស្រាយសម្រាប់សាលារៀន និងសាកលវិទ្យាល័យនៅកម្ពុជា។",
   },
   {
     id: "e-school-cambodia",
@@ -419,6 +447,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2017,
     tags: ["EdTech", "online learning", "exam prep"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីកម្មវិធីសិក្សាឌីជីថល «អ៊ី-ស្គូល ខេមបូឌា (E-School Cambodia)»៖ វីដេអូបង្រៀនមេរៀនតាមកម្មវិធីសិក្សាជាតិពីថ្នាក់ទី៧ ដល់ទី១២ ការត្រៀមប្រឡងបាក់ឌុប (BacII) និងការសិក្សាភាសាបរទេសតាមអនឡាញ។",
   },
   {
     id: "passerelles-numeriques",
@@ -430,6 +459,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2010,
     tags: ["vocational", "software training", "NGO"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីអង្គការបណ្តុះបណ្តាល «ប៉ាសឺរ៉ែល នុយមេរិច កម្ពុជា (PNC)»៖ បេសកកម្មផ្តល់អាហារូបករណ៍ពេញលេញលើជំនាញវិស្វកម្មសូហ្វវែរ និងបណ្តាញកុំព្យូទ័រដល់យុវជនមកពីគ្រួសារខ្វះខាត និងឱកាសការងារក្នុងវិស័យ IT។",
   },
 
   // ==========================================
@@ -445,6 +475,7 @@ export const companies: Company[] = [
     location: "Siem Reap",
     founded: 2016,
     tags: ["UNESCO", "Angkor Wat", "tourism ticketing", "heritage"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «គ្រឹះស្ថានអង្គរ (Angkor Enterprise)»៖ តួនាទីគ្រប់គ្រងការលក់សំបុត្រ និងប្រព័ន្ធទូទាត់ឌីជីថលសម្រាប់ទស្សនារមណីយដ្ឋានអង្គរ ការគ្រប់គ្រងភ្ញៀវទេសចរ និងការរួមចំណែកដល់មូលនិធិមន្ទីរពេទ្យគន្ធបុប្ផា និងការអភិរក្សប្រាសាទបុរាណ។",
   },
   {
     id: "national-museum-cambodia",
@@ -456,6 +487,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1920,
     tags: ["museum", "archaeology", "sculptures", "Khmer art"],
+    prompt: "សូមរៀបរាប់អំពី «សារមន្ទីរជាតិកម្ពុជា (National Museum of Cambodia)»៖ ប្រវត្តិស្ថាបត្យកម្ម បណ្តុំបុរាណវត្ថុ និងរូបបដិមាជាង ១៤,០០០ វត្ថុតាំងពីសម័យបុរេប្រវត្តិ សម័យអង្គរ និងក្រោយអង្គរ ព្រមទាំងព័ត៌មានសម្រាប់ភ្ញៀវជាតិ និងអន្តរជាតិចូលទស្សនា។",
   },
   {
     id: "phare-circus",
@@ -467,6 +499,7 @@ export const companies: Company[] = [
     location: "Siem Reap / Battambang",
     founded: 1994,
     tags: ["performing arts", "circus", "social enterprise", "culture"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ហ្វារ ពន្លឺសិល្បៈ (Phare Ponleu Selpak & Circus)» នៅបាត់ដំបង និងសៀមរាប៖ ការរួមបញ្ចូលរវាងសៀកសហសម័យ សិល្បៈល្ខោន និងរឿងព្រេងខ្មែរ ព្រមទាំងបេសកកម្មសង្គមក្នុងការបណ្តុះបណ្តាលយុវជនខ្មែរឱ្យមានអាជីពសិល្បៈលំដាប់អន្តរជាតិ។",
   },
   {
     id: "artisans-angkor",
@@ -478,6 +511,7 @@ export const companies: Company[] = [
     location: "Siem Reap",
     founded: 1999,
     tags: ["craftsmanship", "silk", "stone carving", "art"],
+    prompt: "សូមរៀបរាប់អំពី «សិប្បកម្មអង្គរ (Artisans Angkor)» នៅសៀមរាប៖ ការស្តារ និងអភិរក្សសិល្បៈហត្ថកម្មបុរាណខ្មែរ ដូចជាការឆ្លាក់ថ្ម ការឆ្លាក់ឈើ គំនូរលើក្រណាត់ គ្រឿងលម្អម្រ័ក្សណ៍ និងការត្បាញសូត្រខ្មែរ ព្រមទាំងការបង្កើតការងារដល់សិប្បករជនបទ។",
   },
   {
     id: "ministry-culture-arts",
@@ -488,6 +522,7 @@ export const companies: Company[] = [
     website: "https://culture.gov.kh",
     location: "Phnom Penh",
     tags: ["government", "heritage", "arts", "UNESCO"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «ក្រសួងវប្បធម៌ និងវិចិត្រសិល្បៈ» នៃព្រះរាជាណាចក្រកម្ពុជា៖ តួនាទីការពារ និងអភិរក្សបេតិកភណ្ឌរូបី និងអរូបីជាតិ (ដូចជារបាំព្រះរាជទ្រព្យ ល្ខោនខោល ចាប៉ីដងវែង ក្បាច់គុនល្បុក្កតោ) និងការចុះបញ្ជីសម្បត្តិបេតិកភណ្ឌពិភពលោក UNESCO។",
   },
 
   // ==========================================
@@ -503,6 +538,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2006,
     tags: ["SEZ", "industrial park", "manufacturing", "export"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «តំបន់សេដ្ឋកិច្ចពិសេសភ្នំពេញ (PPSEZ)»៖ ហេដ្ឋារចនាសម្ព័ន្ធឧស្សាហកម្មទំហំ ៣៥៧ ហិកតា ក្រុមហ៊ុនផលិតកម្មអន្តរជាតិ ការដំឡើងគ្រឿងបន្លាស់រថយន្ត អេឡិចត្រូនិច និងការបង្កើតការងារជូនប្រជាពលរដ្ឋកម្ពុជា។",
   },
   {
     id: "sihanoukville-port",
@@ -514,6 +550,7 @@ export const companies: Company[] = [
     location: "Preah Sihanouk",
     founded: 1956,
     tags: ["deep-sea port", "maritime", "logistics", "trade"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «កំពង់ផែស្វយ័តក្រុងព្រះសីហនុ (PAS)»៖ តួនាទីជាកំពង់ផែទឹកជ្រៅពាណិជ្ជកម្មតែមួយគត់នៅកម្ពុជា ដែលគ្រប់គ្រងការនាំចេញ-នាំចូលទំនិញតាមកុងតឺន័រជាង ៧០% គម្រោងពង្រីកចំណតផែទឹកជ្រៅថ្មី និងសារៈសំខាន់ចំពោះសេដ្ឋកិច្ចជាតិ។",
   },
   {
     id: "chip-mong-insee",
@@ -525,6 +562,7 @@ export const companies: Company[] = [
     location: "Kampot",
     founded: 2015,
     tags: ["manufacturing", "cement", "construction", "industrial"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ក្រុមហ៊ុន ជីប ម៉ុង អ៊ិនស៊ី ស៊ីមេន (CMIC)» នៅខេត្តកំពត៖ រោងចក្រផលិតស៊ីម៉ងត៍ខ្នាតធំ បច្ចេកវិទ្យាផលិតកម្មទំនើប និងដំណោះស្រាយចីរភាពបរិស្ថានតាមរយៈការកែច្នៃកាកសំណល់ឧស្សាហកម្ម (Ecocycle)។",
   },
   {
     id: "edc-energy",
@@ -536,6 +574,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1958,
     tags: ["energy", "solar power", "hydropower", "electricity"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «អគ្គិសនីកម្ពុជា (EDC)»៖ ការអភិវឌ្ឍបណ្តាញចែកចាយអគ្គិសនីទូទាំងប្រទេស ប្រភពថាមពលវារីអគ្គិសនី និងថាមពលពន្លឺព្រះអាទិត្យ (Solar Farms) ព្រមទាំងសេវាបង់ប្រាក់ថ្លៃភ្លើងឌីជីថលតាម EDC App។",
   },
   {
     id: "agri-smart-cambodia",
@@ -547,6 +586,7 @@ export const companies: Company[] = [
     location: "Battambang",
     founded: 2019,
     tags: ["AgriTech", "solar irrigation", "sustainable farming"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «កសិ-ស្មាត ខេមបូឌា (Agri-Smart)»៖ គំនិតផ្តួចផ្តើមបច្ចេកវិទ្យាកសិកម្មទំនើប (AgriTech) ម៉ូទ័របូមទឹកដើរដោយពន្លឺព្រះអាទិត្យ ឧបករណ៍ចាប់សញ្ញាស្មាត (Sensors) និងការតាមដានខ្សែច្រវាក់ផលិតកម្មកសិកម្មប្រកបដោយចីរភាព។",
   },
 
   // ==========================================
@@ -562,6 +602,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2016,
     tags: ["super-app", "food delivery", "express courier", "taxi"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី Super-App ខ្មែរ «ញ៉ាំ២៤ (Nham24)»៖ សេវាកម្មកុម្ម៉ង់អាហារ ផ្សារទំនិញស្រស់ សេវាដឹកជញ្ជូនរហ័ស (Express) សេវាកក់តាក់ស៊ី និងរបៀបដែល Nham24 ប្រកួតប្រជែងបង្កើតប្រព័ន្ធអេកូឡូស៊ីដឹកជញ្ជូនឈានមុខនៅកម្ពុជា។",
   },
   {
     id: "passapp",
@@ -573,6 +614,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2017,
     tags: ["ride-hailing", "tuk-tuk", "mobility", "transport"],
+    prompt: "សូមរៀបរាប់អំពីកម្មវិធីកក់ការធ្វើដំណើរ «ផាស់អាប់ (PassApp Technologies)»៖ តួនាទីជាអ្នកត្រួសត្រាយ Ride-Hailing ដំបូងគេនៅកម្ពុជា ការកក់កង់បីឥណ្ឌា តាក់ស៊ី និងផលជះចំពោះការបង្កើតការងារ និងការធ្វើដំណើរប្រចាំថ្ងៃរបស់ប្រជាពលរដ្ឋ។",
   },
   {
     id: "grab-cambodia",
@@ -584,6 +626,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2017,
     tags: ["ride-hailing", "food delivery", "mobility"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ក្រាប កម្ពុជា (Grab Cambodia)»៖ សេវាកម្ម GrabTukTuk, GrabCar, GrabFood និង GrabExpress នៅភ្នំពេញ និងសៀមរាប ព្រមទាំងសុវត្ថិភាពក្នុងការធ្វើដំណើរ និងការទូទាត់ឌីជីថល។",
   },
   {
     id: "bookmebus",
@@ -595,6 +638,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2015,
     tags: ["travel tech", "bus ticketing", "ferries", "tourism"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីវេទិកាកក់សំបុត្រ «ប៊ុកមីបាស់ (BookMeBus)»៖ ការកក់សំបុត្ររថយន្តក្រុង សំបុត្រទូក និងតាក់ស៊ីឯកជនទូទាំងប្រទេសកម្ពុជា និងការតភ្ជាប់ទៅកាន់ប្រទេសជិតខាង (ថៃ វៀតណាម) ព្រមទាំងភាពងាយស្រួលសម្រាប់អ្នកទេសចរ។",
   },
   {
     id: "camboticket",
@@ -606,6 +650,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2014,
     tags: ["travel tech", "transport", "booking"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ខេមបូធីឃីត (CamboTicket)»៖ សេវាកម្មកក់សំបុត្រធ្វើដំណើរអនឡាញ រថយន្តក្រុង ទូកកាណូតល្បឿនលឿនទៅកាន់កោះនានា និងជម្រើសធ្វើដំណើរទូទាំងប្រទេសកម្ពុជា។",
   },
   {
     id: "vireak-buntham-vet",
@@ -617,6 +662,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2005,
     tags: ["logistics", "parcel delivery", "intercity express", "courier"],
+    prompt: "សូមរៀបរាប់អំពីក្រុមហ៊ុន «វីរៈប៊ុនថាំ (VET Logistics / Vireak Buntham)»៖ បណ្តាញដឹកអ្នកដំណើរ និងសេវាផ្ញើទំនិញរហ័ស ២៤ម៉ោងទូទាំង ២៥ រាជធានី-ខេត្ត ប្រព័ន្ធទូឆ្លាតវៃ (Smart Locker) និងការដឹកជញ្ជូនឆ្លងដែន។",
   },
 
   // ==========================================
@@ -632,6 +678,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1996,
     tags: ["mobile network", "telecom", "5G", "esports"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពីក្រុមហ៊ុនទូរគមនាគមន៍ «សែលកាត (Cellcard / CamGSM)»៖ ប្រវត្តិជាប្រតិបត្តិករទូរស័ព្ទចល័តឈានមុខរបស់ខ្មែរ បណ្តាញ 4G/5G សេវាឌីជីថល eSports និងគម្រោងនវានុវត្តន៍ទូរគមនាគមន៍នៅកម្ពុជា។",
   },
   {
     id: "smart-axiata",
@@ -643,6 +690,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2008,
     tags: ["mobile operator", "5G", "venture fund", "telecom"],
+    prompt: "សូមរៀបរាប់អំពីក្រុមហ៊ុន «ស្មាត អាស៊ីអាតា (Smart Axiata)»៖ បណ្តាញទូរស័ព្ទចល័ត និងអ៊ីនធឺណិតល្បឿនលឿន កម្មវិធីទំនួលខុសត្រូវសង្គម (CSR) ការវិនិយោគលើធុរកិច្ចថ្មីតាមរយៈមូលនិធិ SADIF និងការអភិវឌ្ឍទេពកោសល្យឌីជីថលយុវជន។",
   },
   {
     id: "metfone",
@@ -654,6 +702,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2009,
     tags: ["telecom", "fiber optics", "rural connectivity"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «មិត្តហ្វូន (Metfone / Viettel Cambodia)»៖ បណ្តាញខ្សែកាបអុបទិក និងអង់តែនទូរស័ព្ទដែលគ្របដណ្តប់ទូទាំងប្រទេសរហូតដល់តំបន់ជនបទដាច់ស្រយាល សេវា e-Money និងដំណោះស្រាយឌីជីថលសម្រាប់ស្ថាប័នរដ្ឋ និងសាលារៀន។",
   },
   {
     id: "sinet",
@@ -665,6 +714,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2006,
     tags: ["ISP", "enterprise fiber", "data center", "cloud"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពីក្រុមហ៊ុនផ្តល់សេវាអ៊ីនធឺណិត «ស៊ីណែត (SINET)»៖ សេវាអ៊ីនធឺណិតល្បឿនលឿនតាមខ្សែកាបអុបទិកសម្រាប់សហគ្រាស (Enterprise Fiber) ហេដ្ឋារចនាសម្ព័ន្ធ Data Center កម្រិត Tier-3 និងដំណោះស្រាយ Cloud Connectivity នៅកម្ពុជា។",
   },
 
   // ==========================================
@@ -680,6 +730,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2019,
     tags: ["government", "CamDX", "accelerator", "startups"],
+    prompt: "សូមរៀបរាប់ និងពន្យល់លម្អិតអំពី «មជ្ឈមណ្ឌលបណ្តុះធុរកិច្ចថ្មីតេជោ (Techo Startup Center - TSC)» ក្រោមឱវាទក្រសួងសេដ្ឋកិច្ច និងហិរញ្ញវត្ថុ៖ តួនាទីគន្លឹះក្នុងការកសាងប្រព័ន្ធអេកូឡូស៊ី Startup ថ្នាក់ជាតិ ប្រព័ន្ធថ្នាលផ្លាស់ប្តូរទិន្នន័យកម្ពុជា CamDX (Cambodia Data Exchange) កម្មវិធីបណ្តុះធុរកិច្ចថ្មី (Incubation & Acceleration Programs) និងរបៀបដែលសហគ្រិនអាចចូលរួមទទួលបានការគាំទ្រ។",
   },
   {
     id: "khmer-enterprise",
@@ -691,6 +742,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2019,
     tags: ["grants", "SME funding", "government", "entrepreneurship"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «សហគ្រិនខ្មែរ (Khmer Enterprise)»៖ បេសកកម្ម និងចក្ខុវិស័យក្នុងការគាំទ្រសហគ្រាសធុនតូច និងមធ្យម (SMEs) និងធុរកិច្ចថ្មី កញ្ចប់ថវិកាជំនួយឥតសំណង (Grants & Seed Funding) កម្មវិធីពង្រឹងសមត្ថភាពសហគ្រិន និងរបៀបដែលម្ចាស់អាជីវកម្មកម្ពុជាអាចដាក់ពាក្យស្នើសុំការឧបត្ថម្ភ។",
   },
   {
     id: "mptc",
@@ -701,6 +753,7 @@ export const companies: Company[] = [
     website: "https://mptc.gov.kh",
     location: "Phnom Penh",
     tags: ["government", "policy", "digital economy", "telecom"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «ក្រសួងប្រៃសណីយ៍ និងទូរគមនាគមន៍ (MPTC)»៖ តួនាទីដឹកនាំការអនុវត្តក្របខណ្ឌគោលនយោបាយសេដ្ឋកិច្ច និងសង្គមឌីជីថលកម្ពុជា និងគោលនយោបាយរដ្ឋាភិបាលឌីជីថល ២០២២-២០៣៥ ការកសាងមជ្ឈមណ្ឌលបច្ចេកវិទ្យាសហគមន៍ (CTC) ការពង្រីកសេវាទូរគមនាគមន៍ និងការអភិវឌ្ឍធនធានមនុស្សឌីជីថល។",
   },
   {
     id: "cdc-investment",
@@ -712,6 +765,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 1994,
     tags: ["investment", "SEZ", "government", "FDI"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពី «ក្រុមប្រឹក្សាអភិវឌ្ឍន៍កម្ពុជា (CDC)»៖ តួនាទីជាសេនាធិការរាជរដ្ឋាភិបាលក្នុងការគ្រប់គ្រងការវិនិយោគផ្ទាល់ពីបរទេស (FDI) ការអនុម័តគម្រោងវិនិយោគមានលក្ខណៈសម្បត្តិគ្រប់គ្រាន់ (QIP) ការគ្រប់គ្រងតំបន់សេដ្ឋកិច្ចពិសេស (SEZ) និងការលើកទឹកចិត្តពន្ធដារ និងច្បាប់វិនិយោគថ្មីនៃព្រះរាជាណាចក្រកម្ពុជា។",
   },
   {
     id: "factory-phnom-penh",
@@ -723,6 +777,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2017,
     tags: ["tech hub", "creative campus", "coworking", "startups"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ហ្វេកតូរី ភ្នំពេញ (Factory Phnom Penh)»៖ តួនាទីជាមជ្ឈមណ្ឌលច្នៃប្រឌិត និងបច្ចេកវិទ្យាធំជាងគេនៅអាស៊ីអាគ្នេយ៍ (ទំហំ ៣.៤ ហិកតា) បរិវេណ Coworking Space (Workspace 1) សហគមន៍ធុរកិច្ចថ្មី សិល្បៈ និងព្រឹត្តិការណ៍ Hackathon និង Tech Meetup សំខាន់ៗ។",
   },
   {
     id: "impact-hub-pp",
@@ -734,6 +789,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2015,
     tags: ["incubator", "social enterprise", "sustainability", "mentorship"],
+    prompt: "សូមរៀបរាប់អំពី «អ៊ីមផេក ហាប់ ភ្នំពេញ (Impact Hub Phnom Penh)»៖ កម្មវិធីបណ្តុះបណ្តាល និងគាំទ្រសហគ្រិនភាពសង្គម (Social Enterprises) ការលើកកម្ពស់ចីរភាពបរិស្ថាន យុវជន និងធុរកិច្ចបច្ចេកវិទ្យាបៃតង ព្រមទាំងឱកាសទទួលបានអ្នកណែនាំ (Mentorship) និងបណ្តាញអន្តរជាតិ។",
   },
   {
     id: "raintree",
@@ -745,6 +801,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2016,
     tags: ["coworking", "CBD", "innovation", "tech events"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «រេនទ្រី (Raintree Development)»៖ ការរចនាអគារការិយាល័យច្នៃប្រឌិតកណ្តាលរាជធានីភ្នំពេញ កន្លែងរៀបចំព្រឹត្តិការណ៍បច្ចេកវិទ្យា កម្មវិធីតាំងពិព័រណ៍ Startup និងការជំរុញសហគមន៍អ្នកបច្ចេកវិទ្យានៅកម្ពុជា។",
   },
   {
     id: "barcamp-cambodia",
@@ -756,6 +813,7 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2008,
     tags: ["unconference", "community", "open source", "tech event"],
+    prompt: "សូមបង្ហាញព័ត៌មានលម្អិតអំពីព្រឹត្តិការណ៍ «បារខេម ខេមបូឌា (BarCamp Cambodia)»៖ ប្រវត្តិជាវេទិកាចែករំលែកចំណេះដឹងបច្ចេកវិទ្យា និងធុរកិច្ចបែបបើកចំហ (Unconference) ដ៏ធំបំផុតនៅកម្ពុជា តាំងពីឆ្នាំ ២០០៨ ការបណ្តុះស្មារតីយុវជន និងសហគមន៍ Open-Source នៅតាមបណ្តារាជធានី-ខេត្ត។",
   },
   {
     id: "cicta-awards",
@@ -767,6 +825,21 @@ export const companies: Company[] = [
     location: "Phnom Penh",
     founded: 2015,
     tags: ["awards", "ICT", "innovation", "national"],
+    prompt: "សូមបង្ហាញព័ត៌មានអំពី «ពានរង្វាន់បច្ចេកវិទ្យាគមនាគមន៍ និងព័ត៌មានវិទ្យាកម្ពុជា (Cambodia ICT Awards - CICTA)»៖ គោលបំណង និងលក្ខខណ្ឌនៃការប្រកួតប្រជែង ការលើកទឹកចិត្តដល់ស្នាដៃនវានុវត្តន៍ឌីជីថលរបស់កូនខ្មែរ និងឱកាសតំណាងកម្ពុជាទៅប្រកួតលើឆាកអន្តរជាតិ (ASEAN Digital Awards)។",
   },
 ];
 
+export function getCompanyPrompt(company: Company): string {
+  if (company.prompt && company.prompt.trim().length > 0) {
+    return company.prompt.trim();
+  }
+
+  const displayName = company.khmerName
+    ? `«${company.khmerName}» (${company.name})`
+    : `«${company.name}»`;
+
+  const sector = DIRECTORY_SECTORS.find((s) => s.name === company.category);
+  const sectorKhmer = sector ? sector.khmerName : company.category;
+
+  return `សូមជួយរៀបរាប់ និងបង្ហាញព័ត៌មានលម្អិតអំពី ${displayName} ក្នុងវិស័យ ${sectorKhmer} នៅកម្ពុជា។ សូមបង្ហាញអំពី៖\n១. ប្រវត្តិ និងទិដ្ឋភាពទូទៅនៃស្ថាប័ន/ក្រុមហ៊ុន\n២. ផលិតផល សេវាកម្មស្នូល ឬតួនាទីគន្លឹះដែលផ្តល់ជូន\n៣. ការចូលរួមចំណែក និងផលជះចំពោះការអភិវឌ្ឍវិស័យនេះនៅកម្ពុជា\n៤. របៀបដែលសាធារណជន អតិថិជន ឬសហគ្រិនអាចទាក់ទង និងប្រើប្រាស់សេវាកម្ម។`;
+}

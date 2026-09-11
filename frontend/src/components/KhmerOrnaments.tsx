@@ -281,3 +281,137 @@ export function KhmerGoldenFrame({ children, className = "" }: { children: React
     </div>
   );
 }
+
+/**
+ * Authentic Khmer Lintel Corner Kbach (ក្បាច់កាច់ជ្រុងបន្ទាយស្រី)
+ * Handcrafted vector ornament for framing rectangular containers, input boxes, and royal cards.
+ */
+export function KhmerInputCorner({ className = "h-7 w-7" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      fill="none"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="cornerGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FFF2A3" />
+          <stop offset="45%" stopColor="#E5C058" />
+          <stop offset="85%" stopColor="#B3861B" />
+          <stop offset="100%" stopColor="#664608" />
+        </linearGradient>
+      </defs>
+      {/* Outer corner framing border lines */}
+      <path
+        d="M 3 32 L 3 10 C 3 6.13 6.13 3 10 3 L 32 3"
+        stroke="url(#cornerGoldGrad)"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      {/* Inner hairline frame accent */}
+      <path
+        d="M 7 26 L 7 12 C 7 9.24 9.24 7 12 7 L 26 7"
+        stroke="url(#cornerGoldGrad)"
+        strokeWidth="0.9"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
+      {/* Primary Kbach Phnhi Snail Scroll (ក្បាច់គូទខ្ចង) */}
+      <path
+        d="M 8 8 C 14 14, 18 16, 26 12 C 30 10, 31 6, 28 4 C 24 2, 19 8, 16 12 C 12 17, 10 24, 4 28 C 2 29, 2 24, 4 20 C 6 16, 8 12, 8 8 Z"
+        fill="url(#cornerGoldGrad)"
+        opacity="0.9"
+      />
+      {/* Lotus flame petal branch upward */}
+      <path
+        d="M 12 6 C 16 2, 22 2, 25 3 C 21 4, 18 6, 17 9 C 15 11, 14 8, 12 6 Z"
+        fill="url(#cornerGoldGrad)"
+      />
+      {/* Lotus flame petal branch downward */}
+      <path
+        d="M 6 12 C 2 16, 2 22, 3 25 C 4 21, 6 18, 9 17 C 11 15, 8 14, 6 12 Z"
+        fill="url(#cornerGoldGrad)"
+      />
+      {/* Center Sacred Bead (គ្រាប់អង្កាំមាស) */}
+      <circle cx="10" cy="10" r="1.75" fill="#FFF8D6" stroke="#8A5E12" strokeWidth="0.5" />
+      {/* Corner relief studs */}
+      <circle cx="3" cy="36" r="1.2" fill="#E5C058" />
+      <circle cx="36" cy="3" r="1.2" fill="#E5C058" />
+    </svg>
+  );
+}
+
+/**
+ * Khmer Architectural Pediment Arch / Crest (ហោជាងប្រាសាទខ្មែរលម្អគែម)
+ * Sits gently atop the center of the input container.
+ */
+export function KhmerBorderPediment({ className = "h-3.5 w-auto" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 160 16"
+      fill="none"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="pedimentGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#D4AF37" stopOpacity="0" />
+          <stop offset="25%" stopColor="#D4AF37" stopOpacity="0.5" />
+          <stop offset="50%" stopColor="#FFF2A3" stopOpacity="1" />
+          <stop offset="75%" stopColor="#D4AF37" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* Flowing horizontal hairline with central arched pediment */}
+      <path
+        d="M 0 14 L 46 14 C 60 14, 68 8, 74 4 C 76 2, 78 1, 80 1 C 82 1, 84 2, 86 4 C 92 8, 100 14, 114 14 L 160 14"
+        stroke="url(#pedimentGoldGrad)"
+        strokeWidth="1.2"
+      />
+      {/* Central Sacred Lotus Bud Spire */}
+      <path
+        d="M 80 0 C 78 3, 76 6, 80 11 C 84 6, 82 3, 80 0 Z"
+        fill="#FFF2A3"
+      />
+      {/* Flanking Naga Flame Whisps */}
+      <path
+        d="M 77 7 C 73 6, 70 9, 68 11 C 72 10, 75 10, 77 12 Z"
+        fill="#D4AF37"
+        opacity="0.9"
+      />
+      <path
+        d="M 83 7 C 87 6, 90 9, 92 11 C 88 10, 85 10, 83 12 Z"
+        fill="#D4AF37"
+        opacity="0.9"
+      />
+      {/* Tiny Sacred Jewel Center */}
+      <circle cx="80" cy="13.5" r="1.5" fill="#FFF4B8" />
+    </svg>
+  );
+}
+
+/**
+ * Khmer Floral Rosette Divider Accent (ផ្កាចន្ទខណ្ឌបន្ទាត់)
+ * Delicate traditional division ornament between input area and action tools.
+ */
+export function KhmerDividerAccent({ className = "h-2.5 w-auto text-gold/60" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 120 10"
+      fill="none"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <line x1="0" y1="5" x2="46" y2="5" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+      <line x1="74" y1="5" x2="120" y2="5" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+      {/* Central 4-petal Kbach Phka Chan */}
+      <path d="M 60 1 L 63 5 L 60 9 L 57 5 Z" fill="currentColor" opacity="0.95" />
+      <circle cx="53" cy="5" r="1.2" fill="currentColor" opacity="0.7" />
+      <circle cx="67" cy="5" r="1.2" fill="currentColor" opacity="0.7" />
+    </svg>
+  );
+}

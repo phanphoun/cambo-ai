@@ -7,11 +7,18 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from services.auth_service import user_repo, hash_password
+from routes.auth import get_current_user
 from services.telemetry_service import telemetry_service, provider_repo
 from services.user_chat_store import user_chat_store
 
 logger = logging.getLogger("cambo.routes.admin")
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+def _require_admin(user: Optional[dict] = Depends(get_current_user)):
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    return user
 
 
 # --- Schemas ---
@@ -50,7 +57,7 @@ class UpdateProviderKeyRequest(BaseModel):
 
 # --- Users Management ---
 @router.get("/users")
-async def get_all_users():
+async def get_all_users(_: dict = Depends(_require_admin)):
     """List all registered users with live usage stats and lock status."""
     raw_users = user_repo._load_all()
     sanitized = []
@@ -74,7 +81,7 @@ async def get_all_users():
 
 
 @router.get("/users/{user_id}/chats")
-async def get_user_chat_history(user_id: str):
+async def get_user_chat_history(user_id: str, _: dict = Depends(_require_admin)):
     """Retrieve full AI chat history and conversation transcripts for a specific user."""
     users = user_repo._load_all()
     target_user = None
@@ -106,7 +113,7 @@ async def get_user_chat_history(user_id: str):
 
 
 @router.post("/users")
-async def create_user_by_admin(req: CreateUserAdminRequest):
+async def create_user_by_admin(req: CreateUserAdminRequest, _: dict = Depends(_require_admin)):
     """Admin creates a new user account."""
     existing = user_repo.find_by_email(req.email)
     if existing:
@@ -135,7 +142,7 @@ async def create_user_by_admin(req: CreateUserAdminRequest):
 
 
 @router.patch("/users/{user_id}/role")
-async def update_user_role(user_id: str, req: UpdateUserRoleRequest):
+async def update_user_role(user_id: str, req: UpdateUserRoleRequest, _: dict = Depends(_require_admin)):
     """Update a user's role (admin, member, guest)."""
     users = user_repo._load_all()
     target_email = None
@@ -158,7 +165,7 @@ async def update_user_role(user_id: str, req: UpdateUserRoleRequest):
 
 
 @router.patch("/users/{user_id}/status")
-async def update_user_status(user_id: str, req: UpdateUserStatusRequest):
+async def update_user_status(user_id: str, req: UpdateUserStatusRequest, _: dict = Depends(_require_admin)):
     """Lock or unlock a user account."""
     new_status = req.status.lower().strip()
     if new_status not in ["active", "locked"]:
@@ -185,7 +192,7 @@ async def update_user_status(user_id: str, req: UpdateUserStatusRequest):
 
 
 @router.delete("/users/{user_id}")
-async def delete_user(user_id: str):
+async def delete_user(user_id: str, _: dict = Depends(_require_admin)):
     """Delete a user account."""
     users = user_repo._load_all()
     target_email = None
@@ -209,7 +216,7 @@ async def delete_user(user_id: str):
 
 # --- Providers Management ---
 @router.get("/providers")
-async def get_all_providers():
+async def get_all_providers(_: dict = Depends(_require_admin)):
     """List all configured model providers including discovered Ollama models with masked key status."""
     from providers.factory import provider_factory
     from config import settings
@@ -264,7 +271,7 @@ async def get_all_providers():
 
 
 @router.post("/providers")
-async def add_or_update_provider(req: AddProviderRequest):
+async def add_or_update_provider(req: AddProviderRequest, _: dict = Depends(_require_admin)):
     """Add a new AI provider / model configuration."""
     prov_dict = req.dict()
     saved = provider_repo.add_provider(prov_dict)
@@ -276,7 +283,7 @@ async def add_or_update_provider(req: AddProviderRequest):
 
 
 @router.post("/providers/{provider_id}/test")
-async def test_provider_connection(provider_id: str):
+async def test_provider_connection(provider_id: str, _: dict = Depends(_require_admin)):
     """Test connectivity and measure latency to a provider."""
     from providers.factory import provider_factory
     models = await provider_factory.discover_all_models()
@@ -291,6 +298,7 @@ async def test_provider_connection(provider_id: str):
     start = time.perf_counter()
     status = "healthy"
     message = "Connection verified"
+    elapsed = 0.0
 
     # Test endpoint
     prov_type = target.get("type", "local")
@@ -310,23 +318,24 @@ async def test_provider_connection(provider_id: str):
             status = "offline"
             message = f"Local Ollama unreachable: {str(e)[:40]}"
     else:
-        elapsed = 145.0
         status = "online"
         message = "Cloud endpoint verified"
 
     # Ping URL
     base_url = target.get("base_url", "")
-    try:
-        async with httpx.AsyncClient(timeout=4.0) as client:
-            resp = await client.get(base_url)
+    if base_url:
+        try:
+            async with httpx.AsyncClient(timeout=4.0) as client:
+                resp = await client.get(base_url)
+                elapsed = (time.perf_counter() - start) * 1000
+                if resp.status_code < 400:
+                    status = "online"
+                    message = "Endpoint reachable & verified"
+                else:
+                    status = "degraded"
+                    message = f"Endpoint responded {resp.status_code}"
+        except Exception as e:
             elapsed = (time.perf_counter() - start) * 1000
-    except Exception as e:
-        elapsed = (time.perf_counter() - start) * 1000
-        if "google" in base_url or "minimax" in base_url or "localhost" in base_url:
-            elapsed = 120.0
-            status = "online"
-            message = "Endpoint reachable & verified"
-        else:
             status = "offline"
             message = f"Ping failed: {str(e)[:50]}"
 
@@ -340,7 +349,7 @@ async def test_provider_connection(provider_id: str):
 
 @router.patch("/providers/{provider_id}/key")
 @router.put("/providers/{provider_id}/key")
-async def update_provider_key(provider_id: str, req: UpdateProviderKeyRequest):
+async def update_provider_key(provider_id: str, req: UpdateProviderKeyRequest, _: dict = Depends(_require_admin)):
     """Update API key and configuration for a provider."""
     from config import settings, update_env_variable
     from providers.factory import provider_factory
@@ -393,7 +402,7 @@ async def update_provider_key(provider_id: str, req: UpdateProviderKeyRequest):
 
 
 @router.delete("/providers/{provider_id}")
-async def delete_provider(provider_id: str):
+async def delete_provider(provider_id: str, _: dict = Depends(_require_admin)):
     """Delete a custom provider."""
     if provider_id in ["gemini", "ollama", "ollama-cloud"]:
         raise HTTPException(status_code=400, detail="Cannot delete default system providers.")
@@ -408,19 +417,19 @@ async def delete_provider(provider_id: str):
 
 # --- Telemetry & Logs ---
 @router.get("/telemetry/stats")
-async def get_telemetry_stats():
+async def get_telemetry_stats(_: dict = Depends(_require_admin)):
     """Retrieve telemetry overview analytics."""
     return telemetry_service.get_stats()
 
 
 @router.get("/telemetry/logs")
-async def get_telemetry_logs(limit: int = 100, action: Optional[str] = None):
+async def get_telemetry_logs(limit: int = 100, action: Optional[str] = None, _: dict = Depends(_require_admin)):
     """Retrieve audit activity logs."""
     return telemetry_service.get_logs(limit=limit, action_filter=action)
 
 
 @router.delete("/telemetry/logs")
-async def clear_telemetry_logs():
+async def clear_telemetry_logs(_: dict = Depends(_require_admin)):
     """Clear audit logs."""
     telemetry_service.clear_logs()
     return {"status": "ok", "message": "Audit logs cleared"}

@@ -60,6 +60,95 @@ class ChatService:
         ]
         return any(t in m for t in tokens)
 
+    @staticmethod
+    def is_calendar_query(message: str) -> bool:
+        """Determines if the query asks about current date, time, day, or Khmer calendar."""
+        m = message.lower().strip()
+        patterns = [
+            r"\b(today|date|time|day|calendar|month|year|clock|hour|now)\b",
+            r"\b(khmer calendar|chhankitek|lunar date|buddhist era|zodiac)\b",
+            r"(ថ្ងៃនេះ|ថ្ងៃស្អែក|ម្សិលមិញ|កាលបរិច្ឆេទ|ថ្ងៃខែ|ម៉ោង|ពេល|ថ្ងៃអ្វី|ថ្ងៃទី|ខែណា|ឆ្នាំណា)",
+            r"(ប្រតិទិន|ចន្ទគតិ|សុរិយគតិ|ថ្ងៃសីល|សីល|ខ្នើត|រនោច|ពេញបូណ៌មី|ដាច់ខែ|ពុទ្ធសករាជ|ព\.ស\.|ស័ក|ឆ្នាំមមី|ឆ្នាំជូត)",
+            r"(បុណ្យភ្ជុំ|ភ្ជុំបិណ្ឌ|កាន់បិណ្ឌ|ចូលឆ្នាំ|អុំទូក|វិសាខបូជា|មាឃបូជា|ច្រត់ព្រះនង្គ័ល)",
+        ]
+        return any(re.search(p, m) for p in patterns)
+
+    @staticmethod
+    def is_ocr_query(
+        message: str,
+        image_data: Optional[List[str]] = None,
+        image_urls: Optional[List[str]] = None,
+    ) -> bool:
+        """Determines if the query is an OCR, document transcription, or visual reading request."""
+        has_image = bool((image_data and len(image_data) > 0) or (image_urls and len(image_urls) > 0))
+        m = message.lower().strip()
+        ocr_patterns = [
+            r"\b(ocr|transcribe|transcription|extract text|read text|read this|scan|convert to text|recognize text)\b",
+            r"(ស្រង់អក្សរ|ស្រង់អត្ថបទ|អានអក្សរ|អានអត្ថបទ|អានរូប|អានរូបភាព|បកប្រែរូប|ស្កេន|មើលអក្សរ|អក្សរក្នុងរូប|អានស្លឹករឹត)",
+        ]
+        if any(re.search(p, m) for p in ocr_patterns):
+            return True
+        if has_image:
+            explicit_web_search = any(
+                w in m for w in ["search web", "google", "ស្វែងរកលើបណ្ដាញ", "ព័ត៌មានទាន់ហេតុការណ៍", "breaking news", "latest news"]
+            )
+            if not explicit_web_search:
+                return True
+        return False
+
+    @staticmethod
+    def build_grounding_context(query: str) -> str:
+        """Retrieves and packages verified local knowledge and live web search results."""
+        from services.tools import cambodia_directory_search, cambodia_knowledge_lookup, web_search
+        parts = []
+
+        # 0. Real-time Khmer Calendar Grounding
+        if ChatService.is_calendar_query(query):
+            try:
+                from services.khmer_calendar import get_current_khmer_calendar_context
+                cal_res = get_current_khmer_calendar_context()
+                if cal_res:
+                    parts.append(cal_res)
+            except Exception as e:
+                logger.debug("Khmer calendar grounding skip: %s", e)
+
+        # 1. Local Directory Search
+        try:
+            dir_res = cambodia_directory_search(query)
+            if dir_res and "No matching entries" not in dir_res and "[error]" not in dir_res:
+                parts.append(f"=== VERIFIED CAMBODIA DIRECTORY DATA ===\n{dir_res}")
+        except Exception as e:
+            logger.debug("Directory search skip: %s", e)
+
+        # 2. Local Encyclopedia Facts
+        try:
+            enc_res = cambodia_knowledge_lookup(query)
+            if enc_res and "No specific encyclopedia" not in enc_res and "[error]" not in enc_res:
+                parts.append(f"=== VERIFIED CAMBODIA ENCYCLOPEDIA FACTS ===\n{enc_res}")
+        except Exception as e:
+            logger.debug("Encyclopedia lookup skip: %s", e)
+
+        # 3. Live Web Search & Social Media Research
+        try:
+            web_res = web_search(query, max_results=4)
+            if web_res and "No web search" not in web_res and "[error]" not in web_res:
+                parts.append(f"=== LIVE WEB & SOCIAL MEDIA RESEARCH ===\n{web_res}")
+        except Exception as e:
+            logger.debug("Web search skip: %s", e)
+
+        if not parts:
+            return ""
+
+        return (
+            "\n\n--- LIVE SEARCH & VERIFIED KNOWLEDGE GROUNDING ---\n"
+            + "\n\n".join(parts)
+            + "\n\nGROUNDING RULES:\n"
+            "- Answer using the verified directory data, official websites, and social media URLs above.\n"
+            "- Format official websites and social links as clean markdown links e.g. [Domain](https://...).\n"
+            "- Never guess or hallucinate details if factual information is provided above.\n"
+            "--- END GROUNDING ---\n"
+        )
+
     def retrieve_rag_context(self, document_ids: List[str], query: str) -> Dict[str, Any]:
         """Retrieves and packages RAG knowledge context."""
         if not document_ids:
@@ -82,6 +171,7 @@ class ChatService:
         image_urls: Optional[List[str]] = None,
         document_ids: Optional[List[str]] = None,
         use_tools: bool = False,
+        response_language: Optional[str] = "km",
     ) -> Dict[str, Any]:
         """Processes a single conversational turn."""
         # 1. Image Generation Intent
@@ -96,9 +186,14 @@ class ChatService:
                 "citations": [],
             }
 
-        # 2. RAG Context Retrieval
+        # 2. RAG Context Retrieval & Live Knowledge Grounding
         rag_data = self.retrieve_rag_context(document_ids or [], message)
-        rag_context = rag_data.get("context")
+        rag_context = rag_data.get("context") or ""
+        is_ocr = self.is_ocr_query(message, image_data=image_data, image_urls=image_urls) or mode == "ocr"
+        if not is_ocr:
+            grounding = self.build_grounding_context(message)
+            if grounding:
+                rag_context = (rag_context + "\n" + grounding).strip()
 
         # 3. Tool Calling & Document Intent
         is_doc = self.is_doc_query(message)
@@ -111,8 +206,9 @@ class ChatService:
             mode=mode,
             image_data=image_data,
             image_urls=image_urls,
-            rag_context=rag_context,
+            rag_context=rag_context or None,
             use_tools=effective_tools,
+            response_language=response_language,
         )
 
         # 4. Attach Citations & Document Cards if applicable
@@ -134,8 +230,9 @@ class ChatService:
         document_ids: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
         use_tools: bool = False,
+        response_language: Optional[str] = "km",
     ) -> AsyncGenerator[str, None]:
-        """Streams turn chunks incrementally."""
+        """Streams turn chunks incrementally with live grounding."""
         # 1. Image Generation Intent
         if self.is_image_query(message, image_data) or mode == "image":
             ref_image = image_data[0] if (image_data and len(image_data) > 0) else None
@@ -146,11 +243,17 @@ class ChatService:
             yield res.get("markdown", "")
             return
 
-        # 2. RAG Context Retrieval
-        effective_rag = rag_context
+        # 2. RAG Context Retrieval & Live Knowledge Grounding
+        effective_rag = rag_context or ""
         if not effective_rag and document_ids:
             rag_data = self.retrieve_rag_context(document_ids, message)
-            effective_rag = rag_data.get("context")
+            effective_rag = rag_data.get("context") or ""
+
+        is_ocr = self.is_ocr_query(message, image_data=image_data, image_urls=image_urls) or mode == "ocr"
+        if not is_ocr:
+            grounding = self.build_grounding_context(message)
+            if grounding:
+                effective_rag = (effective_rag + "\n" + grounding).strip()
 
         # 3. Document or Search Intent
         if self.is_doc_query(message) or mode == "search":
@@ -164,6 +267,7 @@ class ChatService:
                 image_urls=image_urls,
                 document_ids=document_ids,
                 use_tools=True,
+                response_language=response_language,
             )
             yield turn_res.get("answer", "")
             return
@@ -176,7 +280,8 @@ class ChatService:
             mode=mode,
             image_data=image_data,
             image_urls=image_urls,
-            rag_context=effective_rag,
+            rag_context=effective_rag or None,
+            response_language=response_language,
         ):
             yield chunk
 

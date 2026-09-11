@@ -29,6 +29,7 @@ class ChatRequest(BaseModel):
     mode: str = Field(default="chat")
     provider: str = Field(default="gemini")
     model: Optional[str] = Field(default=None, description="Specific model identifier to execute (e.g. gemma4:latest, gemma3:4b, deepseek-coder:6.7b).")
+    response_language: Optional[str] = Field(default="km", description="Desired response language: km (Khmer), en (English), fr (French), zh (Chinese).")
     # Attachments
     image_urls: List[str] = Field(
         default_factory=list,

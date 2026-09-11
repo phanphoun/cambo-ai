@@ -13,7 +13,8 @@ from pathlib import Path
 logger = logging.getLogger("cambo.auth")
 
 USERS_FILE = Path(__file__).resolve().parent.parent / "data" / "users.json"
-JWT_SECRET = os.environ.get("JWT_SECRET", "sastra-cambodia-ai-sacred-key-2026-sovereign")
+from config import settings as _settings
+JWT_SECRET = _settings.jwt_secret or os.environ.get("JWT_SECRET")
 TOKEN_EXPIRE_SECONDS = 7 * 24 * 3600  # 7 days
 
 
@@ -47,6 +48,8 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def create_access_token(payload: Dict[str, Any], expires_in: int = TOKEN_EXPIRE_SECONDS) -> str:
     """Create a signed HMAC-SHA256 JWT token."""
+    if not JWT_SECRET:
+        raise RuntimeError("JWT_SECRET is not configured")
     header = {"alg": "HS256", "typ": "JWT"}
     token_payload = payload.copy()
     token_payload["exp"] = int(time.time()) + expires_in
@@ -71,6 +74,8 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
         header_b64, payload_b64, sig_b64 = parts
         signing_input = f"{header_b64}.{payload_b64}".encode("utf-8")
 
+        if not JWT_SECRET:
+            return None
         expected_sig = hmac.new(JWT_SECRET.encode("utf-8"), signing_input, hashlib.sha256).digest()
         actual_sig = _b64_decode(sig_b64)
 

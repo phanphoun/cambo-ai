@@ -63,8 +63,8 @@
   }
 
   .font-khmer {
-    font-family: "Noto Sans Khmer", "Kantumruy Pro", sans-serif;
-    line-height: 1.7;
+    font-family: "Kantumruy Pro", "Noto Sans Khmer", "system-ui", sans-serif;
+    line-height: 1.75;
     letter-spacing: normal;
   }
 
@@ -87,6 +87,29 @@
     border-color: rgba(229, 192, 88, 0.45);
     box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.85), 0 0 20px -2px rgba(229, 192, 88, 0.12);
     transform: translateY(-2px);
+  }
+
+  /* ═══════════════ CONTINUOUS HORIZONTAL MARQUEE ═══════════════ */
+  @keyframes marquee-scroll-left {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  .animate-marquee-left {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll-left 35s linear infinite;
+    will-change: transform;
+  }
+
+  /* Pause when user hovers */
+  .animate-marquee-left:hover,
+  .marquee-container:hover .animate-marquee-left {
+    animation-play-state: paused !important;
   }
 }
 

@@ -3,6 +3,8 @@ import { Pin, X, Trash2 } from "lucide-react";
 import { removePin } from "./pinSlice";
 import { cn, formatTime } from "../../lib/utils";
 import type { RootState } from "../../store";
+import { useTranslation } from "../../i18n/useTranslation";
+import { toast } from "react-hot-toast";
 
 interface PinnedMessagesDrawerProps {
   open: boolean;
@@ -14,6 +16,7 @@ export default function PinnedMessagesDrawer({
   onClose,
 }: PinnedMessagesDrawerProps) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const pinned = useSelector((s: RootState) => s.pin.pinned);
 
   if (!open) return null;
@@ -38,10 +41,10 @@ export default function PinnedMessagesDrawer({
             </div>
             <div>
               <h2 className="text-sm font-semibold text-foreground">
-                Pinned Messages
+                {t.bookmarksModal.title}
               </h2>
               <p className="text-[11px] text-muted-foreground">
-                {pinned.length} saved message{pinned.length === 1 ? "" : "s"}
+                {t.bookmarksModal.subtitle} ({pinned.length})
               </p>
             </div>
           </div>
@@ -63,10 +66,7 @@ export default function PinnedMessagesDrawer({
                 <Pin className="h-6 w-6" />
               </div>
               <p className="text-sm font-medium text-foreground">
-                No pinned messages yet
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground/70 max-w-[220px]">
-                Click the pin icon on any assistant response to keep it handy here.
+                {t.bookmarksModal.noPins}
               </p>
             </div>
           ) : (
@@ -91,20 +91,21 @@ export default function PinnedMessagesDrawer({
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(m.content);
+                      toast.success(t.common.copied);
                     }}
                     className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    title="Copy content"
+                    title={t.common.copy}
                   >
-                    Copy
+                    {t.common.copy}
                   </button>
                   <button
                     type="button"
                     onClick={() => dispatch(removePin(m.timestamp))}
                     className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-destructive/80 transition-colors hover:bg-destructive/10 hover:text-destructive"
-                    title="Unpin"
+                    title={t.common.delete}
                   >
                     <Trash2 className="h-3 w-3" />
-                    Unpin
+                    {t.common.delete}
                   </button>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FileText, Download, Check, FileSpreadsheet, FileCode, Loader2 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { API_BASE } from "../config/api";
 
 interface GeneratedDocMeta {
   title: string;
@@ -50,7 +51,7 @@ export function GeneratedDocCard({ doc }: { doc: GeneratedDocMeta }) {
     try {
       // Direct browser download
       const link = document.createElement("a");
-      link.href = `http://localhost:8000${doc.downloadUrl}`;
+      link.href = `${API_BASE}${doc.downloadUrl}`;
       link.setAttribute("download", doc.filename);
       link.setAttribute("target", "_blank");
       document.body.appendChild(link);

@@ -41,8 +41,8 @@
     --sidebar-border: 36 20% 82%;
 
     /* ═══════════════ GLOBAL TYPOGRAPHY TOKENS ═══════════════ */
-    --font-ui: "Inter", "Noto Sans Khmer", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-khmer: "Noto Sans Khmer", "Inter", sans-serif;
+    --font-ui: "Inter", "Kantumruy Pro", "Noto Sans Khmer", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-khmer: "Kantumruy Pro", "Noto Sans Khmer", "Inter", sans-serif;
     --font-khmer-heading: "Kantumruy Pro", "Noto Sans Khmer", "Inter", sans-serif;
     --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
@@ -91,7 +91,95 @@
     --scrollbar-thumb: 35 25% 25%;
   }
 
-  /* Khmer local font fallback */
+  /* ═══════════════ LOCAL AUTHENTIC KHMER FONTS ═══════════════ */
+  @font-face {
+    font-family: "Kantumruy Pro";
+    src: local("Kantumruy Pro"), url("/src/assets/fonts/KantumruyPro-Variable.ttf") format("truetype");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Battambang";
+    src: local("Battambang"), url("/src/assets/fonts/Battambang-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Battambang";
+    src: local("Battambang Bold"), url("/src/assets/fonts/Battambang-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Siemreap";
+    src: local("Siemreap"), url("/src/assets/fonts/Siemreap-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Moul";
+    src: local("Moul"), url("/src/assets/fonts/Moul-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Hanuman";
+    src: local("Hanuman"), url("/src/assets/fonts/Hanuman-Variable.ttf") format("truetype");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Noto Serif Khmer";
+    src: local("Noto Serif Khmer"), url("/src/assets/fonts/NotoSerifKhmer-Variable.ttf") format("truetype");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Suwannaphum";
+    src: local("Suwannaphum"), url("/src/assets/fonts/Suwannaphum-Regular.ttf") format("truetype");
+    font-weight: 400 700;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Kdam Thmor Pro";
+    src: local("Kdam Thmor Pro"), url("/src/assets/fonts/KdamThmorPro-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Preahvihear";
+    src: local("Preahvihear"), url("/src/assets/fonts/Preahvihear-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Bayon";
+    src: local("Bayon"), url("/src/assets/fonts/Bayon-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
   @font-face {
     font-family: "Noto Sans Khmer";
     src: local("Noto Sans Khmer"), url("/src/assets/fonts/NotoSansKhmer-Regular.woff2") format("woff2");
@@ -132,6 +220,19 @@
     letter-spacing: normal;
     line-height: 1.35;
   }
+
+  /* Specific Khmer Font Classes */
+  .font-kantumruy { font-family: "Kantumruy Pro", "Noto Sans Khmer", "Inter", sans-serif; }
+  .font-battambang { font-family: "Battambang", "Noto Sans Khmer", "Inter", sans-serif; }
+  .font-siemreap { font-family: "Siemreap", "Noto Sans Khmer", "Inter", sans-serif; }
+  .font-moul { font-family: "Moul", "Kantumruy Pro", "Noto Sans Khmer", sans-serif; }
+  .font-hanuman { font-family: "Hanuman", "Noto Serif Khmer", serif; }
+  .font-notoserif { font-family: "Noto Serif Khmer", "Hanuman", serif; }
+  .font-suwannaphum { font-family: "Suwannaphum", "Noto Sans Khmer", sans-serif; }
+  .font-kdamthmor { font-family: "Kdam Thmor Pro", "Kantumruy Pro", sans-serif; }
+  .font-preahvihear { font-family: "Preahvihear", "Moul", sans-serif; }
+  .font-bayon { font-family: "Bayon", "Moul", sans-serif; }
+  .font-notosans { font-family: "Noto Sans Khmer", "Inter", sans-serif; }
 
   /* Force balanced line-height on all Khmer & Chat message content */
   .font-khmer,
@@ -398,5 +499,60 @@
   }
   .dark .markdown td {
     border-color: #374151;
+  }
+
+  /* ═══════════════ KATEX MATH TYPOGRAPHY ═══════════════ */
+  .markdown .katex-display {
+    display: block;
+    margin: 1.25rem 0;
+    padding: 0.85rem 1.25rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-radius: 0.85rem;
+    background: rgba(217, 119, 6, 0.05);
+    border: 1px solid rgba(217, 119, 6, 0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  .dark .markdown .katex-display {
+    background: rgba(18, 14, 10, 0.65);
+    border-color: rgba(245, 208, 97, 0.2);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .markdown .katex-display:hover {
+    border-color: rgba(217, 119, 6, 0.35);
+  }
+  .dark .markdown .katex-display:hover {
+    border-color: rgba(245, 208, 97, 0.38);
+  }
+  .markdown .katex-display > .katex {
+    display: inline-block;
+    font-size: 1.15em;
+    color: inherit;
+    text-align: initial;
+    white-space: normal;
+  }
+  .markdown .katex {
+    font-size: 1.06em;
+    text-rendering: auto;
+    line-height: 1.2;
+  }
+  .markdown p .katex {
+    padding: 0 0.12em;
+  }
+  .markdown .katex-display::-webkit-scrollbar {
+    height: 4px;
+  }
+  .markdown .katex-display::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .markdown .katex-display::-webkit-scrollbar-thumb {
+    background: rgba(217, 119, 6, 0.3);
+    border-radius: 2px;
+  }
+  .dark .markdown .katex-display::-webkit-scrollbar-thumb {
+    background: rgba(245, 208, 97, 0.3);
   }
 }

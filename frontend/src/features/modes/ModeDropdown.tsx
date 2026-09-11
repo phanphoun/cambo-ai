@@ -5,6 +5,7 @@ import { setMode, type AiMode } from "./modesSlice";
 import { cn } from "../../lib/utils";
 import type { RootState } from "../../store";
 import { KbachCorner } from "../../components/KhmerOrnaments";
+import { useTranslation } from "../../i18n/useTranslation";
 
 interface ModeItem {
   id: AiMode;
@@ -59,6 +60,7 @@ const MODES: ModeItem[] = [
 ];
 
 export default memo(function ModeDropdown() {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const currentMode = useSelector((s: RootState) => s.modes.current);
   const [open, setOpen] = useState(false);
@@ -86,7 +88,7 @@ export default memo(function ModeDropdown() {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
-          "inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer shadow-xs",
+          "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] sm:text-xs font-medium transition-all duration-200 cursor-pointer shadow-xs",
           open
             ? "border-gold bg-gold/20 text-gold ring-1 ring-gold/40"
             : "border-[#4A381E] bg-[#1A140D]/90 text-stone-200 hover:border-gold/60 hover:text-gold hover:bg-[#221B11]",
@@ -95,11 +97,10 @@ export default memo(function ModeDropdown() {
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <ActiveIcon className="h-3.5 w-3.5 text-gold" />
-        <span className="font-heading font-semibold text-xs">{activeItem.labelKm}</span>
-        <span className="text-[10.5px] text-stone-400 font-sans hidden sm:inline">({activeItem.labelEn})</span>
+        <ActiveIcon className="h-3 w-3 text-gold" />
+        <span className="font-heading font-semibold text-[11px] sm:text-xs">{t.modes[activeItem.id].name}</span>
         <ChevronDown
-          className={cn("h-3 w-3 text-stone-400 transition-transform duration-200", open && "rotate-180 text-gold")}
+          className={cn("h-2.5 w-2.5 text-stone-400 transition-transform duration-200", open && "rotate-180 text-gold")}
         />
       </button>
 
@@ -117,7 +118,7 @@ export default memo(function ModeDropdown() {
           {/* Header */}
           <div className="px-2.5 py-1.5 border-b border-[#2C2012] mb-1">
             <span className="text-[11px] font-heading font-semibold text-gold tracking-normal">
-              មុខងារដំណើរការ AI (AI Mode)
+              {t.settings.tabs.models} · AI Modes
             </span>
           </div>
 
@@ -126,6 +127,7 @@ export default memo(function ModeDropdown() {
             {MODES.map((mode) => {
               const Icon = mode.icon;
               const isSelected = mode.id === currentMode;
+              const localizedMode = t.modes[mode.id];
               return (
                 <button
                   key={mode.id}
@@ -155,14 +157,11 @@ export default memo(function ModeDropdown() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="font-heading font-semibold text-xs">
-                          {mode.labelKm}
-                        </span>
-                        <span className="text-[10.5px] text-stone-400 font-sans">
-                          {mode.labelEn}
+                          {localizedMode.name}
                         </span>
                       </div>
                       <p className="font-khmer text-[11px] text-stone-400 truncate leading-snug mt-0.5">
-                        {mode.descKm}
+                        {localizedMode.desc}
                       </p>
                     </div>
                   </div>

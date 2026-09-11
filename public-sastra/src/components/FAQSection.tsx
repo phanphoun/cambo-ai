@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { KhmerCardCorners } from "./KhmerOrnaments";
 import { useLanguage } from "../i18n/LanguageContext";
+import { useScrollReveal } from "../hooks/useScrollReveal";
 
 const FAQS_KM = [
   {
@@ -53,11 +54,12 @@ export function FAQSection() {
   const { t, language } = useLanguage();
   const [openIdx, setOpenIdx] = useState<number | null>(0);
   const faqs = language === "km" ? FAQS_KM : FAQS_EN;
+  const { ref, visible } = useScrollReveal();
 
   return (
     <section id="faq" className="py-24 bg-[#080604] relative select-none">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-4 mb-16">
+        <div ref={ref} className={`text-center space-y-4 mb-16 transition-all duration-700 ${visible ? 'animate-fade-in-up' : 'opacity-0 translate-y-4'}`}>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3.5 py-1 text-xs font-semibold text-gold font-mono">
             <HelpCircle className="h-3.5 w-3.5" />
             <span>{t.faq.badge}</span>
@@ -70,10 +72,12 @@ export function FAQSection() {
         <div className="space-y-4">
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
+            const base = visible ? "animate-fade-in-up" : "opacity-0 translate-y-4";
             return (
               <div
                 key={idx}
-                className="rounded-3xl border border-[#342718] bg-[#120E09]/95 overflow-hidden transition-all shadow-md hover:border-gold/50"
+                className={`rounded-3xl border border-[#342718] bg-[#120E09]/95 overflow-hidden transition-all shadow-md hover:border-gold/50 ${base}`}
+                style={visible ? { animationDelay: `${idx * 0.06}s` } : undefined}
               >
                 <button
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
@@ -102,4 +106,3 @@ export function FAQSection() {
     </section>
   );
 }
-

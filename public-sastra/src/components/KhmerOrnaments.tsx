@@ -137,4 +137,3 @@ export function KbachCorner({ className = "h-6 w-6" }: { className?: string }) {
     </svg>
   );
 }
-

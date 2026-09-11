@@ -109,7 +109,7 @@ class ProviderFactory:
         models.append({
             "id": "gemini",
             "provider": "gemini",
-            "model": "gemini-2.5-flash",
+            "model": settings.gemini_model,
             "name": "Google Gemini 3.7 Flash",
             "type": "cloud",
             "category": "Google Cloud",

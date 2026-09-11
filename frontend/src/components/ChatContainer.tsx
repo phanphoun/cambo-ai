@@ -1,7 +1,11 @@
-import { memo, useState, useCallback, useEffect } from "react";
+import { memo, useState, useCallback, useEffect, useMemo } from "react";
+import { API_BASE } from "../config/api";
 import { useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import remarkBreaks from "remark-breaks";
+import rehypeKatex from "rehype-katex";
 import {
   Check,
   Copy,
@@ -25,7 +29,7 @@ import {
   Square,
   Loader2,
 } from "lucide-react";
-import { cn, formatTime } from "../lib/utils";
+import { cn, formatTime, preprocessLaTeX } from "../lib/utils";
 import type { Message } from "../types/chat";
 import type { AiProvider } from "../features/provider/providerSlice";
 import type { RootState } from "../store";
@@ -213,6 +217,10 @@ const MessageBubble = memo(function MessageBubble({
   const currentUser = useSelector((s: RootState) => s.auth.user);
   const isUser = message.role === "user";
   const { cleanContent, docMeta } = parseGeneratedDoc(message.content || "");
+  const formattedContent = useMemo(
+    () => preprocessLaTeX(cleanContent),
+    [cleanContent],
+  );
   const isEmpty = !cleanContent && !docMeta;
   const isLoading = isLast && !isUser && isStreaming && !isEmpty;
   const hasError =
@@ -221,10 +229,10 @@ const MessageBubble = memo(function MessageBubble({
   return (
     <div
       className={cn(
-        "group flex w-full animate-slide-in gap-3 sm:gap-4",
-        isUser ? "justify-end" : "justify-start",
+        "group flex w-full gap-3 sm:gap-4",
+        isUser ? "justify-end animate-slide-in" : "justify-start",
       )}
-      style={{ animationDelay: `${Math.min(messageIndex * 30, 300)}ms` }}
+      style={isUser ? { animationDelay: `${Math.min(messageIndex * 30, 300)}ms` } : undefined}
     >
       {/* Assistant Avatar on Left with Authentic Khmer Medallion Art */}
       {!isUser && (
@@ -241,7 +249,7 @@ const MessageBubble = memo(function MessageBubble({
         className={cn(
           "flex flex-col gap-1.5 min-w-0",
           isUser
-            ? "max-w-[90%] sm:max-w-[82%] items-end"
+            ? "max-w-[85%] sm:max-w-[75%] md:max-w-[68%] items-end"
             : "flex-1 w-full items-start",
         )}
       >
@@ -269,12 +277,12 @@ const MessageBubble = memo(function MessageBubble({
         {/* Message Body Card */}
         <div
           className={cn(
-            "relative text-[15.5px] sm:text-[16.5px] leading-[1.8] break-words transition-all",
+            "relative text-[14.5px] sm:text-[15.5px] leading-[1.8] break-words [overflow-wrap:anywhere]",
             isUser
-              ? "rounded-2xl border border-amber-300/80 dark:border-gold/40 bg-[#FAF3E0] dark:bg-[#221A10] px-4 py-3 font-khmer text-right shadow-md text-stone-900 dark:text-stone-100 max-w-[880px]"
-              : "w-full bg-transparent border-0 shadow-none px-0 py-1 text-stone-900 dark:text-stone-100 max-w-[900px]",
+              ? "w-fit rounded-2xl sm:rounded-3xl rounded-tr-sm sm:rounded-tr-md border border-amber-500/30 dark:border-gold/35 bg-gradient-to-br from-[#2B1F13]/90 via-[#20170E]/85 to-[#160F09]/90 backdrop-blur-xl px-4 py-3 sm:px-5 sm:py-3.5 font-khmer text-left shadow-lg shadow-black/40 text-stone-100 transition-all"
+              : "w-full bg-transparent border-0 shadow-none px-0 py-0.5 text-stone-900 dark:text-stone-100 transition-none",
             hasError &&
-              "border-destructive/40 bg-destructive/5 text-destructive",
+              "border border-destructive/40 bg-destructive/10 text-destructive p-3 rounded-xl",
           )}
         >
 
@@ -297,7 +305,7 @@ const MessageBubble = memo(function MessageBubble({
 
           {isUser ? (
             message.content ? (
-              <p className="whitespace-pre-wrap leading-[1.8] text-stone-950 dark:text-stone-100 font-normal text-right text-[15px] sm:text-[16px] font-khmer">
+              <p className="whitespace-pre-wrap leading-[1.8] text-stone-100 font-normal text-left text-[14.5px] sm:text-[15.5px] font-khmer select-text">
                 {message.content}
               </p>
             ) : null
@@ -329,7 +337,8 @@ const MessageBubble = memo(function MessageBubble({
               {docMeta && <GeneratedDocCard doc={docMeta} />}
               {cleanContent && (
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
+                  remarkPlugins={[remarkGfm, remarkMath, remarkBreaks]}
+                  rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
                   components={{
                   p({ children }) {
                     return (
@@ -483,7 +492,7 @@ const MessageBubble = memo(function MessageBubble({
                   },
                 }}
               >
-                {cleanContent}
+                {formattedContent}
               </ReactMarkdown>
               )}
               {isLast && isStreaming && (
@@ -695,7 +704,7 @@ function formatToolName(name: string) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-/** High-Contrast Code Block with Obsidian Basalt theme & syntax highlighting */
+/** Transparent Glassmorphic Code Block with Modern Real-Coding Platform Multi-Color Syntax */
 function CodeBlock({ code, language }: { code: string; language: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -719,19 +728,24 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
   }, [code]);
 
   return (
-    <div className="group/code relative my-4 overflow-hidden rounded-2xl border border-[#2B2936] bg-[#0E0D12] shadow-xl shadow-black/30 first:mt-0 last:mb-0">
+    <div className="group/code relative my-4 overflow-hidden rounded-2xl border border-white/10 dark:border-white/15 bg-black/40 dark:bg-black/40 backdrop-blur-xl shadow-2xl shadow-black/40 first:mt-0 last:mb-0 transition-all hover:border-white/20">
       {/* Header Bar */}
-      <div className="flex items-center justify-between border-b border-[#25232E] bg-[#16151D] px-4 py-2">
-        <div className="flex items-center gap-2">
-          <span className="flex h-2 w-2 rounded-full bg-gold" />
-          <span className="font-mono text-[11px] font-bold text-gold uppercase tracking-wider">
+      <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.04] backdrop-blur-md px-4 py-2.5">
+        <div className="flex items-center gap-2.5">
+          {/* macOS 3-dot window controls for authentic IDE aesthetic */}
+          <div className="flex items-center gap-1.5 mr-1">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F56]/90 border border-[#E0443E]/60 shadow-sm" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#FFBD2E]/90 border border-[#DEA123]/60 shadow-sm" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#27C93F]/90 border border-[#1AAB29]/60 shadow-sm" />
+          </div>
+          <span className="font-mono text-[11px] font-bold text-amber-300 uppercase tracking-wider pl-1">
             {language || "code"}
           </span>
         </div>
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[#353342] bg-[#201F29] px-2.5 py-1 text-[11px] font-semibold text-stone-300 transition-all hover:bg-[#2B2938] hover:text-white"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.06] hover:bg-white/[0.14] px-2.5 py-1 text-[11px] font-semibold text-stone-200 backdrop-blur-sm transition-all hover:text-white cursor-pointer active:scale-95"
           aria-label="Copy code snippet"
           title="Copy code"
         >
@@ -749,65 +763,264 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
         </button>
       </div>
 
-      {/* Code Text with Guaranteed High Contrast */}
-      <pre className="!my-0 !border-0 !rounded-none overflow-x-auto p-4 sm:p-5 font-mono text-[13.5px] leading-relaxed bg-[#0E0D12] text-[#F8FAFC] scrollbar-thin">
-        <code className="!bg-transparent !p-0 !text-[#F8FAFC] font-mono">
-          {highlightTokens(code)}
+      {/* Code Text with Transparent Glass & Multi-Color IDE Syntax */}
+      <pre className="!my-0 !border-0 !rounded-none overflow-x-auto p-4 sm:p-5 font-mono text-[13.5px] leading-relaxed bg-transparent text-[#E6EDF3] scrollbar-thin selection:bg-amber-500/30">
+        <code className="!bg-transparent !p-0 !text-[#E6EDF3] font-mono">
+          {highlightTokens(code, language)}
         </code>
       </pre>
     </div>
   );
 }
 
-/** Guaranteed High-Contrast Syntax Tokenizer */
-function highlightTokens(code: string) {
+const TOKEN_REGEX = new RegExp(
+  [
+    "(#[^\\n]*|\\/\\/[^\\n]*)",
+    "(f\"(?:\\\\.|[^\"\\\\])*\"|f'(?:\\\\.|[^'\\\\])*')",
+    "(\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*'|`(?:\\\\.|[^`\\\\])*`)",
+    "(@[a-zA-Z_]\\w*(?:\\.[a-zA-Z_]\\w*)*)",
+    "(\\b(?:def|class|function|return|async|await|yield|lambda|const|let|var|import|from|export|default|type|interface|enum|extends|implements)\\b)",
+    "(\\b(?:if|elif|else|for|while|try|except|finally|with|as|raise|throw|catch|break|continue|pass|case|switch|match|in|is|not|and|or)\\b)",
+    "(\\b(?:True|False|true|false|None|null|undefined|NaN|Infinity)\\b)",
+    "(\\b(?:print|input|len|range|enumerate|zip|map|filter|sum|min|max|sorted|reversed|abs|round|open|type|isinstance|int|float|str|bool|list|dict|set|tuple|console|log|warn|error|info|require|setTimeout|setInterval|fetch|JSON|Math)\\b)",
+    "(\\b(?:pip|npm|npx|yarn|pnpm|bun|node|python|python3|git|docker|curl|wget|mkdir|cd|ls|cat|chmod|sudo|grep|find|bash|sh|uv)\\b)",
+    "(\\b(?:SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|TABLE|JOIN|GROUP\\s+BY|ORDER\\s+BY)\\b)",
+    "(?:\\$\\d+(?:\\.\\d+)?|\\b\\d+(?:\\.\\d+)?\\b)",
+    "(?:\\+=|-=|\\*=|\\/=|%=|\\*\\*=|\\/\\/=|==|!=|<=|>=|=>|->|\\*\\*|\\/\\/|\\+|-|\\*|\\/|%|=|&|\\||\\^|~|<|>|!)",
+    "([{}])",
+    "([\\[\\]])",
+    "([()])",
+    "([,;:])",
+  ].join("|"),
+  "gi"
+);
+
+/** Real-Coding Platform Multi-Color Syntax Tokenizer (VS Code One Dark Pro / Tokyo Night inspired) */
+function highlightTokens(code: string, _language?: string) {
   const lines = code.split("\n");
+
   return lines.map((line, lineIdx) => {
     const trimmed = line.trim();
-    // Whole line comment
-    if (trimmed.startsWith("#") || trimmed.startsWith("//") || trimmed.startsWith("--")) {
+
+    // Whole-line comment
+    if (trimmed.startsWith("#") || trimmed.startsWith("//") || trimmed.startsWith("--") || trimmed.startsWith("/*") || trimmed.startsWith("*")) {
       return (
-        <span key={lineIdx} className="text-[#94A3B8] italic block">
+        <span key={lineIdx} className="text-[#8B949E] dark:text-[#94A3B8] italic block font-khmer">
           {line || " "}
         </span>
       );
     }
 
-    const tokenRegex = /(#[^\n]*|\/\/[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b(?:def|class|import|from|return|if|else|elif|for|while|try|except|finally|with|as|lambda|async|await|const|let|var|function|export|default|null|true|false|None|True|False|in|is|not|and|or|type|interface|select|from|where|insert|update|delete|create|table|pip|npm|mkdir|cd|curl|source|git|brew|docker)\b|\b\d+\b|[{}()[\],;])/g;
-
-    const parts = [];
+    const parts: React.ReactNode[] = [];
     let lastIndex = 0;
-    let match;
+    let match: RegExpExecArray | null;
 
-    while ((match = tokenRegex.exec(line)) !== null) {
+    // Reset lastIndex for regex exec loop
+    TOKEN_REGEX.lastIndex = 0;
+
+    while ((match = TOKEN_REGEX.exec(line)) !== null) {
       if (match.index > lastIndex) {
         const rawText = line.substring(lastIndex, match.index);
-        parts.push(<span key={`txt-${lastIndex}`} className="text-[#F8FAFC]">{rawText}</span>);
+        parts.push(
+          <span key={`txt-${lastIndex}`} className="text-[#E6EDF3]">
+            {rawText}
+          </span>
+        );
       }
+
       const token = match[0];
+      const key = `tok-${match.index}`;
+
+      // 1. Comments
       if (token.startsWith("#") || token.startsWith("//")) {
-        parts.push(<span key={`tok-${match.index}`} className="text-[#94A3B8] italic">{token}</span>);
-      } else if (token.startsWith('"') || token.startsWith("'") || token.startsWith("`")) {
-        parts.push(<span key={`tok-${match.index}`} className="text-[#86EFAC] font-medium">{token}</span>);
-      } else if (/^\d+$/.test(token)) {
-        parts.push(<span key={`tok-${match.index}`} className="text-[#FDBA74] font-medium">{token}</span>);
-      } else if (/^(pip|npm|mkdir|cd|curl|source|git|brew|docker)$/i.test(token)) {
-        parts.push(<span key={`tok-${match.index}`} className="text-[#38BDF8] font-bold">{token}</span>);
-      } else if (/^(def|class|function|const|let|var|import|from|export|default|return|async|await|select|from|where)$/i.test(token)) {
-        parts.push(<span key={`tok-${match.index}`} className="text-[#D8B4FE] font-semibold">{token}</span>);
-      } else if (/^(if|else|elif|for|while|try|except|finally|with|as|in|is|not|and|or)$/i.test(token)) {
-        parts.push(<span key={`tok-${match.index}`} className="text-[#FDE047] font-semibold">{token}</span>);
-      } else if (/^(True|False|true|false|None|null)$/i.test(token)) {
-        parts.push(<span key={`tok-${match.index}`} className="text-[#FDA4AF] font-semibold">{token}</span>);
-      } else {
-        parts.push(<span key={`tok-${match.index}`} className="text-[#F8FAFC]">{token}</span>);
+        parts.push(
+          <span key={key} className="text-[#8B949E] dark:text-[#94A3B8] italic font-khmer">
+            {token}
+          </span>
+        );
       }
-      lastIndex = tokenRegex.lastIndex;
+      // 2. Python f-strings
+      else if (token.startsWith('f"') || token.startsWith("f'")) {
+        const quote = token[1];
+        const inner = token.slice(2, -1);
+        const subParts: React.ReactNode[] = [];
+        const exprRegex = /\{([^}]+)\}/g;
+        let subLast = 0;
+        let subMatch: RegExpExecArray | null;
+
+        while ((subMatch = exprRegex.exec(inner)) !== null) {
+          if (subMatch.index > subLast) {
+            subParts.push(
+              <span key={`f-str-${subLast}`} className="text-[#98C379]">
+                {inner.substring(subLast, subMatch.index)}
+              </span>
+            );
+          }
+          subParts.push(
+            <span key={`f-brc-open-${subMatch.index}`} className="text-[#56B6C2] font-bold">
+              {"{"}
+            </span>
+          );
+          subParts.push(
+            <span key={`f-var-${subMatch.index}`} className="text-[#E6EDF3]">
+              {subMatch[1]}
+            </span>
+          );
+          subParts.push(
+            <span key={`f-brc-close-${subMatch.index}`} className="text-[#56B6C2] font-bold">
+              {"}"}
+            </span>
+          );
+          subLast = exprRegex.lastIndex;
+        }
+        if (subLast < inner.length) {
+          subParts.push(
+            <span key={`f-str-${subLast}`} className="text-[#98C379]">
+              {inner.substring(subLast)}
+            </span>
+          );
+        }
+
+        parts.push(
+          <span key={key}>
+            <span className="text-[#E06C75] font-bold">f</span>
+            <span className="text-[#98C379]">{quote}</span>
+            {subParts}
+            <span className="text-[#98C379]">{quote}</span>
+          </span>
+        );
+      }
+      // 3. Regular strings & template literals
+      else if (token.startsWith('"') || token.startsWith("'") || token.startsWith("`")) {
+        parts.push(
+          <span key={key} className="text-[#98C379] font-normal">
+            {token}
+          </span>
+        );
+      }
+      // 4. Decorators (@app.post)
+      else if (token.startsWith("@")) {
+        parts.push(
+          <span key={key} className="text-[#61AFEF] font-semibold">
+            {token}
+          </span>
+        );
+      }
+      // 5. Numbers & Currency
+      else if (/^(?:\$\d+(?:\.\d+)?|\d+(?:\.\d+)?)$/.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#D19A66] font-semibold">
+            {token}
+          </span>
+        );
+      }
+      // 6. CLI tools
+      else if (/^(pip|npm|npx|yarn|pnpm|bun|node|python|python3|git|docker|curl|wget|mkdir|cd|ls|cat|chmod|sudo|grep|find|bash|sh|uv)$/i.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#38BDF8] font-bold">
+            {token}
+          </span>
+        );
+      }
+      // 7. Declaration keywords (def, class, const, return, async, etc.)
+      else if (/^(def|class|function|return|async|await|yield|lambda|const|let|var|import|from|export|default|type|interface|enum|extends|implements)$/i.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#C678DD] font-semibold">
+            {token}
+          </span>
+        );
+      }
+      // 8. Control flow keywords (for, in, if, else, while, try, etc.)
+      else if (/^(if|elif|else|for|while|try|except|finally|with|as|raise|throw|catch|break|continue|pass|case|switch|match|in|is|not|and|or)$/i.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#E5C07B] font-bold">
+            {token}
+          </span>
+        );
+      }
+      // 9. Constants & Booleans (True, False, None, null)
+      else if (/^(True|False|true|false|None|null|undefined|NaN|Infinity)$/.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#E06C75] font-semibold">
+            {token}
+          </span>
+        );
+      }
+      // 10. Built-in functions (print, range, len, sum, etc.)
+      else if (/^(print|input|len|range|enumerate|zip|map|filter|sum|min|max|sorted|reversed|abs|round|open|type|isinstance|int|float|str|bool|list|dict|set|tuple|console|log|warn|error|info|require|setTimeout|setInterval|fetch|JSON|Math)$/i.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#61AFEF] font-semibold">
+            {token}
+          </span>
+        );
+      }
+      // 11. SQL keywords
+      else if (/^(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|TABLE|JOIN|GROUP|ORDER|BY)$/i.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#C678DD] font-bold">
+            {token}
+          </span>
+        );
+      }
+      // 12. Multi-char and arithmetic/assignment operators (+=, =, ==, !=, etc.)
+      else if (/^(?:\+=|-=|\*=|\/=|%=|\*\*=|==|!=|<=|>=|=>|->|\*\*|\+|\-|\*|\/|%|=|&|\||\^|~|<|>|!)$/.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#56B6C2] font-semibold">
+            {token}
+          </span>
+        );
+      }
+      // 13. Curly braces {}
+      else if (token === "{" || token === "}") {
+        parts.push(
+          <span key={key} className="text-[#56B6C2] font-bold">
+            {token}
+          </span>
+        );
+      }
+      // 14. Square brackets []
+      else if (token === "[" || token === "]") {
+        parts.push(
+          <span key={key} className="text-[#C678DD] font-bold">
+            {token}
+          </span>
+        );
+      }
+      // 15. Parentheses ()
+      else if (token === "(" || token === ")") {
+        parts.push(
+          <span key={key} className="text-[#E5C07B] font-bold">
+            {token}
+          </span>
+        );
+      }
+      // 16. Punctuation (, ; :)
+      else if (/^[,;:]$/.test(token)) {
+        parts.push(
+          <span key={key} className="text-[#94A3B8]">
+            {token}
+          </span>
+        );
+      }
+      // 17. Fallback (Identifiers, variables, etc.)
+      else {
+        parts.push(
+          <span key={key} className="text-[#E6EDF3]">
+            {token}
+          </span>
+        );
+      }
+
+      lastIndex = TOKEN_REGEX.lastIndex;
     }
 
     if (lastIndex < line.length) {
       const remaining = line.substring(lastIndex);
-      parts.push(<span key={`rem-${lastIndex}`} className="text-[#F8FAFC]">{remaining}</span>);
+      parts.push(
+        <span key={`rem-${lastIndex}`} className="text-[#E6EDF3]">
+          {remaining}
+        </span>
+      );
     }
 
     return (
@@ -902,8 +1115,77 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+const KHMER_LETTER_SOUNDS: Record<string, string> = {
+  A: "អេ", B: "ប៊ី", C: "ស៊ី", D: "ឌី", E: "អ៊ី",
+  F: "អែហ្វ", G: "ជី", H: "អេច", I: "អាយ", J: "ជេ",
+  K: "ខេ", L: "អែល", M: "អឹម", N: "អិន", O: "អូ",
+  P: "ភី", Q: "គ្យូ", R: "អ័រ", S: "អេស", T: "ធី",
+  U: "យូ", V: "វី", W: "ដាប់ប៊លយូ", X: "អិច", Y: "វ៉ាយ",
+  Z: "ហ្ស៊ិត",
+};
+
+const CUSTOM_SPEECH_ACRONYMS: [RegExp, string][] = [
+  [/\bSastra\s+AI\b/gi, "សាស្ត្រា អេអាយ"],
+  [/\bPNC\b/g, "ភី អិន ស៊ី"],
+  [/\bSKAI\b/g, "អេស ខេ អេ អាយ"],
+  [/\bABA\b/g, "អេ ប៊ី អេ"],
+  [/\bAI\b/gi, "អេអាយ"],
+  [/\bKHQR\b/gi, "ខេអេក្យូអ័រ"],
+  [/\bUSD\b/gi, "ដុល្លារ"],
+  [/\bKHR\b/gi, "រៀល"],
+  [/\bUNESCO\b/gi, "យូណេស្កូ"],
+  [/\bNBC\b/gi, "ធនាគារជាតិ"],
+  [/\bCADT\b/gi, "ស៊ី អេ ឌី ធី"],
+  [/\bRUPP\b/gi, "អ័រ យូ ភី ភី"],
+  [/\bITC\b/gi, "អាយ ធី ស៊ី"],
+  [/\bEDC\b/gi, "អ៊ី ឌី ស៊ី"],
+  [/\bMoEYS\b/gi, "ក្រសួងអប់រំ"],
+  [/\bPDF\b/gi, "ភី ឌី អែហ្វ"],
+  [/\bHTML\b/gi, "អេច ធី អឹម អែល"],
+  [/\bCSS\b/gi, "ស៊ី អេស អេស"],
+  [/\bJS\b/gi, "ជេ អេស"],
+  [/\bAPI\b/gi, "អេ ភី អាយ"],
+  [/\bSDK\b/gi, "អេស ឌី ខេ"],
+  [/\bUI\b/gi, "យូ អាយ"],
+  [/\bUX\b/gi, "យូ អិច"],
+  [/\bIT\b/gi, "អាយ ធី"],
+];
+
+function normalizeSpeechKhmer(text: string): string {
+  let t = text;
+  // 1. Honorific pronouns & titles
+  t = t.replace(/\bMr\.?\s+/gi, "លោក ");
+  t = t.replace(/\bMrs\.?\s+/gi, "លោកស្រី ");
+  t = t.replace(/\bMs\.?\s+/gi, "កញ្ញា ");
+  t = t.replace(/\bMiss\s+/gi, "កញ្ញា ");
+  t = t.replace(/\bDr\.?\s+/gi, "លោកបណ្ឌិត ");
+  t = t.replace(/\bProf\.?\s+/gi, "សាស្ត្រាចារ្យ ");
+
+  t = t.replace(/\bMr\.?\b/gi, "លោក");
+  t = t.replace(/\bMrs\.?\b/gi, "លោកស្រី");
+  t = t.replace(/\bMs\.?\b/gi, "កញ្ញា");
+  t = t.replace(/\bMiss\b/gi, "កញ្ញា");
+  t = t.replace(/\bDr\.?\b/gi, "លោកបណ្ឌិត");
+  t = t.replace(/\bProf\.?\b/gi, "សាស្ត្រាចារ្យ");
+
+  // 2. Custom organizational & tech initialisms
+  for (const [pattern, replacement] of CUSTOM_SPEECH_ACRONYMS) {
+    t = t.replace(pattern, replacement);
+  }
+
+  // 3. Spell uppercase acronyms (2 to 7 letters) letter-by-letter in Khmer
+  t = t.replace(/\b[A-Z]{2,7}\b/g, (match) => {
+    return match
+      .split("")
+      .map((char) => KHMER_LETTER_SOUNDS[char] || char)
+      .join(" ");
+  });
+
+  return t;
+}
+
 function stripMarkdown(text: string): string {
-  return text
+  let cleaned = text
     // remove code blocks
     .replace(/```[\s\S]*?```/g, " ")
     // remove inline code
@@ -925,9 +1207,14 @@ function stripMarkdown(text: string): string {
     // clean excess whitespace
     .replace(/\s+/g, " ")
     .trim();
-}
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+  // Apply phonetic reading for Khmer voice or mixed Khmer text
+  if (/[\u1780-\u17FF]/.test(cleaned) || /\b(Mr|Ms|Mrs|Dr|Prof|PNC|SKAI|ABA|EDC|RUPP|ITC)\b/i.test(cleaned)) {
+    cleaned = normalizeSpeechKhmer(cleaned);
+  }
+
+  return cleaned;
+}
 
 interface GlobalAudioState {
   currentId: string | null;
@@ -978,12 +1265,13 @@ async function playGlobalSpeech(id: string, text: string) {
 
   const hasKhmer = /[\u1780-\u17FF]/.test(cleanText);
   const lang = hasKhmer ? "km" : "en";
+  const userVoice = localStorage.getItem("sastra_voice") || (hasKhmer ? "km-KH-PisethNeural" : "en-US-AvaNeural");
 
   try {
     const res = await fetch(`${API_BASE}/api/tts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: cleanText, lang }),
+      body: JSON.stringify({ text: cleanText, lang, voice: userVoice }),
     });
 
     if (res.ok) {

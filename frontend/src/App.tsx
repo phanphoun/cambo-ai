@@ -20,8 +20,7 @@ import {
   useClearSessionMutation,
   useCheckHealthQuery,
 } from "./features/chat/chatApi";
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+import { API_BASE } from "./config/api";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import ChatContainer from "./components/ChatContainer";
@@ -30,11 +29,12 @@ import WelcomeScreen from "./components/WelcomeScreen";
 import DirectoryPanel from "./features/directory/DirectoryPanel";
 import DocumentsPanel from "./features/documents/DocumentsPanel";
 import PinnedMessagesDrawer from "./features/pin/PinnedMessagesDrawer";
-import SettingsModal from "./components/SettingsModal";
+import SettingsModal, { type SettingsTab } from "./components/SettingsModal";
 import AuthModal from "./features/auth/AuthModal";
 import LoginPage from "./features/auth/LoginPage";
 import { setAuthModalOpen, setAuthMode } from "./features/auth/authSlice";
 import KhmerSanctuaryBackdrop from "./components/KhmerSanctuaryBackdrop";
+import { getFontById } from "./data/fonts";
 import type { RootState } from "./store";
 
 export default function App() {
@@ -50,16 +50,29 @@ export default function App() {
   const currentModel = useSelector((s: RootState) => s.provider.currentModel);
   const currentUser = useSelector((s: RootState) => s.auth.user);
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
+  const responseLanguage = useSelector((s: RootState) => s.chat.responseLanguage || "km");
+  const responseLanguageRef = useRef(responseLanguage);
+  useEffect(() => {
+    responseLanguageRef.current = responseLanguage;
+    document.documentElement.lang = responseLanguage;
+    const titles: Record<string, string> = {
+      km: "សាស្ត្រា AI — ជំនួយការឆ្លាតវៃជាតិខ្មែរ",
+      en: "Sastra AI — Sovereign Cambodian AI",
+      fr: "Sastra AI — L'Intelligence Souveraine du Cambodge",
+      zh: "Sastra AI — 柬埔寨主权人工智能助手",
+    };
+    document.title = titles[responseLanguage] || titles.km;
+  }, [responseLanguage]);
   const [clearSession] = useClearSessionMutation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [docsOpen, setDocsOpen] = useState(false);
   const [pinsOpen, setPinsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<"profile" | "provider" | "privacy">("profile");
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("profile");
   const [showScrollBtn, setShowScrollBtn] = useState(false);
 
-  const handleOpenSettings = (tab: "profile" | "provider" | "privacy" = "provider") => {
+  const handleOpenSettings = (tab: SettingsTab = "appearance") => {
     setSettingsTab(tab);
     setSettingsOpen(true);
   };
@@ -92,12 +105,22 @@ export default function App() {
     dispatch(switchUserPins(userEmail));
   }, [currentUser?.email, dispatch]);
 
+  const fontFamilyId = useSelector((s: RootState) => s.theme.fontFamilyId);
+
   // Ensure dark obsidian sanctuary theme is always active
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("light");
     root.classList.add("dark");
   }, []);
+
+  // Synchronize dynamic Khmer typography across root and chat responses
+  useEffect(() => {
+    const fontPreset = getFontById(fontFamilyId);
+    if (fontPreset) {
+      document.documentElement.style.setProperty("--font-khmer", fontPreset.cssFamily);
+    }
+  }, [fontFamilyId]);
 
   useCheckHealthQuery(undefined, {
     pollingInterval: 30_000,
@@ -192,6 +215,7 @@ export default function App() {
             selected_document_ids: selectedDocs,
             document_ids: selectedDocs,
             mode: currentMode,
+            response_language: responseLanguageRef.current || responseLanguage || "km",
           }),
         });
 
@@ -280,7 +304,7 @@ export default function App() {
         dispatch(persistChat());
       }
     },
-    [dispatch, sessionId, attachments, currentProvider, useTools, selectedDocs, currentMode],
+    [dispatch, sessionId, attachments, currentProvider, currentModel, useTools, selectedDocs, currentMode, currentUser?.email, responseLanguage],
   );
 
   const handleStop = useCallback(() => {

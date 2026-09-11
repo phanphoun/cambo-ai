@@ -15,7 +15,7 @@ class UserDB(Base):
     name = Column(String(128), nullable=False)
     password_hash = Column(String(256), nullable=False)
     role = Column(String(32), default="member", nullable=False)  # admin, member, guest
-    avatar = Column(String(512), nullable=True)
+    avatar = Column(Text, nullable=True)
     created_at = Column(Float, default=time.time, nullable=False)
     updated_at = Column(Float, default=time.time, onupdate=time.time, nullable=False)
 

@@ -7,7 +7,7 @@ from pathlib import Path
 class Settings(BaseSettings):
     # --- Gemini ---
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-3.7-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
     gemini_temperature: float = 0.3
     gemini_max_tokens: int = 8192
     gemini_thinking_budget: int = 0
@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     tavily_search_depth: str = "basic"
     tavily_max_results: int = 5
 
+    # --- JWT Auth ---
+    jwt_secret: str = ""
+
     @property
     def origins_list(self) -> List[str]:
         return [o.strip() for o in self.allowed_origins.split(",")]
@@ -81,6 +84,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 
 settings = Settings()

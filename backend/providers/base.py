@@ -31,6 +31,7 @@ class BaseProvider(ABC):
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
         use_tools: bool = False,
+        response_language: Optional[str] = "km",
     ) -> Dict[str, Any]:
         """Synchronously/turn-based queries the provider and returns structured answer with metadata."""
         pass
@@ -44,6 +45,7 @@ class BaseProvider(ABC):
         image_data: Optional[List[str]] = None,
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
+        response_language: Optional[str] = "km",
     ) -> AsyncGenerator[str, None]:
         """Streams response tokens incrementally."""
         pass

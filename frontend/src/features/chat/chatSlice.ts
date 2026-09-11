@@ -51,12 +51,17 @@ function save(key: string, value: unknown) {
   }
 }
 
+export type ResponseLanguage = "km" | "en" | "fr" | "zh";
+
+const RESPONSE_LANG_KEY = "sastra_response_language";
+
 export interface ChatState {
   sessionId: string | null;
   messages: Message[];
   isStreaming: boolean;
   useTools: boolean;
   attachments: Attachment[];
+  responseLanguage: ResponseLanguage;
 }
 
 const initialState: ChatState = {
@@ -65,6 +70,7 @@ const initialState: ChatState = {
   isStreaming: false,
   useTools: load<boolean>(TOOLS_KEY, false),
   attachments: [],
+  responseLanguage: load<ResponseLanguage>(RESPONSE_LANG_KEY, "km"),
 };
 
 const chatSlice = createSlice({
@@ -132,6 +138,10 @@ const chatSlice = createSlice({
         /* noop */
       }
     },
+    setResponseLanguage(state, action: PayloadAction<ResponseLanguage>) {
+      state.responseLanguage = action.payload;
+      save(RESPONSE_LANG_KEY, action.payload);
+    },
   },
 });
 
@@ -148,6 +158,7 @@ export const {
   persistChat,
   setAssistantMeta,
   resetChat,
+  setResponseLanguage,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

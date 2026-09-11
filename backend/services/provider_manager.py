@@ -31,6 +31,7 @@ class ProviderManager:
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
         use_tools: bool = False,
+        response_language: Optional[str] = "km",
     ) -> dict:
         prov = self.factory.get(provider, model=model)
         return await prov.ask(
@@ -41,6 +42,7 @@ class ProviderManager:
             image_urls=image_urls,
             rag_context=rag_context,
             use_tools=use_tools,
+            response_language=response_language,
         )
 
     async def ask_stream(
@@ -53,6 +55,9 @@ class ProviderManager:
         image_data: Optional[List[str]] = None,
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
+        document_ids: Optional[List[str]] = None,
+        use_tools: bool = False,
+        response_language: Optional[str] = "km",
     ) -> AsyncGenerator[str, None]:
         async for chunk in self.chat.execute_stream(
             message=message,
@@ -62,9 +67,10 @@ class ProviderManager:
             model=model,
             image_data=image_data,
             image_urls=image_urls,
-            document_ids=None,
+            document_ids=document_ids,
             rag_context=rag_context,
-            use_tools=False,
+            use_tools=use_tools,
+            response_language=response_language,
         ):
             yield chunk
 

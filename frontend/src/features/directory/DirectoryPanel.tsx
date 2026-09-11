@@ -25,10 +25,12 @@ import {
   DIRECTORY_CATEGORIES,
   type Company,
   type SectorDefinition,
+  getCompanyPrompt,
 } from "../../data/cambodia-tech-directory";
 import { KbachCorner } from "../../components/KhmerOrnaments";
 import type { RootState } from "../../store";
 import { cn } from "../../lib/utils";
+import { useTranslation } from "../../i18n/useTranslation";
 
 function getSectorIcon(iconName: string) {
   switch (iconName) {
@@ -65,6 +67,7 @@ function getInitials(name: string): string {
 
 export default function DirectoryPanel() {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { open, search } = useSelector((s: RootState) => s.directory);
   const [selectedCategory, setSelectedCategory] = useState<string>("All Sectors");
 
@@ -132,13 +135,10 @@ export default function DirectoryPanel() {
               </div>
               <div>
                 <h2 className="font-heading text-base sm:text-lg font-bold text-[#E5C058] tracking-normal flex items-center gap-2">
-                  <span>បញ្ជីឈ្មោះបែងចែកតាមវិស័យ</span>
-                  <span className="font-sans text-xs font-semibold text-stone-400">
-                    (Cambodia Sectors Directory)
-                  </span>
+                  <span>{t.directory.title}</span>
                 </h2>
                 <p className="text-xs text-stone-400 font-sans mt-0.5">
-                  Explore <strong className="text-gold">{companies.length}</strong> verified Cambodian enterprises, tech startups, fintech institutions, and cultural bodies across <strong className="text-gold">{DIRECTORY_SECTORS.length}</strong> major sectors.
+                  {t.directory.subtitle} — <strong className="text-gold">{companies.length}</strong> organizations across <strong className="text-gold">{DIRECTORY_SECTORS.length}</strong> sectors
                 </p>
               </div>
             </div>
@@ -146,8 +146,8 @@ export default function DirectoryPanel() {
             <button
               onClick={() => dispatch(setDirectoryOpen(false))}
               className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#3C301D] bg-[#16120C] text-stone-400 hover:text-gold hover:border-gold/60 transition-all cursor-pointer"
-              aria-label="Close directory"
-              title="Close (Esc)"
+              aria-label={t.directory.close}
+              title={t.directory.close}
             >
               <X className="h-4.5 w-4.5" />
             </button>
@@ -161,7 +161,7 @@ export default function DirectoryPanel() {
                 type="text"
                 value={search}
                 onChange={(e) => dispatch(setDirectorySearch(e.target.value))}
-                placeholder="ស្វែងរកតាមឈ្មោះ វិស័យ ធនាគារ អប់រំ វប្បធម៌ ឬបច្ចេកវិទ្យា (Search by name, sector, tech, or keywords)..."
+                placeholder={t.directory.searchPlaceholder}
                 className="flex-1 bg-transparent py-1.5 text-xs sm:text-sm font-khmer text-stone-100 outline-none placeholder:font-khmer placeholder:text-stone-500"
                 autoFocus
               />
@@ -187,6 +187,7 @@ export default function DirectoryPanel() {
                   ? companies.length
                   : companies.filter((c) => c.category === cat).length;
               const IconComp = sectorDef ? getSectorIcon(sectorDef.iconName) : Layers;
+              const label = cat === "All Sectors" ? t.directory.allSectors : cat;
 
               return (
                 <button
@@ -201,7 +202,7 @@ export default function DirectoryPanel() {
                   )}
                 >
                   <IconComp className={cn("h-3.5 w-3.5 shrink-0", active ? "text-gold" : "text-stone-400")} />
-                  <span>{cat}</span>
+                  <span>{label}</span>
                   <span
                     className={cn(
                       "rounded-full px-1.5 py-0.2 text-[10px] font-mono",
@@ -224,10 +225,7 @@ export default function DirectoryPanel() {
             <div className="flex flex-col items-center justify-center py-24 text-stone-400">
               <Search className="h-10 w-10 mb-3 opacity-30 text-gold" />
               <p className="text-base font-khmer font-bold text-stone-300">
-                រកមិនឃើញស្ថាប័ន ឬក្រុមហ៊ុនក្នុងវិស័យនេះឡើយ
-              </p>
-              <p className="text-xs text-stone-500 mt-1 font-sans">
-                No matching organizations found. Try refining your search query.
+                {t.directory.noResults}
               </p>
             </div>
           ) : (
@@ -304,8 +302,11 @@ function CompanyCard({ company }: { company: Company }) {
   const dispatch = useDispatch();
   const initials = getInitials(company.name);
 
-  function handleAsk() {
-    const prompt = `សូមរៀបរាប់ និងបង្ហាញព័ត៌មានលម្អិតអំពីស្ថាប័ន ${company.name} (${company.khmerName || ""}) ក្នុងវិស័យ ${company.category} នៅកម្ពុជា៖ ${company.description}`;
+  function handleAsk(e?: React.MouseEvent) {
+    if (e) {
+      e.stopPropagation();
+    }
+    const prompt = getCompanyPrompt(company);
     dispatch(setDirectoryOpen(false));
     setTimeout(() => {
       window.dispatchEvent(
@@ -315,7 +316,18 @@ function CompanyCard({ company }: { company: Company }) {
   }
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-2xl border border-[#342718]/80 bg-gradient-to-b from-[#18130C]/95 to-[#100D08]/95 p-4 transition-all duration-300 hover:border-gold/70 hover:bg-[#1E170F] hover:shadow-2xl hover:shadow-black/70 hover:-translate-y-1">
+    <div
+      onClick={handleAsk}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleAsk();
+        }
+      }}
+      className="group relative flex flex-col justify-between rounded-2xl border border-[#342718]/80 bg-gradient-to-b from-[#18130C]/95 to-[#100D08]/95 p-4 transition-all duration-300 hover:border-gold/70 hover:bg-[#1E170F] hover:shadow-2xl hover:shadow-black/70 hover:-translate-y-1 cursor-pointer select-none"
+    >
       <div>
         {/* Card Header: Avatar Monogram + Title + Action Buttons */}
         <div className="flex items-start justify-between gap-2.5">
@@ -339,15 +351,21 @@ function CompanyCard({ company }: { company: Company }) {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div
+            className="flex items-center gap-1.5 shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
               onClick={handleAsk}
-              className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-gold/40 bg-gold/10 text-gold transition-all hover:bg-gold/25 hover:border-gold/70 hover:scale-105"
-              title={`Ask Sastra AI about ${company.name}`}
-              aria-label={`Ask Sastra AI about ${company.name}`}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-gold/40 bg-gold/10 text-gold transition-all hover:bg-gold/25 hover:border-gold/70 hover:scale-105 active:scale-95 shadow-sm"
+              title={`សួរ Sastra AI អំពី ${company.khmerName || company.name}`}
+              aria-label={`សួរ Sastra AI អំពី ${company.khmerName || company.name}`}
             >
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="h-3.5 w-3.5 text-gold animate-pulse" />
+              <span className="text-[11px] font-khmer font-semibold hidden sm:inline text-gold">
+                សួរ AI
+              </span>
             </button>
 
             {company.website && (
@@ -355,6 +373,7 @@ function CompanyCard({ company }: { company: Company }) {
                 href={company.website}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-[#3C301D] bg-[#16120C] text-stone-400 transition-all hover:bg-[#221A10] hover:text-gold hover:border-gold/50"
                 title={`Visit website: ${company.website}`}
               >

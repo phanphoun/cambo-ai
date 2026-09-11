@@ -8,18 +8,18 @@ export function Footer() {
   return (
     <footer className="border-t border-[#261E13] bg-[#070503] text-stone-400 text-xs select-none relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
           {/* Col 1 */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2D2111] via-[#1A140C] to-[#100C07] text-gold border border-gold/60 p-1 shadow-md">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#2D2111] via-[#1A140C] to-[#100C07] text-gold border border-gold/60 p-1 shadow-lg">
                 <KhmerLotusMedallion className="h-full w-full" glow />
               </div>
-              <span className="font-heading font-bold text-sm text-gold-gradient tracking-tight">
+              <span className="font-heading font-bold text-base text-gold-gradient tracking-tight">
                 SASTRA AI
               </span>
             </div>
-            <p className="text-[11px] text-stone-400 font-khmer leading-relaxed">
+            <p className="text-[11px] text-stone-400 font-khmer leading-[1.8]">
               {t.footer.description}
             </p>
           </div>

@@ -37,6 +37,7 @@ export interface ChatRequest {
   document_ids?: string[];
   use_tools?: boolean;
   history?: Message[];
+  response_language?: string;
 }
 
 export interface ChatResponse {

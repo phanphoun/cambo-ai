@@ -1,10 +1,34 @@
 import { useState } from "react";
 import { Download, FileText, FileCode, Loader2, ChevronDown } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { API_BASE } from "../../config/api";
 
 interface ExportDocButtonProps {
   content: string;
   titlePrefix?: string;
+}
+
+function extractDocumentTitle(text: string, fallback?: string): string {
+  if (fallback && fallback !== "Sastra_AI_Response") return fallback;
+  // Match markdown H1 # Title or H2 ## Title
+  const headingMatch = text.match(/^#+\s*([^\n]+)/m);
+  if (headingMatch && headingMatch[1].trim()) {
+    return headingMatch[1].replace(/[*_`#]/g, "").trim().slice(0, 70);
+  }
+  // Match bold title **Title**
+  const boldMatch = text.match(/^\s*\*\*([^\*\n]+)\*\*/m);
+  if (boldMatch && boldMatch[1].trim()) {
+    return boldMatch[1].trim().slice(0, 70);
+  }
+  // First clean line
+  const lines = text.trim().split("\n");
+  for (const line of lines) {
+    const clean = line.replace(/[*_`#\-]/g, "").trim();
+    if (clean.length > 3 && clean.length <= 70 && !clean.startsWith("http")) {
+      return clean;
+    }
+  }
+  return "Sastra AI Document";
 }
 
 export function ExportDocButton({ content, titlePrefix }: ExportDocButtonProps) {
@@ -15,8 +39,8 @@ export function ExportDocButton({ content, titlePrefix }: ExportDocButtonProps) 
     setIsExporting(format);
     setIsOpen(false);
     try {
-      const title = titlePrefix || "Sastra_AI_Response";
-      const res = await fetch("http://localhost:8000/api/documents/generate", {
+      const title = extractDocumentTitle(content, titlePrefix);
+      const res = await fetch(`${API_BASE}/api/documents/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -34,7 +58,7 @@ export function ExportDocButton({ content, titlePrefix }: ExportDocButtonProps) 
       const data = await res.json();
       // Trigger download
       const link = document.createElement("a");
-      link.href = `http://localhost:8000${data.download_url}`;
+      link.href = `${API_BASE}${data.download_url}`;
       link.setAttribute("download", data.filename);
       link.setAttribute("target", "_blank");
       document.body.appendChild(link);

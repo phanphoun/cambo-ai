@@ -508,9 +508,9 @@ export default function LoginPage() {
           <div className="relative min-h-[380px] lg:min-h-full bg-stone-900 overflow-hidden flex flex-col justify-between p-6 sm:p-8">
             {/* Background Cinematic Artwork Image */}
             <img
-              src="/images/angkor-bayon-full-bg.png"
-              alt="Angkor Wat Sunset Sanctuary"
-              className="absolute inset-0 h-full w-full object-cover object-right"
+              src="/images/background-img.png"
+              alt="Sastra AI Sanctuary"
+              className="absolute inset-0 h-full w-full object-cover object-center"
             />
             {/* Warm Sunset Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#0E0C09] via-transparent to-black/30 pointer-events-none" />

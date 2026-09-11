@@ -3,6 +3,7 @@ import os
 import json
 import logging
 from pathlib import Path
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.future import select
 from config import settings
@@ -46,62 +47,146 @@ async def get_db_session() -> AsyncSession:
             await session.close()
 
 
+async def _sync_column_types(conn):
+    """Widen legacy columns that were created before the model changed size/type.
+
+    ``Base.metadata.create_all`` only creates missing tables/columns - it never
+    alters an existing column's type, so a column created under an older,
+    narrower model definition (e.g. ``avatar VARCHAR(512)``) has to be
+    migrated explicitly here.
+    """
+    if db_backend_type != "postgresql":
+        return
+    res = await conn.execute(
+        text(
+            "SELECT data_type, character_maximum_length FROM information_schema.columns "
+            "WHERE table_name = 'users' AND column_name = 'avatar'"
+        )
+    )
+    row = res.first()
+    if row is not None and row[0] != "text":
+        await conn.execute(text("ALTER TABLE users ALTER COLUMN avatar TYPE TEXT"))
+        logger.info("Widened users.avatar column from VARCHAR(%s) to TEXT.", row[1])
+
+
 async def init_db():
     """Create all tables and perform initial auto-migration from JSON records to PostgreSQL."""
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            await _sync_column_types(conn)
         logger.info("Database schema synchronized successfully (Backend: %s).", db_backend_type)
 
-        # Migrate existing users from JSON if table is empty
         async with async_session_maker() as session:
-            res = await session.execute(select(UserDB).limit(1))
-            existing_user = res.scalar_one_or_none()
-
-            if not existing_user and USERS_FILE.exists():
-                try:
-                    with open(USERS_FILE, "r", encoding="utf-8") as f:
-                        users_data = json.load(f)
-                    for u in users_data.values():
-                        db_user = UserDB(
-                            id=u.get("id"),
-                            email=u.get("email"),
-                            name=u.get("name"),
-                            password_hash=u.get("password_hash"),
-                            role=u.get("role", "member"),
-                            avatar=u.get("avatar"),
-                            created_at=u.get("created_at"),
-                        )
-                        session.add(db_user)
-                    await session.commit()
-                    logger.info("Migrated %d users into PostgreSQL.", len(users_data))
-                except Exception as e:
-                    logger.error("Failed to migrate users JSON: %s", e)
-
-            # Migrate custom providers
-            res_p = await session.execute(select(CustomProviderDB).limit(1))
-            existing_prov = res_p.scalar_one_or_none()
-            if not existing_prov and PROVIDERS_FILE.exists():
-                try:
-                    with open(PROVIDERS_FILE, "r", encoding="utf-8") as f:
-                        provs_data = json.load(f)
-                    for p in provs_data:
-                        db_prov = CustomProviderDB(
-                            id=p.get("id"),
-                            name=p.get("name"),
-                            type=p.get("type", "builtin"),
-                            status=p.get("status", "active"),
-                            base_url=p.get("base_url"),
-                            model=p.get("model"),
-                            api_key=p.get("api_key"),
-                            latency_ms=p.get("latency_ms", 0.0),
-                            description=p.get("description"),
-                        )
-                        session.add(db_prov)
-                    await session.commit()
-                    logger.info("Migrated %d AI providers into PostgreSQL.", len(provs_data))
-                except Exception as e:
-                    logger.error("Failed to migrate providers JSON: %s", e)
+            await _migrate_users_from_json(session)
+            await _migrate_providers_from_json(session)
 
     except Exception as e:
         logger.warning("Database initialization deferred/skipped: %s", e)
+
+
+async def _migrate_users_from_json(session: AsyncSession):
+    """Migrate users from the legacy JSON store into PostgreSQL.
+
+    Each user is inserted in its own mini-transaction so that one bad record
+    (e.g. malformed data) cannot abort the whole batch, and a failed insert
+    never leaves the shared session in a rolled-back state for later callers.
+    Migration is keyed on email, so re-running it (e.g. on app restart) never
+    creates duplicate users.
+    """
+    if not USERS_FILE.exists():
+        return
+
+    try:
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            users_data = json.load(f)
+    except Exception as e:
+        logger.error("Failed to read users JSON file %s: %s", USERS_FILE, e)
+        return
+
+    migrated, skipped, failed = 0, 0, 0
+    for u in users_data.values():
+        email = u.get("email")
+        if not email:
+            logger.error("Skipping user record with no email: %r", u)
+            failed += 1
+            continue
+
+        try:
+            existing = await session.execute(select(UserDB).where(UserDB.email == email))
+            if existing.scalar_one_or_none() is not None:
+                skipped += 1
+                continue
+
+            db_user = UserDB(
+                id=u.get("id"),
+                email=email,
+                name=u.get("name"),
+                password_hash=u.get("password_hash"),
+                role=u.get("role", "member"),
+                avatar=u.get("avatar"),
+                created_at=u.get("created_at"),
+            )
+            session.add(db_user)
+            await session.commit()
+            migrated += 1
+        except Exception as e:
+            await session.rollback()
+            logger.error("Failed to migrate user '%s' from JSON: %s", email, e)
+            failed += 1
+
+    logger.info(
+        "User JSON migration complete: %d migrated, %d already present, %d failed.",
+        migrated, skipped, failed,
+    )
+
+
+async def _migrate_providers_from_json(session: AsyncSession):
+    """Migrate custom AI providers from the legacy JSON store into PostgreSQL."""
+    if not PROVIDERS_FILE.exists():
+        return
+
+    try:
+        with open(PROVIDERS_FILE, "r", encoding="utf-8") as f:
+            provs_data = json.load(f)
+    except Exception as e:
+        logger.error("Failed to read providers JSON file %s: %s", PROVIDERS_FILE, e)
+        return
+
+    migrated, skipped, failed = 0, 0, 0
+    for p in provs_data:
+        provider_id = p.get("id")
+        if not provider_id:
+            logger.error("Skipping provider record with no id: %r", p)
+            failed += 1
+            continue
+
+        try:
+            existing = await session.execute(select(CustomProviderDB).where(CustomProviderDB.id == provider_id))
+            if existing.scalar_one_or_none() is not None:
+                skipped += 1
+                continue
+
+            db_prov = CustomProviderDB(
+                id=provider_id,
+                name=p.get("name"),
+                type=p.get("type", "builtin"),
+                status=p.get("status", "active"),
+                base_url=p.get("base_url"),
+                model=p.get("model"),
+                api_key=p.get("api_key"),
+                latency_ms=p.get("latency_ms", 0.0),
+                description=p.get("description"),
+            )
+            session.add(db_prov)
+            await session.commit()
+            migrated += 1
+        except Exception as e:
+            await session.rollback()
+            logger.error("Failed to migrate provider '%s' from JSON: %s", provider_id, e)
+            failed += 1
+
+    logger.info(
+        "Provider JSON migration complete: %d migrated, %d already present, %d failed.",
+        migrated, skipped, failed,
+    )

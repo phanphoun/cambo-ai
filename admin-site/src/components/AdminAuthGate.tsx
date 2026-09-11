@@ -3,6 +3,8 @@ import { Lock, Mail, Eye, EyeOff, ArrowRight, ShieldAlert, KeyRound, CheckCircle
 import { KhmerLotusMedallion, KhmerLotusCrest, KhmerCardCorners } from "./Ornaments";
 import { toast } from "react-hot-toast";
 
+import { API_BASE } from "../services/api";
+
 interface AdminAuthGateProps {
   onAuthenticated: (token: string, adminUser: any) => void;
 }
@@ -22,7 +24,7 @@ export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
 
     setIsLoading(true);
     try {
-      const resp = await fetch("http://localhost:8000/api/auth/login", {
+      const resp = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
@@ -155,7 +157,7 @@ export function AdminAuthGate({ onAuthenticated }: AdminAuthGateProps) {
             Zero-Trust Vault
           </span>
           <a
-            href="http://localhost:5173"
+            href={typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:5173` : "http://localhost:5173"}
             className="text-gold/80 hover:text-gold hover:underline transition-colors"
           >
             ← Chat Portal

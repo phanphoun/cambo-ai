@@ -12,6 +12,7 @@ import {
   toggleDocumentSelected,
 } from "./documentsSlice";
 import type { RootState } from "../../store";
+import { useTranslation } from "../../i18n/useTranslation";
 
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -27,6 +28,7 @@ export default function DocumentsPanel({
   onClose: () => void;
 }) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { data: docs, refetch } = useListDocumentsQuery();
   const docsList = docs ?? [];
   const [uploadDoc, { isLoading: uploading }] = useUploadDocumentMutation();
@@ -86,7 +88,7 @@ export default function DocumentsPanel({
           <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-background px-3">
             <Upload className="h-4 w-4 shrink-0 text-muted-foreground" />
             <span className="py-2.5 text-sm text-muted-foreground">
-              Upload PDF / text to ground answers (RAG)
+              {t.documentsModal.subtitle}
             </span>
           </div>
           <button
@@ -105,7 +107,7 @@ export default function DocumentsPanel({
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            Upload file
+            {t.documentsModal.upload}
           </button>
           <input
             ref={fileRef}
@@ -141,8 +143,7 @@ export default function DocumentsPanel({
           {docsList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <FileText className="mb-2 h-8 w-8 opacity-50" />
-              <p className="text-sm">No documents yet</p>
-              <p className="mt-1 text-xs">Upload a file or paste a URL to get started.</p>
+              <p className="text-sm">{t.documentsModal.noDocs}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -171,7 +172,7 @@ export default function DocumentsPanel({
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-border text-muted-foreground hover:border-primary/50",
                       )}
-                      title={isSel ? "Remove from context" : "Use to ground answers"}
+                      title={t.documentsModal.selectForChat}
                     >
                       <Check className="h-4 w-4" />
                     </button>

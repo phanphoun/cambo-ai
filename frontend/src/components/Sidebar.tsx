@@ -16,7 +16,7 @@ import {
   X,
   Trash2,
 } from "lucide-react";
-import { KhmerAngkorCrest, KbachCorner, KbachLotus } from "./KhmerOrnaments";
+import { KbachCorner, KbachLotus } from "./KhmerOrnaments";
 import {
   deleteConversation,
   type SavedConversation,
@@ -29,6 +29,7 @@ import {
 } from "../features/chat/chatSlice";
 import { cn, formatTime } from "../lib/utils";
 import type { RootState } from "../store";
+import { useTranslation } from "../i18n/useTranslation";
 
 interface SidebarProps {
   open: boolean;
@@ -91,6 +92,7 @@ export default memo(function Sidebar({
   onOpenSettings,
   onSelectPrompt,
 }: SidebarProps) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const conversations = useSelector((s: RootState) => s.conversations.list);
   const activeSessionId = useSelector((s: { chat: ChatState }) => s.chat.sessionId);
@@ -140,24 +142,37 @@ export default memo(function Sidebar({
 
       <aside
         className={cn(
-          "fixed md:static inset-y-0 left-0 z-50 flex h-full flex-col border-r border-[#2C2114] bg-[#0E0C09]/95 backdrop-blur-xl shadow-2xl md:shadow-none transition-all duration-200 ease-in-out select-none",
+          "fixed md:relative inset-y-0 left-0 z-50 shrink-0 flex h-full flex-col bg-[#0E0C09]/95 backdrop-blur-xl shadow-2xl md:shadow-none select-none overflow-hidden",
+          "transition-[width,transform,opacity] duration-300 ease-in-out",
+          // Desktop collapse animation:
           collapsed
-            ? "w-0 p-0 border-r-0 opacity-0 pointer-events-none overflow-hidden md:hidden"
-            : "w-72 max-w-[85vw] md:w-72 p-3.5 opacity-100",
-          open ? "translate-x-0 !flex !w-72 !p-3.5 !opacity-100 !pointer-events-auto" : "-translate-x-full md:translate-x-0",
+            ? "md:w-0 md:opacity-0 md:pointer-events-none md:border-r-0"
+            : "md:w-72 md:opacity-100 md:pointer-events-auto md:border-r md:border-[#2C2114]",
+          // Mobile drawer slide animation:
+          "w-72 max-w-[85vw]",
+          open
+            ? "translate-x-0 opacity-100 pointer-events-auto border-r border-[#2C2114]"
+            : "-translate-x-full md:translate-x-0 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto border-r-0 md:border-r md:border-[#2C2114]",
         )}
         aria-label="Navigation Sidebar"
       >
+        <div className="flex h-full w-72 min-w-[18rem] flex-col p-3.5 shrink-0 overflow-hidden">
         {/* ── Brand Header ── */}
         <div className="relative z-10 flex items-center justify-between shrink-0 pb-3 border-b border-[#2C2114]">
           <div className="flex items-center gap-2.5">
-            <KhmerAngkorCrest className="h-8 w-8 text-gold drop-shadow shrink-0" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#241D12] via-[#1A140D] to-[#100C08] text-gold shadow-md border border-gold/50 p-1 overflow-hidden shrink-0">
+              <img
+                src="/images/khmer-assets/khmer-medallion-lotus-4.png"
+                alt="Sastra AI Sacred Lotus"
+                className="h-full w-full object-contain filter drop-shadow hover:rotate-12 transition-transform duration-300"
+              />
+            </div>
             <div className="flex flex-col">
-              <span className="font-bold text-base text-[#E5C058] tracking-tight leading-none">
+              <span className="font-heading font-bold text-base text-gold tracking-normal leading-none">
                 Sastra AI
               </span>
-              <span className="font-khmer text-[11px] font-semibold text-gold/80 mt-1 leading-none">
-                សាស្ត្រា អេអាយ
+              <span className="font-khmer text-[11px] text-gold/75 mt-1 leading-none">
+                {t.common.tagline}
               </span>
             </div>
           </div>
@@ -191,7 +206,7 @@ export default memo(function Sidebar({
             title="New Conversation"
           >
             <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-            <span>New Chat</span>
+            <span>{t.nav.newChat}</span>
           </button>
         </div>
 
@@ -212,7 +227,7 @@ export default memo(function Sidebar({
             )}
           >
             <Home className="h-4 w-4 text-gold shrink-0" />
-            <span>Home</span>
+            <span>{t.nav.home}</span>
           </button>
 
           {/* History */}
@@ -228,7 +243,7 @@ export default memo(function Sidebar({
           >
             <span className="flex items-center gap-3">
               <Clock className="h-4 w-4 text-stone-400 shrink-0" />
-              <span>History</span>
+              <span>{t.nav.history}</span>
             </span>
             {conversations.length > 0 && (
               <span className="rounded-full bg-gold/15 text-gold text-[10px] px-1.5 py-0.2 font-mono">
@@ -248,7 +263,7 @@ export default memo(function Sidebar({
           >
             <span className="flex items-center gap-3">
               <Bookmark className="h-4 w-4 text-stone-400 shrink-0" />
-              <span>Bookmarks</span>
+              <span>{t.nav.bookmarks}</span>
             </span>
             {pinnedCount > 0 && (
               <span className="rounded-full bg-gold/15 text-gold text-[10px] px-1.5 py-0.2 font-mono">
@@ -268,7 +283,7 @@ export default memo(function Sidebar({
           >
             <span className="flex items-center gap-3">
               <FileText className="h-4 w-4 text-stone-400 shrink-0" />
-              <span>Documents</span>
+              <span>{t.nav.documents}</span>
             </span>
             {selectedDocsCount > 0 && (
               <span className="rounded-full bg-gold/15 text-gold text-[10px] px-1.5 py-0.2 font-mono">
@@ -287,7 +302,7 @@ export default memo(function Sidebar({
             className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold text-stone-300 hover:bg-[#1A150F] hover:text-stone-100 transition-all text-left cursor-pointer"
           >
             <Settings className="h-4 w-4 text-stone-400 shrink-0" />
-            <span>Settings</span>
+            <span>{t.nav.settings}</span>
           </button>
         </div>
 
@@ -295,7 +310,7 @@ export default memo(function Sidebar({
         <div className="relative z-10 mt-3 pt-3 border-t border-[#2C2114]/80 flex flex-col flex-1 min-h-0">
           <div className="flex items-center justify-between px-1 mb-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-gold/70">
-              Suggested Topics
+              {t.nav.suggestedTopics}
             </span>
             <span className="text-gold/40 text-[10px]">✦</span>
           </div>
@@ -307,7 +322,7 @@ export default memo(function Sidebar({
               <div className="space-y-1 animate-fade-in">
                 {conversations.length === 0 ? (
                   <div className="py-6 text-center text-xs text-stone-500">
-                    No past conversations yet
+                    {t.nav.noPastConversations}
                   </div>
                 ) : (
                   conversations.map((conv) => {
@@ -345,11 +360,18 @@ export default memo(function Sidebar({
                 )}
               </div>
             ) : (
-              SUGGESTED_TOPICS.map((topic) => {
-                const Icon = topic.icon;
+              ([
+                { id: "angkor" as const, icon: Landmark },
+                { id: "language" as const, icon: Languages },
+                { id: "history" as const, icon: Lightbulb },
+                { id: "tech" as const, icon: Code2 },
+                { id: "economy" as const, icon: TrendingUp },
+              ]).map((item) => {
+                const Icon = item.icon;
+                const topic = t.topics[item.id];
                 return (
                   <button
-                    key={topic.id}
+                    key={item.id}
                     type="button"
                     onClick={() => handlePickTopic(topic.prompt)}
                     className="w-full group flex items-center gap-2.5 rounded-xl border border-transparent hover:border-[#3C301D] bg-transparent hover:bg-[#16120C] p-2 text-left transition-all cursor-pointer"
@@ -359,10 +381,10 @@ export default memo(function Sidebar({
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-heading text-[12.5px] font-semibold text-stone-200 group-hover:text-gold transition-colors truncate leading-tight">
-                        {topic.titleKm}
+                        {topic.title}
                       </p>
                       <p className="text-[10.5px] font-sans text-stone-400 group-hover:text-stone-300 truncate leading-tight mt-0.5">
-                        {topic.titleEn}
+                        {topic.sub}
                       </p>
                     </div>
                   </button>
@@ -372,7 +394,7 @@ export default memo(function Sidebar({
           </div>
         </div>
 
-        {/* ── Bottom Wisdom Card (ចេះ ឈ្នះ ងងឹត - Knowledge is Power) ── */}
+        {/* ── Bottom Wisdom Card ── */}
         <div className="relative z-10 mt-3 pt-2 shrink-0">
           <div className="relative rounded-2xl border border-amber-600/40 bg-gradient-to-br from-[#1A140D] via-[#14100A] to-[#0D0A07] p-3 text-center shadow-lg shadow-black/60 overflow-hidden group">
             {/* Ornate Corner Elements */}
@@ -391,15 +413,16 @@ export default memo(function Sidebar({
 
             {/* Wisdom Content */}
             <p className="font-heading text-sm font-bold text-[#E5C058] tracking-normal pt-0.5">
-              “ចេះ ឈ្នះ ងងឹត”
+              {t.common.wisdomQuote}
             </p>
             <p className="text-[11px] font-sans text-stone-400 font-normal mt-0.5">
-              Knowledge is Power
+              {t.common.wisdomSub}
             </p>
             <div className="mt-1.5 flex justify-center text-gold/70">
               <KbachLotus className="h-4 w-4" />
             </div>
           </div>
+        </div>
         </div>
       </aside>
     </>

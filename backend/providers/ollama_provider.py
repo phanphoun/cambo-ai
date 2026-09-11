@@ -46,15 +46,19 @@ class OllamaProvider(BaseProvider):
         mode: str = "chat",
         image_data: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
+        response_language: Optional[str] = "km",
     ) -> List[Dict[str, Any]]:
-        system_instruction = prompt_builder.get_system_prompt(mode=mode, rag_context=rag_context)
+        system_instruction = prompt_builder.get_system_prompt(
+            mode=mode, rag_context=rag_context, response_language=response_language
+        )
         msgs = [{"role": "system", "content": system_instruction}]
 
         if history:
             for turn in history[-10:]:
                 msgs.append({"role": turn.get("role", "user"), "content": turn.get("content", "")})
 
-        user_msg: Dict[str, Any] = {"role": "user", "content": message}
+        wrapped_msg = prompt_builder.wrap_user_message(message, response_language=response_language)
+        user_msg: Dict[str, Any] = {"role": "user", "content": wrapped_msg}
         if image_data:
             clean_b64: List[str] = []
             for d in image_data:
@@ -74,8 +78,11 @@ class OllamaProvider(BaseProvider):
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
         use_tools: bool = False,
+        response_language: Optional[str] = "km",
     ) -> Dict[str, Any]:
-        msgs = self._build_messages(message, history, mode, image_data, rag_context)
+        msgs = self._build_messages(
+            message, history, mode, image_data, rag_context, response_language=response_language
+        )
         payload = {
             "model": self._default_model,
             "messages": msgs,
@@ -115,8 +122,11 @@ class OllamaProvider(BaseProvider):
         image_data: Optional[List[str]] = None,
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
+        response_language: Optional[str] = "km",
     ) -> AsyncGenerator[str, None]:
-        msgs = self._build_messages(message, history, mode, image_data, rag_context)
+        msgs = self._build_messages(
+            message, history, mode, image_data, rag_context, response_language=response_language
+        )
         payload = {
             "model": self._default_model,
             "messages": msgs,

@@ -1,5 +1,6 @@
 """Google Gemini Provider Implementation."""
 
+import asyncio
 import base64
 import logging
 from typing import List, Optional, AsyncGenerator, Dict, Any
@@ -13,6 +14,23 @@ from prompts.builder import prompt_builder
 from services.tool_runner import run_with_tools
 
 logger = logging.getLogger("cambo.providers.gemini")
+
+# Some models (esp. preview/high-demand ones) can hang indefinitely instead of
+# erroring out. Bound every per-model attempt so a stuck model fails over to
+# the next candidate rather than blocking the request forever.
+MODEL_TIMEOUT_SECONDS = 20.0
+
+
+async def _iter_with_timeout(stream, timeout: float):
+    """Wrap an async iterator so a stalled upstream stream raises TimeoutError
+    instead of hanging forever, per item."""
+    it = stream.__aiter__()
+    while True:
+        try:
+            chunk = await asyncio.wait_for(it.__anext__(), timeout=timeout)
+        except StopAsyncIteration:
+            return
+        yield chunk
 
 
 def _image_part_from_data(data_url: str) -> "types.Part":
@@ -50,20 +68,13 @@ class GeminiProvider(BaseProvider):
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
         use_tools: bool = False,
+        response_language: Optional[str] = "km",
     ) -> Dict[str, Any]:
         client = self._get_client()
-        system_instruction = prompt_builder.get_system_prompt(mode=mode, rag_context=rag_context)
+        system_instruction = prompt_builder.get_system_prompt(
+            mode=mode, rag_context=rag_context, response_language=response_language
+        )
 
-        if use_tools:
-            return await run_with_tools(
-                client=client,
-                model=self._model,
-                user_message=message,
-                system_instruction=system_instruction,
-                history=history,
-            )
-
-        # Non-tool query
         contents: List[Any] = []
         if history:
             for turn in history[-10:]:
@@ -71,7 +82,8 @@ class GeminiProvider(BaseProvider):
                 text = turn.get("content", "")
                 contents.append(types.Content(role=role, parts=[types.Part.from_text(text=text)]))
 
-        current_parts: List[Any] = [types.Part.from_text(text=message)]
+        wrapped_msg = prompt_builder.wrap_user_message(message, response_language=response_language)
+        current_parts: List[Any] = [types.Part.from_text(text=wrapped_msg)]
         if image_data:
             for d in image_data:
                 try:
@@ -81,22 +93,34 @@ class GeminiProvider(BaseProvider):
 
         contents.append(types.Content(role="user", parts=current_parts))
 
+        if use_tools:
+            return await run_with_tools(
+                client=client,
+                model=self._model,
+                system_instruction=system_instruction,
+                contents=contents,
+            )
+
+        # Non-tool query
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
             temperature=settings.gemini_temperature,
             max_output_tokens=settings.gemini_max_tokens,
         )
 
-        models_to_try = [self._model, "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemma-4-31b-it"]
+        models_to_try = [self._model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-31b-it", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]
         unique_models = list(dict.fromkeys(models_to_try))
 
         last_err = None
         for m in unique_models:
             try:
-                resp = await client.aio.models.generate_content(
-                    model=m,
-                    contents=contents,
-                    config=config,
+                resp = await asyncio.wait_for(
+                    client.aio.models.generate_content(
+                        model=m,
+                        contents=contents,
+                        config=config,
+                    ),
+                    timeout=MODEL_TIMEOUT_SECONDS,
                 )
 
                 tokens = None
@@ -110,10 +134,15 @@ class GeminiProvider(BaseProvider):
                     "tool_calls": [],
                     "citations": [],
                 }
+            except asyncio.TimeoutError as e:
+                last_err = e
+                logger.warning("Model %s timed out after %ss, falling back", m, MODEL_TIMEOUT_SECONDS)
+                continue
             except Exception as e:
                 last_err = e
-                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e) or "quota" in str(e).lower() or "404" in str(e):
-                    logger.warning("Model %s hit rate limit/unavailable, falling back: %s", m, e)
+                err_str = str(e).lower()
+                if any(k in err_str for k in ["503", "429", "404", "resource_exhausted", "quota", "unavailable", "high demand", "overloaded", "servererror"]):
+                    logger.warning("Model %s hit error/high-demand, falling back: %s", m, e)
                     continue
                 raise e
         raise last_err
@@ -126,9 +155,12 @@ class GeminiProvider(BaseProvider):
         image_data: Optional[List[str]] = None,
         image_urls: Optional[List[str]] = None,
         rag_context: Optional[str] = None,
+        response_language: Optional[str] = "km",
     ) -> AsyncGenerator[str, None]:
         client = self._get_client()
-        system_instruction = prompt_builder.get_system_prompt(mode=mode, rag_context=rag_context)
+        system_instruction = prompt_builder.get_system_prompt(
+            mode=mode, rag_context=rag_context, response_language=response_language
+        )
 
         contents: List[Any] = []
         if history:
@@ -137,7 +169,8 @@ class GeminiProvider(BaseProvider):
                 text = turn.get("content", "")
                 contents.append(types.Content(role=role, parts=[types.Part.from_text(text=text)]))
 
-        current_parts: List[Any] = [types.Part.from_text(text=message)]
+        wrapped_msg = prompt_builder.wrap_user_message(message, response_language=response_language)
+        current_parts: List[Any] = [types.Part.from_text(text=wrapped_msg)]
         if image_data:
             for d in image_data:
                 try:
@@ -153,28 +186,43 @@ class GeminiProvider(BaseProvider):
             max_output_tokens=settings.gemini_max_tokens,
         )
 
-        models_to_try = [self._model, "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemma-4-31b-it"]
+        models_to_try = [self._model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-31b-it", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]
         unique_models = list(dict.fromkeys(models_to_try))
 
         success = False
         last_err = None
         for m in unique_models:
+            got_any_chunk = False
             try:
-                response_stream = await client.aio.models.generate_content_stream(
-                    model=m,
-                    contents=contents,
-                    config=config,
+                response_stream = await asyncio.wait_for(
+                    client.aio.models.generate_content_stream(
+                        model=m,
+                        contents=contents,
+                        config=config,
+                    ),
+                    timeout=MODEL_TIMEOUT_SECONDS,
                 )
 
-                async for chunk in response_stream:
+                async for chunk in _iter_with_timeout(response_stream, MODEL_TIMEOUT_SECONDS):
                     if chunk.text:
+                        got_any_chunk = True
                         yield chunk.text
                 success = True
                 break
+            except asyncio.TimeoutError as e:
+                last_err = e
+                if got_any_chunk:
+                    # Already streamed partial content to the client; treat as done
+                    # rather than retrying (which would duplicate/confuse output).
+                    success = True
+                    break
+                logger.warning("Stream model %s timed out after %ss with no output, falling back", m, MODEL_TIMEOUT_SECONDS)
+                continue
             except Exception as e:
                 last_err = e
-                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e) or "quota" in str(e).lower() or "404" in str(e):
-                    logger.warning("Stream model %s unavailable, falling back: %s", m, e)
+                err_str = str(e).lower()
+                if any(k in err_str for k in ["503", "429", "404", "resource_exhausted", "quota", "unavailable", "high demand", "overloaded", "servererror"]):
+                    logger.warning("Stream model %s unavailable/overloaded, falling back: %s", m, e)
                     continue
                 raise e
 

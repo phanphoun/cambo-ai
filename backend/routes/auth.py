@@ -47,7 +47,7 @@ class AuthResponse(BaseModel):
     user: UserResponse
 
 
-def get_current_user(authorization: Optional[str] = Header(None)) -> Optional[dict]:
+def get_current_user(authorization: str = Header(None)) -> Optional[dict]:
     """Dependency to retrieve the authenticated user from Authorization header."""
     if not authorization or not authorization.startswith("Bearer "):
         return None

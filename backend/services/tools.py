@@ -311,22 +311,55 @@ def rag_query(query: str, document_ids: list | None = None) -> str:
     return "\n\n".join(out)
 
 
+def _search_ddg_lite(query: str, max_results: int = 5) -> List[Dict[str, str]]:
+    """Fast resilient web search via DuckDuckGo Lite with zero API key requirement."""
+    import httpx
+    import re
+    from urllib.parse import unquote
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Referer": "https://lite.duckduckgo.com/",
+    }
+    try:
+        with httpx.Client(headers=headers, follow_redirects=True, timeout=8.0) as client:
+            resp = client.post("https://lite.duckduckgo.com/lite/", data={"q": query})
+            links = re.findall(r'<a rel="nofollow" href="([^"]+)"[^>]*>(.*?)</a>', resp.text)
+            snippets = re.findall(r'<td class=[\'"]result-snippet[\'"]>(.*?)</td>', resp.text, re.DOTALL)
+            
+            results = []
+            count = min(len(links), len(snippets), max_results)
+            for i in range(count):
+                raw_url, raw_title = links[i]
+                title = re.sub(r'<[^>]+>', '', raw_title).strip()
+                snip = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', snippets[i])).strip()
+                url = raw_url
+                m = re.search(r'uddg=([^&]+)', raw_url)
+                if m:
+                    url = unquote(m.group(1))
+                results.append({"title": title, "url": url, "snippet": snip})
+            return results
+    except Exception:
+        return []
+
+
 @register_tool(
     "web_search",
-    "Search the web using Tavily and return concise results with titles, URLs, and snippets. "
-    "Use this for current events, live info, or anything outside the local knowledge base.",
+    "Search the live web for official websites, social media profiles (Facebook, LinkedIn, etc.), "
+    "news, companies, technical documentation, and real-time facts.",
     {
         "type": "object",
         "properties": {
-            "query": {"type": "string", "description": "Search query."},
+            "query": {"type": "string", "description": "Search query keywords."},
             "search_depth": {
                 "type": "string",
                 "enum": ["basic", "advanced"],
-                "description": "Depth of search. Use 'advanced' for harder questions.",
+                "description": "Depth of search.",
             },
             "max_results": {
                 "type": "integer",
-                "description": "Number of results to return.",
+                "description": "Number of results to return (default: 5).",
                 "minimum": 1,
                 "maximum": 10,
             },
@@ -336,34 +369,36 @@ def rag_query(query: str, document_ids: list | None = None) -> str:
 )
 def web_search(query: str, search_depth: str | None = None, max_results: int | None = None) -> str:
     from config import settings
-
-    if not settings.tavily_api_key:
-        return "[error] Tavily is not configured. Set TAVILY_API_KEY."
-
-    try:
-        from tavily import TavilyClient
-    except Exception as e:
-        return f"[error] tavily client unavailable: {e}"
-
-    client = TavilyClient(api_key=settings.tavily_api_key)
-    depth = search_depth or settings.tavily_search_depth or "basic"
     limit = max_results or settings.tavily_max_results or 5
-    try:
-        result = client.search(query, search_depth=depth, max_results=limit)
-    except Exception as e:
-        return f"[tool error] tavily search failed: {e}"
 
-    hits = result.get("results") or []
-    if not hits:
-        return "No web search results found."
+    # 1. Try Tavily if configured
+    if settings.tavily_api_key:
+        try:
+            from tavily import TavilyClient
+            client = TavilyClient(api_key=settings.tavily_api_key)
+            depth = search_depth or settings.tavily_search_depth or "basic"
+            result = client.search(query, search_depth=depth, max_results=limit)
+            hits = result.get("results") or []
+            if hits:
+                out = []
+                for i, hit in enumerate(hits[:limit], start=1):
+                    title = hit.get("title") or "(untitled)"
+                    url = hit.get("url") or ""
+                    snippet = (hit.get("content") or "").strip()
+                    out.append(f"{i}. {title}\n   URL: {url}\n   Snippet: {snippet}")
+                return "\n\n".join(out)
+        except Exception:
+            pass
 
-    out = []
-    for i, hit in enumerate(hits[:limit], start=1):
-        title = hit.get("title") or "(untitled)"
-        url = hit.get("url") or ""
-        snippet = (hit.get("content") or "").strip()
-        out.append(f"{i}. {title}\n   {url}\n   {snippet}")
-    return "\n\n".join(out)
+    # 2. Fallback to resilient web search
+    ddg_hits = _search_ddg_lite(query, max_results=limit)
+    if ddg_hits:
+        out = []
+        for i, hit in enumerate(ddg_hits, start=1):
+            out.append(f"{i}. {hit['title']}\n   URL: {hit['url']}\n   Snippet: {hit['snippet']}")
+        return "\n\n".join(out)
+
+    return "No web search results found."
 
 
 # ------------------------------------------------------------------
@@ -474,4 +509,64 @@ async def edit_image(prompt: str, aspect_ratio: str = "1:1") -> str:
     if res.get("success"):
         return res["markdown"]
     return f"[image error] {res.get('error', 'Failed to edit image')}"
+
+
+@register_tool(
+    "khmer_calendar_lookup",
+    "Lookup Cambodian real-time date and time (ICT UTC+7 Phnom Penh), convert between Gregorian and Khmer Lunisolar Calendar (Chhankitek ចន្ទគតិ), "
+    "check Buddhist holy days (ថ្ងៃសីល - 8th/15th waxing/waning), moon phases (ខ្នើត/រនោច), 12 Zodiac Animal years (ឆ្នាំជូត...កុរ), "
+    "10 Sak eras (ឯកស័ក...សំរឹទ្ធិស័ក), Buddhist Era (ព.ស.), and traditional Khmer festivals (ចូលឆ្នាំខ្មែរ, ភ្ជុំបិណ្ឌ, អុំទូក, វិសាខបូជា, មាឃបូជា).",
+    {
+        "type": "object",
+        "properties": {
+            "query_type": {
+                "type": "string",
+                "enum": ["today", "next_holy_day", "convert_date"],
+                "description": "Type of query: 'today' for today's complete Cambodian calendar and time, 'next_holy_day' for upcoming ថ្ងៃសីល, 'convert_date' for a specific date.",
+            },
+            "date": {
+                "type": "string",
+                "description": "Optional specific ISO date (YYYY-MM-DD) e.g. '2026-09-07' or '2026-10-10'. Defaults to today in Cambodia.",
+            },
+        },
+    },
+)
+def khmer_calendar_lookup(query_type: str = "today", date: Optional[str] = None) -> str:
+    from services.khmer_calendar import (
+        get_current_khmer_calendar_context,
+        calculate_khmer_lunar,
+        find_next_holy_day,
+    )
+    from datetime import date as dt_date
+
+    if query_type == "next_holy_day":
+        nxt = find_next_holy_day()
+        if nxt:
+            return (
+                f"ថ្ងៃសីលបន្ទាប់គឺ៖ {nxt['lunar_str_kh']}\n"
+                f"ត្រូវនឹងថ្ងៃសុរិយគតិ៖ {nxt['solar_str_kh']} ({nxt['gregorian_date']})\n"
+                f"ប្រភេទថ្ងៃសីល៖ {nxt['holy_day_label']}\n"
+                f"រយៈពេល៖ នៅសល់ {nxt['days_away']} ថ្ងៃទៀត។"
+            )
+        return "មិនអាចរកឃើញថ្ងៃសីលក្នុងអំឡុង ៣០ ថ្ងៃខាងមុខ។"
+
+    if date:
+        try:
+            parsed_date = dt_date.fromisoformat(date)
+            res = calculate_khmer_lunar(parsed_date)
+            holy_txt = f"\n• ស្ថានភាពថ្ងៃសីល៖ {res['holy_day_label']}" if res['is_holy_day'] else "\n• ស្ថានភាពថ្ងៃសីល៖ មិនមែនជាថ្ងៃសីល"
+            obs_txt = f"\n• ពិធីបុណ្យប្រពៃណី៖ {res['observance']}" if res.get('observance') else ""
+            return (
+                f"=== KHMER CALENDAR CONVERSION FOR {date} ===\n"
+                f"• កាលបរិច្ឆេទសុរិយគតិ៖ {res['solar_str_kh']} ({res['day_en']})\n"
+                f"• កាលបរិច្ឆេទចន្ទគតិ៖ {res['lunar_str_kh']}\n"
+                f"• ដំណាក់កាលព្រះចន្ទ៖ {res['moon_phase']}"
+                f"{holy_txt}{obs_txt}\n"
+                f"• ឆ្នាំសត្វ៖ ឆ្នាំ{res['zodiac_year']} | ស័ក៖ {res['stem']} | ពុទ្ធសករាជ៖ {res['lunar_year_be']}"
+            )
+        except Exception as e:
+            return f"[error] invalid date format '{date}': {e}. Please use YYYY-MM-DD."
+
+    return get_current_khmer_calendar_context()
+
 

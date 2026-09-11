@@ -44,11 +44,20 @@ export default function App() {
       ]);
 
       if (s.status === "fulfilled") setStats(s.value);
+      else console.error("Admin telemetry error:", s.reason);
+
       if (u.status === "fulfilled") setUsers(u.value);
+      else console.error("Admin users error:", u.reason);
+
       if (p.status === "fulfilled") setProviders(p.value);
+      else console.error("Admin providers error:", p.reason);
+
       if (l.status === "fulfilled") setLogs(l.value);
-    } catch (err: any) {
-      toast.error("Failed to load some admin data");
+      else console.error("Admin logs error:", l.reason);
+
+      if (s.status === "rejected" && u.status === "rejected") {
+        toast.error("Failed to connect to backend API");
+      }
     } finally {
       setIsRefreshing(false);
     }

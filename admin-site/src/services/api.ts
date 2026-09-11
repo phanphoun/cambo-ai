@@ -1,9 +1,37 @@
 import type { UserItem, ProviderItem, TelemetryStats, ActivityLogItem } from "../types";
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE ?? "http://localhost:8000";
+export function getApiBase(): string {
+  const envBase = (import.meta as any).env?.VITE_API_BASE;
+  if (typeof window !== "undefined" && window.location?.hostname) {
+    const host = window.location.hostname;
+    const protocol = window.location.protocol;
+    if (envBase && typeof envBase === "string" && envBase.trim() !== "") {
+      try {
+        const parsed = new URL(envBase);
+        const isLoopbackOrStale =
+          parsed.hostname === "localhost" ||
+          parsed.hostname === "127.0.0.1" ||
+          parsed.hostname === "172.16.1.129";
+        if (isLoopbackOrStale && host !== "localhost" && host !== "127.0.0.1") {
+          return `${protocol}//${host}:8001`;
+        }
+        if ((host === "localhost" || host === "127.0.0.1") && parsed.hostname === "172.16.1.129") {
+          return `${protocol}//${host}:8001`;
+        }
+        return envBase.replace(/\/+$/, "");
+      } catch {
+        // fallback
+      }
+    }
+    return `${protocol}//${host}:8001`;
+  }
+  return envBase || "http://localhost:8001";
+}
+
+export const API_BASE = getApiBase();
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem("sastra_auth_token");
+  const token = localStorage.getItem("sastra_admin_token");
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> || {}),

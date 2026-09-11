@@ -27,8 +27,15 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import ModeDropdown from "../features/modes/ModeDropdown";
+import LanguageDropdown from "./LanguageDropdown";
+import { useTranslation } from "../i18n/useTranslation";
 import { setMode, type AiMode } from "../features/modes/modesSlice";
 import { setDirectoryOpen } from "../features/directory/directorySlice";
+import {
+  KhmerInputCorner,
+  KhmerBorderPediment,
+  KhmerDividerAccent,
+} from "./KhmerOrnaments";
 import {
   companies,
   DIRECTORY_SECTORS,
@@ -104,6 +111,7 @@ export default function ChatInput({
   isStreaming,
 }: ChatInputProps) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const [value, setValue] = useState("");
   const [slashOpen, setSlashOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -299,12 +307,12 @@ export default function ChatInput({
     const el = ref.current;
     if (!el) return;
     if (!value) {
-      el.style.height = "auto";
+      el.style.height = "28px";
       return;
     }
     const raf = requestAnimationFrame(() => {
-      el.style.height = "auto";
-      const targetHeight = Math.min(el.scrollHeight, 240);
+      el.style.height = "28px";
+      const targetHeight = Math.min(Math.max(el.scrollHeight, 28), 160);
       el.style.height = `${targetHeight}px`;
     });
     return () => cancelAnimationFrame(raf);
@@ -422,7 +430,7 @@ export default function ChatInput({
     setValue("");
     userTypedRef.current = false;
     if (ref.current) {
-      ref.current.style.height = "auto";
+      ref.current.style.height = "28px";
     }
   };
 
@@ -439,10 +447,10 @@ export default function ChatInput({
             <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-[#2C2114] text-[11px] text-stone-400">
               <span className="font-semibold text-gold flex items-center gap-1.5">
                 <span>⚡</span>
-                <span>Directory & Slash Shortcuts</span>
+                <span>{t.input.slashTitle}</span>
               </span>
               <span className="text-[10px] text-stone-500 font-mono">
-                ↑ ↓ navigate · Enter select · Esc close
+                {t.input.shortcutsHelp}
               </span>
             </div>
 
@@ -511,39 +519,44 @@ export default function ChatInput({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            "relative flex flex-col rounded-3xl border-2 border-[#5E4723] bg-[#110D09]/95 p-3 sm:p-4 shadow-2xl shadow-black/90 backdrop-blur-2xl ring-1 ring-gold/25 transition-all duration-200 overflow-visible",
+            "group relative flex flex-col rounded-2xl border border-[#4E371C]/90 bg-[#120E09]/95 px-3 py-2 sm:px-3.5 sm:py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.85)] backdrop-blur-2xl transition-all duration-300",
+            "focus-within:border-gold/75 focus-within:shadow-[0_8px_32px_rgba(212,175,55,0.16)] focus-within:ring-1 focus-within:ring-gold/30",
             dragOver && "border-gold ring-2 ring-gold/50 bg-gold/10",
           )}
         >
-          {/* Traditional Khmer Kbach Corner Filigree Ornaments from Asset 1 */}
-          <img
-            src="/images/khmer-assets/khmer-corner-1.png"
-            alt="Khmer Corner Decor"
-            className="absolute top-0 left-0 h-8 w-8 object-contain pointer-events-none z-10 opacity-80 hover:opacity-100 transition-opacity drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]"
-          />
-          <img
-            src="/images/khmer-assets/khmer-corner-1.png"
-            alt="Khmer Corner Decor"
-            className="absolute top-0 right-0 h-8 w-8 object-contain pointer-events-none z-10 opacity-80 hover:opacity-100 transition-opacity -scale-x-100 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]"
-          />
-          <img
-            src="/images/khmer-assets/khmer-corner-1.png"
-            alt="Khmer Corner Decor"
-            className="absolute bottom-0 left-0 h-8 w-8 object-contain pointer-events-none z-10 opacity-80 hover:opacity-100 transition-opacity -scale-y-100 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]"
-          />
-          <img
-            src="/images/khmer-assets/khmer-corner-1.png"
-            alt="Khmer Corner Decor"
-            className="absolute bottom-0 right-0 h-8 w-8 object-contain pointer-events-none z-10 opacity-80 hover:opacity-100 transition-opacity -scale-x-100 -scale-y-100 drop-shadow-[0_0_6px_rgba(212,175,55,0.45)]"
-          />
+          {/* Top Architectural Pediment Crest (ហោជាងលម្អកណ្តាល) */}
+          <div className="absolute -top-2 sm:-top-2.5 left-1/2 -translate-x-1/2 pointer-events-none z-20 transition-all duration-300 opacity-75 group-focus-within:opacity-100 group-focus-within:drop-shadow-[0_0_6px_rgba(212,175,55,0.4)]">
+            <KhmerBorderPediment className="h-2.5 sm:h-3 w-32 sm:w-40 text-gold" />
+          </div>
+
+          {/* Inner Golden Hairline Accent Frame */}
+          <div className="absolute inset-[2px] sm:inset-[2.5px] rounded-[13px] sm:rounded-[14px] border border-[#3E2E16]/40 pointer-events-none group-focus-within:border-[#D4AF37]/25 transition-colors duration-300" />
+
+          {/* Four Inset Traditional Khmer Kbach Corner Motifs (ក្បាច់កាច់ជ្រុងបន្ទាយស្រី) */}
+          <div className="absolute top-0.5 left-0.5 pointer-events-none z-20 transition-all duration-300 opacity-55 group-focus-within:opacity-85 group-focus-within:drop-shadow-[0_0_4px_rgba(212,175,55,0.35)]">
+            <KhmerInputCorner className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          </div>
+          <div className="absolute top-0.5 right-0.5 pointer-events-none z-20 transition-all duration-300 opacity-55 group-focus-within:opacity-85 group-focus-within:drop-shadow-[0_0_4px_rgba(212,175,55,0.35)] rotate-90">
+            <KhmerInputCorner className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          </div>
+          <div className="absolute bottom-0.5 left-0.5 pointer-events-none z-20 transition-all duration-300 opacity-55 group-focus-within:opacity-85 group-focus-within:drop-shadow-[0_0_4px_rgba(212,175,55,0.35)] -rotate-90">
+            <KhmerInputCorner className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          </div>
+          <div className="absolute bottom-0.5 right-0.5 pointer-events-none z-20 transition-all duration-300 opacity-55 group-focus-within:opacity-85 group-focus-within:drop-shadow-[0_0_4px_rgba(212,175,55,0.35)] rotate-180">
+            <KhmerInputCorner className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+          </div>
+
+          {/* Subtle Horizontal Golden Rim Gleam */}
+          <div className="absolute top-0 left-16 right-16 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-16 right-16 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent pointer-events-none" />
 
           {/* Image Attachments Tray */}
           {attachments.length > 0 && (
-            <div className="mb-2.5 flex flex-wrap gap-2 pt-1 z-10">
+            <div className="mb-2 flex flex-wrap gap-2 pt-0.5 z-10 px-1">
               {attachments.map((att) => (
                 <div
                   key={att.id}
-                  className="group relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-xl border border-gold/40 bg-black/60 shadow-sm"
+                  className="group relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-xl border border-gold/40 bg-black/60 shadow-sm"
                 >
                   <img
                     src={att.dataUrl}
@@ -553,7 +566,7 @@ export default function ChatInput({
                   <button
                     type="button"
                     onClick={() => dispatch(removeAttachment(att.id))}
-                    className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-black/80 text-white transition-colors hover:bg-rose-600"
+                    className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/80 text-white transition-colors hover:bg-rose-600"
                     title="Remove attachment"
                   >
                     <X className="h-2.5 w-2.5" />
@@ -563,48 +576,73 @@ export default function ChatInput({
             </div>
           )}
 
-          {/* Top Row: Lotus Medallion Pedestal (Asset 4) + Textarea */}
-          <div className="relative z-10 flex items-center gap-3 sm:gap-4 pl-1">
-            {/* Sacred Golden Lotus Medallion Pedestal (Asset 4) */}
-            <div className="relative flex h-11 w-11 sm:h-13 sm:w-13 shrink-0 items-center justify-center rounded-full border-2 border-gold/60 bg-gradient-to-br from-[#2D2111] via-[#1A140B] to-[#0E0B07] shadow-xl shadow-black/80 p-0.5 group/lotus overflow-hidden">
-              <img
-                src="/images/khmer-assets/khmer-medallion-lotus-4.png"
-                alt="Khmer Sacred Lotus"
-                className="h-full w-full object-contain filter drop-shadow group-hover/lotus:rotate-45 group-hover/lotus:scale-110 transition-transform duration-500"
-              />
-            </div>
-
-            {/* Multilingual Text Input Area */}
-            <div className="min-w-0 flex-1">
-              <textarea
-                ref={ref}
-                value={value}
-                onChange={(e) => {
-                  setValue(e.target.value);
-                  userTypedRef.current = true;
+          {/* Multilingual Text Input Area */}
+          <div className="relative z-10 w-full px-1.5 sm:px-2 flex items-start gap-1.5">
+            <textarea
+              ref={ref}
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+                userTypedRef.current = true;
+              }}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              onCompositionStart={() => (composingRef.current = true)}
+              onCompositionEnd={() => (composingRef.current = false)}
+              placeholder={t.input.placeholder}
+              disabled={disabled}
+              rows={1}
+              maxLength={MAX_LENGTH}
+              style={{ minHeight: "28px" }}
+              className="w-full resize-none bg-transparent font-khmer text-[13.5px] sm:text-[14.5px] leading-relaxed text-stone-100 placeholder:text-stone-500 placeholder:font-khmer placeholder:text-xs sm:placeholder:text-[13px] focus:outline-none scrollbar-thin py-0.5"
+            />
+            {value && (
+              <button
+                type="button"
+                onClick={() => {
+                  setValue("");
+                  userTypedRef.current = false;
+                  if (ref.current) {
+                    ref.current.style.height = "28px";
+                    ref.current.focus();
+                  }
                 }}
-                onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
-                onCompositionStart={() => (composingRef.current = true)}
-                onCompositionEnd={() => (composingRef.current = false)}
-                placeholder="សួរ Sastra AI ធ្វើកិច្ចការអ្វី ឬវាយ / ស្វែងរក Directory... / Type / for directory..."
-                disabled={disabled}
-                rows={1}
-                maxLength={MAX_LENGTH}
-                className="w-full resize-none bg-transparent font-khmer text-[14.5px] sm:text-[15.5px] leading-[1.75] text-stone-100 placeholder:text-stone-500 placeholder:font-khmer placeholder:text-xs sm:placeholder:text-[13.5px] focus:outline-none scrollbar-none py-1.5"
-              />
+                className="shrink-0 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-stone-400 hover:text-stone-200 hover:bg-white/10 transition-colors cursor-pointer"
+                title={t.input.clearInput}
+                aria-label={t.input.clearInput}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Sleek Khmer Divider Accent */}
+          <div className="relative my-1 sm:my-1.5 flex items-center justify-center px-1">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#3B2C17]/60 group-focus-within:border-[#6B5024]/50 transition-colors" />
+            </div>
+            <div className="relative bg-[#120E09] px-2">
+              <KhmerDividerAccent className="h-1.5 sm:h-2 w-16 sm:w-20 text-gold/50 group-focus-within:text-gold/80 transition-colors" />
             </div>
           </div>
 
-          {/* Bottom Toolbar: Mode Dropdown on left, Tools & Golden Send on right */}
-          <div className="relative z-10 mt-3 flex items-center justify-between gap-2 border-t border-[#3B2C17] pt-2.5 pl-1 pr-0.5">
-            {/* Mode Dropdown Selector */}
-            <div className="flex items-center">
+          {/* Bottom Toolbar: Mode & Language Dropdowns on left, Tools & Golden Send on right */}
+          <div className="relative z-10 flex items-center justify-between gap-2 px-0.5">
+            {/* Mode & Language Dropdown Selectors */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <ModeDropdown />
+              <LanguageDropdown placement="top" />
             </div>
 
             {/* Right Action Tools */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Character counter (only when longer than 200 chars) */}
+              {value.length > 200 && (
+                <span className="text-[10px] font-mono text-stone-500 mr-1 select-none">
+                  {value.length}/{MAX_LENGTH}
+                </span>
+              )}
+
               {/* Image upload hidden file input */}
               <input
                 ref={fileRef}
@@ -619,11 +657,11 @@ export default function ChatInput({
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="flex h-8 w-8 items-center justify-center rounded-xl text-stone-400 hover:text-gold hover:bg-[#1E1810] transition-colors"
-                title="Attach images"
-                aria-label="Attach images"
+                className="flex h-7 w-7 sm:h-7.5 sm:w-7.5 items-center justify-center rounded-lg text-stone-400 hover:text-gold hover:bg-[#1E1810] transition-colors cursor-pointer"
+                title={t.input.attachImages}
+                aria-label={t.input.attachImages}
               >
-                <Paperclip className="h-4 w-4" />
+                <Paperclip className="h-3.5 w-3.5" />
               </button>
 
               {/* Voice input button */}
@@ -632,18 +670,18 @@ export default function ChatInput({
                   type="button"
                   onClick={speech.listening ? speech.stop : speech.start}
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-xl transition-colors",
+                    "flex h-7 w-7 sm:h-7.5 sm:w-7.5 items-center justify-center rounded-lg transition-colors cursor-pointer",
                     speech.listening
                       ? "bg-rose-500/20 text-rose-400 animate-pulse"
                       : "text-stone-400 hover:text-gold hover:bg-[#1E1810]",
                   )}
-                  title={speech.listening ? "Stop listening" : "Voice input"}
-                  aria-label="Voice input"
+                  title={speech.listening ? t.input.stopListening : t.input.voiceInput}
+                  aria-label={speech.listening ? t.input.stopListening : t.input.voiceInput}
                 >
                   {speech.listening ? (
-                    <MicOff className="h-4 w-4" />
+                    <MicOff className="h-3.5 w-3.5" />
                   ) : (
-                    <Mic className="h-4 w-4" />
+                    <Mic className="h-3.5 w-3.5" />
                   )}
                 </button>
               )}
@@ -653,11 +691,11 @@ export default function ChatInput({
                 <button
                   type="button"
                   onClick={onStop}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-600 text-white shadow-lg shadow-amber-600/30 hover:bg-amber-500 transition-all"
-                  title="Stop generating"
-                  aria-label="Stop generating"
+                  className="flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-amber-600 text-white shadow-md shadow-amber-600/30 hover:bg-amber-500 transition-all cursor-pointer"
+                  title={t.input.stopGenerating}
+                  aria-label={t.input.stopGenerating}
                 >
-                  <Square className="h-4 w-4 fill-current" />
+                  <Square className="h-3.5 w-3.5 fill-current" />
                 </button>
               ) : (
                 <button
@@ -665,15 +703,15 @@ export default function ChatInput({
                   onClick={handleSubmit}
                   disabled={!value.trim() && attachments.length === 0}
                   className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 shadow-md",
+                    "flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-all duration-200 shadow-md cursor-pointer",
                     value.trim() || attachments.length > 0
                       ? "bg-gradient-to-br from-[#F5D77F] via-[#D4AF37] to-[#996515] text-black font-bold shadow-gold/25 hover:scale-105 active:scale-95"
                       : "bg-[#221A10] text-stone-500 cursor-not-allowed border border-[#3A2E1C]",
                   )}
-                  title="Send message (Enter)"
-                  aria-label="Send message"
+                  title={t.input.sendMessage}
+                  aria-label={t.input.sendMessage}
                 >
-                  <Send className="h-4 w-4 ml-0.5" />
+                  <Send className="h-3.5 w-3.5 ml-0.5" />
                 </button>
               )}
             </div>
@@ -681,8 +719,8 @@ export default function ChatInput({
         </div>
 
         {/* Footer Hint */}
-        <p className="mt-1.5 text-center text-[10.5px] text-stone-500">
-          Enter to send ✦ Shift + Enter for new line ✦ Type <span className="text-gold font-mono font-bold">/</span> for directory shortcuts
+        <p className="mt-1.5 text-center text-[10.5px] text-stone-500/80 font-sans select-none">
+          {t.input.shortcuts}
         </p>
       </div>
     </div>

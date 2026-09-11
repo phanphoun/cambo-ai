@@ -14,103 +14,61 @@ import {
 } from "lucide-react";
 import { KhmerAngkorCrest } from "./KhmerOrnaments";
 import type { RootState } from "../store";
+import { useTranslation } from "../i18n/useTranslation";
 
-interface HeroCard {
-  id: string;
-  badge: string;
-  badgeColor?: string;
-  imgSrc: string;
-  icon: React.ComponentType<{ className?: string }>;
-  titleKm: string;
-  titleEn: string;
-  descKm: string;
-  prompt: string;
-}
-
-const HERO_CARDS: HeroCard[] = [
+const HERO_CARD_CONFIGS = [
   {
-    id: "angkor",
-    badge: "Heritage",
+    id: "angkor" as const,
     imgSrc: "/images/cards/card-angkor.png",
     icon: KhmerAngkorCrest,
-    titleKm: "អង្គរវត្ត",
-    titleEn: "Angkor Wat",
-    descKm: "ស្វែងយល់ពីប្រវត្តិសាស្ត្រ សំណង់ និងវប្បធម៌",
-    prompt: "សូមរៀបរាប់អំពីស្ថាបត្យកម្មដ៏មហិមា និងបច្ចេកទេសសាងសង់ប្រាសាទអង្គរវត្តរបស់បុព្វបុរសខ្មែរ។",
   },
   {
-    id: "language",
-    badge: "Language",
+    id: "language" as const,
     imgSrc: "/images/cards/card-language.png",
     icon: Languages,
-    titleKm: "ភាសាខ្មែរ",
-    titleEn: "Khmer Language",
-    descKm: "រៀនភាសា និង របៀបប្រើប្រាស់ពាក្យពេចន៍សន្ទនា",
-    prompt: "សូមបង្រៀនពាក្យគួរសម របៀបនិយាយស្វាគមន៍ និងការសន្ទនាជាភាសាខ្មែរដែលត្រឹមត្រូវតាមកាលៈទេសៈ។",
   },
   {
-    id: "history",
-    badge: "History",
+    id: "history" as const,
     imgSrc: "/images/cards/card-history.png",
     icon: BookOpen,
-    titleKm: "ប្រវត្តិសាស្ត្រខ្មែរ",
-    titleEn: "Khmer History",
-    descKm: "ស្វែងយល់ពីប្រវត្តិសាស្ត្រ និងអរិយធម៌",
-    prompt: "សូមរៀបរាប់អំពីប្រវត្តិសាស្ត្រប្រទេសកម្ពុជាពីសម័យហ្វូណន ចេនឡា រហូតដល់បច្ចុប្បន្ន។",
   },
   {
-    id: "tech",
-    badge: "Technology",
+    id: "tech" as const,
     imgSrc: "/images/cards/card-tech.png",
     icon: Code2,
-    titleKm: "បច្ចេកវិទ្យា",
-    titleEn: "Technology",
-    descKm: "សិក្សា និងស្វែងរកគំនិត បច្ចេកវិទ្យាទំនើប",
-    prompt: "សូមណែនាំវិធីសាស្ត្រ និងការអនុវត្តល្អបំផុតក្នុងការបង្កើតកម្មវិធី Full-Stack AI ដោយប្រើ Python, FastAPI និង React។",
   },
   {
-    id: "economy",
-    badge: "Economy",
+    id: "economy" as const,
     imgSrc: "/images/cards/card-economy.png",
     icon: TrendingUp,
-    titleKm: "សេដ្ឋកិច្ច",
-    titleEn: "Economy",
-    descKm: "វិភាគ និងស្វែងយល់ពី សេដ្ឋកិច្ចកម្ពុជា",
-    prompt: "តើប្រព័ន្ធទូទាត់បាគង (Bakong) និងស្តង់ដារ KHQR ដំណើរការយ៉ាងដូចម្តេច ហើយបានផ្លាស់ប្តូរសេដ្ឋកិច្ចឌីជីថលកម្ពុជាដូចម្តេច?",
   },
 ];
 
-const SUGGESTED_QUICK_PILLS = [
+const SUGGESTED_QUICK_PILL_CONFIGS = [
   {
-    label: "ផ្តល់សំណូមពរនិយម",
+    key: "popular" as const,
     icon: Flame,
     active: true,
-    prompt: "សូមណែនាំមុខងារ និងគន្លឹះសំខាន់ៗដែលអ្នកប្រើប្រាស់និយមសួរច្រើនជាងគេក្នុង Sastra AI។",
   },
   {
-    label: "ប្រាសាទអង្គរវត្ត",
+    key: "angkor" as const,
     icon: Landmark,
-    prompt: "សូមរៀបរាប់អំពីប្រវត្តិប្រាសាទអង្គរវត្ត និងបច្ចេកទេសស្ថាបត្យកម្មដ៏អស្ចារ្យ។",
   },
   {
-    label: "ច្បាប់សំខាន់ៗ",
+    key: "laws" as const,
     icon: Scale,
-    prompt: "សូមសង្ខេបច្បាប់ស្តីពីការវិនិយោគ និងក្រមការងារនៃព្រះរាជាណាចក្រកម្ពុជា។",
   },
   {
-    label: "ច្បាប់ និងគោលនយោបាយ",
+    key: "policies" as const,
     icon: FileText,
-    prompt: "តើក្របខ័ណ្ឌគោលនយោបាយសេដ្ឋកិច្ច និងសង្គមឌីជីថលកម្ពុជា ២០២១-២០៣៥ មានទិសដៅសំខាន់អ្វីខ្លះ?",
   },
   {
-    label: "Startup នៅកម្ពុជា",
+    key: "startup" as const,
     icon: Lightbulb,
-    prompt: "តើប្រព័ន្ធអេកូឡូស៊ី Tech Startup នៅភ្នំពេញបច្ចុប្បន្នមានឱកាស និងបញ្ហាប្រឈមអ្វីខ្លះ?",
   },
   {
-    label: "Python & FastAPI",
+    key: "python" as const,
     icon: Code2,
-    prompt: "សូមបង្ហាញកូដគំរូ FastAPI សម្រាប់បង្កើត Streaming Chatbot API ជាមួយ Python Asyncio។",
   },
 ];
 
@@ -119,6 +77,7 @@ interface WelcomeScreenProps {
 }
 
 export default memo(function WelcomeScreen({ onPick }: WelcomeScreenProps) {
+  const { t } = useTranslation();
   const currentUser = useSelector((s: RootState) => s.auth.user);
   const displayName = currentUser?.name?.split(" ")[0] || "Admin";
 
@@ -152,19 +111,19 @@ export default memo(function WelcomeScreen({ onPick }: WelcomeScreenProps) {
       {/* ── 2. Greeting & Grand Header with Asset 4 Lotus Medallion & Asset 2 Crest ── */}
       <div className="relative z-10 text-center space-y-2 max-w-3xl mx-auto">
         <h3 className="font-heading text-sm sm:text-base font-semibold text-stone-200 flex items-center justify-center gap-2">
-          <span>សួស្តី {displayName}!</span>
+          <span>{t.welcome.greeting} {displayName}!</span>
           <span>👋</span>
         </h3>
 
         <h1 className="font-heading text-[26px] sm:text-[32px] lg:text-[40px] font-bold text-stone-100 tracking-normal leading-[1.3]">
-          តោះ! ចាប់ផ្តើមស្វែងរក ចំណេះដឹងពី{" "}
+          {t.welcome.headlineStart}{" "}
           <span className="font-heading text-transparent bg-clip-text bg-gradient-to-b from-[#FFF2B2] via-[#E5C058] to-[#B88E1B] inline-block drop-shadow-[0_2px_14px_rgba(212,175,55,0.45)]">
-            សាស្ត្រា AI
+            {t.welcome.headlineHighlight}
           </span>
         </h1>
 
         <p className="font-khmer text-xs sm:text-sm text-stone-400 font-normal leading-[1.75]">
-          ជំនួយការឆ្លើយសំឡេងជាតិខ្មែរ ដោយបច្ចេកវិទ្យា AI ជំនាន់ថ្មី
+          {t.welcome.subtitle}
         </p>
 
         {/* ── Asset 2: Royal Golden Lotus Pediment Crest ── */}
@@ -179,11 +138,12 @@ export default memo(function WelcomeScreen({ onPick }: WelcomeScreenProps) {
 
       {/* ── 3. The 5 Rich Hero Cards with Asset 1 Corner Filigree & Asset 4 Medallions ── */}
       <div className="relative z-10 w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 mt-6 max-w-6.5xl">
-        {HERO_CARDS.map((card) => {
-          const Icon = card.icon;
+        {HERO_CARD_CONFIGS.map((cfg) => {
+          const Icon = cfg.icon;
+          const card = t.welcome.cards[cfg.id];
           return (
             <div
-              key={card.id}
+              key={cfg.id}
               onClick={() => onPick(card.prompt)}
               className="group relative flex flex-col justify-between rounded-2xl border-2 border-[#4A381C] bg-[#120E0A]/95 hover:border-gold hover:bg-[#1A140D] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 shadow-xl shadow-black/90 backdrop-blur-md overflow-hidden cursor-pointer p-0"
             >
@@ -202,8 +162,8 @@ export default memo(function WelcomeScreen({ onPick }: WelcomeScreenProps) {
               {/* Card Banner Image Thumbnail */}
               <div className="relative h-28 w-full overflow-hidden bg-stone-900 border-b border-[#342615]">
                 <img
-                  src={card.imgSrc}
-                  alt={card.titleKm}
+                  src={cfg.imgSrc}
+                  alt={card.title}
                   className="h-full w-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#120E0A] via-transparent to-black/30" />
@@ -228,15 +188,15 @@ export default memo(function WelcomeScreen({ onPick }: WelcomeScreenProps) {
               <div className="p-4 pt-6 text-center flex flex-col justify-between flex-1 space-y-2">
                 <div className="space-y-0.5">
                   <h4 className="font-heading font-semibold text-[14.5px] text-stone-100 group-hover:text-gold transition-colors leading-snug">
-                    {card.titleKm}
+                    {card.title}
                   </h4>
                   <p className="text-[11px] font-sans text-stone-400 font-medium tracking-wide">
-                    {card.titleEn}
+                    {card.subtitle}
                   </p>
                 </div>
 
                 <p className="font-khmer text-xs text-stone-400 font-normal leading-[1.7] line-clamp-2">
-                  {card.descKm}
+                  {card.desc}
                 </p>
 
                 {/* Circular Arrow Button at bottom */}
@@ -253,20 +213,21 @@ export default memo(function WelcomeScreen({ onPick }: WelcomeScreenProps) {
 
       {/* ── 4. Quick Suggested Topic Filter Pills ── */}
       <div className="relative z-10 w-full flex items-center justify-center gap-2 flex-wrap mt-6 max-w-4xl">
-        {SUGGESTED_QUICK_PILLS.map((pill, idx) => {
-          const Icon = pill.icon;
+        {SUGGESTED_QUICK_PILL_CONFIGS.map((pillCfg) => {
+          const Icon = pillCfg.icon;
+          const pill = t.welcome.pills[pillCfg.key];
           return (
             <button
-              key={idx}
+              key={pillCfg.key}
               type="button"
               onClick={() => onPick(pill.prompt)}
               className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-khmer font-medium transition-all duration-200 border cursor-pointer ${
-                pill.active
+                pillCfg.active
                   ? "border-gold/70 bg-gradient-to-r from-amber-600/25 to-gold/25 text-gold shadow-md shadow-gold/15"
                   : "border-[#3E2F1A] bg-[#14100C]/85 text-stone-300 hover:border-gold/60 hover:text-gold hover:bg-[#1E1710]"
               }`}
             >
-              <Icon className={`h-3.5 w-3.5 ${pill.active ? "text-amber-400 fill-amber-400/20" : "text-gold/80"}`} />
+              <Icon className={`h-3.5 w-3.5 ${pillCfg.active ? "text-amber-400 fill-amber-400/20" : "text-gold/80"}`} />
               <span>{pill.label}</span>
             </button>
           );

@@ -59,7 +59,7 @@ export function Topbar({ onRefreshAll, isRefreshing, onSignOut, onToggleMobileSi
 
         {/* User Chat App Link */}
         <a
-          href="http://localhost:5173"
+          href={typeof window !== "undefined" ? `${window.location.protocol}//${window.location.hostname}:5173` : "http://localhost:5173"}
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-1.5 rounded-xl border border-gold/40 bg-gold/15 px-3 py-1.5 text-xs font-semibold text-gold hover:bg-gold/25 transition-all shadow-xs"

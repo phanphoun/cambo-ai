@@ -7,7 +7,7 @@ import type {
   ToolDescriptor,
 } from "../../types/chat";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+import { API_BASE } from "../../config/api";
 
 export const chatApi = createApi({
   reducerPath: "chatApi",

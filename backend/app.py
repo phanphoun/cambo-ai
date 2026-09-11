@@ -73,6 +73,7 @@ app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.origins_list,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -128,4 +129,10 @@ app.include_router(tools.router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=settings.debug)
+    uvicorn.run(
+        "app:app",
+        host="0.0.0.0",
+        port=8001,
+        reload=settings.debug,
+        reload_excludes=["data/*", "*.json", "*.log"],
+    )

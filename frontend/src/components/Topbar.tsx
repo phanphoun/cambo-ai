@@ -14,11 +14,14 @@ import {
   Shield,
   ExternalLink,
   Bell,
+  Palette,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { setDirectoryOpen } from "../features/directory/directorySlice";
 import { setAuthModalOpen, logout } from "../features/auth/authSlice";
 import { KhmerProfileAvatar } from "./KhmerProfileAvatar";
+import LanguageDropdown from "./LanguageDropdown";
+import { useTranslation } from "../i18n/useTranslation";
 import type { SettingsTab } from "./SettingsModal";
 import type { RootState } from "../store";
 
@@ -39,6 +42,7 @@ export default memo(function Topbar({
   onOpenDocs,
   onOpenSettings,
 }: TopbarProps) {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const selectedDocsCount = useSelector((s: RootState) => s.documents.selected.length);
   const { user, isAuthenticated, isGuest } = useSelector((s: RootState) => s.auth);
@@ -72,8 +76,8 @@ export default memo(function Topbar({
             }
           }}
           className={cn(
-            "h-8 w-8 items-center justify-center rounded-xl border border-[#3C301D] bg-[#16120C] text-gold/80 hover:text-gold hover:border-gold/60 hover:bg-[#1F1910] transition-all shrink-0 shadow-xs cursor-pointer",
-            sidebarCollapsed ? "flex" : "flex md:hidden",
+            "h-8 w-8 items-center justify-center rounded-xl border border-[#3C301D] bg-[#16120C] text-gold/80 hover:text-gold hover:border-gold/60 hover:bg-[#1F1910] transition-all duration-300 shrink-0 shadow-xs cursor-pointer",
+            sidebarCollapsed ? "flex opacity-100 scale-100" : "flex md:hidden opacity-0 scale-95 pointer-events-none md:pointer-events-auto",
           )}
           title={sidebarCollapsed ? "Expand sidebar (Ctrl+B)" : "Toggle sidebar"}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Toggle sidebar"}
@@ -85,8 +89,15 @@ export default memo(function Topbar({
           )}
         </button>
 
-        {/* Brand Crest & Title */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        {/* Brand Crest & Title - On mobile always, and on desktop when sidebar is collapsed */}
+        <div
+          className={cn(
+            "items-center gap-2.5 shrink-0 transition-all duration-300 ease-in-out",
+            sidebarCollapsed
+              ? "flex opacity-100 translate-x-0"
+              : "flex md:hidden opacity-0 -translate-x-2 pointer-events-none md:pointer-events-auto",
+          )}
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#241D12] via-[#1A140D] to-[#100C08] text-gold shadow-md border border-gold/50 p-1 overflow-hidden">
             <img
               src="/images/khmer-assets/khmer-medallion-lotus-4.png"
@@ -101,9 +112,25 @@ export default memo(function Topbar({
               </span>
             </div>
             <span className="font-khmer text-[11px] text-gold/75 mt-0.5 leading-none">
-              ជំនួយការឆ្លាតវៃរបស់អ្នក
+              {t.common.tagline}
             </span>
           </div>
+        </div>
+
+        {/* Khmer Royal Art Ornament - On desktop when sidebar is open */}
+        <div
+          className={cn(
+            "items-center gap-2 pl-2 select-none transition-all duration-300 ease-in-out",
+            !sidebarCollapsed
+              ? "hidden md:flex opacity-90 translate-x-0 hover:opacity-100 hover:scale-105"
+              : "hidden opacity-0 translate-x-2 pointer-events-none",
+          )}
+        >
+          <img
+            src="/images/khmer-assets/khmer-crest-lotus-2.png"
+            alt="Khmer Royal Lotus Pediment Crest"
+            className="h-8 w-auto object-contain drop-shadow-[0_2px_10px_rgba(212,175,55,0.4)]"
+          />
         </div>
       </div>
 
@@ -117,8 +144,11 @@ export default memo(function Topbar({
           title="Browse Tech Directory"
         >
           <BookOpen className="h-3.5 w-3.5 text-gold" />
-          <span className="hidden md:inline">Directory</span>
+          <span className="hidden md:inline">{t.topbar.directory}</span>
         </button>
+
+        {/* AI Response Language Dropdown */}
+        <LanguageDropdown size="sm" placement="bottom" />
 
         {/* Selected Docs Pill Indicator */}
         {selectedDocsCount > 0 && (
@@ -126,21 +156,21 @@ export default memo(function Topbar({
             type="button"
             onClick={onOpenDocs}
             className="flex items-center gap-1 rounded-full border border-gold/40 bg-gold/15 px-2.5 py-1 text-xs font-medium text-gold transition-all hover:bg-gold/25 cursor-pointer shadow-xs"
-            title={`${selectedDocsCount} documents referenced`}
+            title={`${selectedDocsCount} ${t.topbar.docsReferenced}`}
           >
             <FileText className="h-3.5 w-3.5 text-gold" />
             <span className="font-bold">{selectedDocsCount}</span>
-            <span className="hidden sm:inline text-[10.5px]">docs</span>
+            <span className="hidden sm:inline text-[10.5px]">{t.topbar.docs}</span>
           </button>
         )}
 
         {/* Notifications Button */}
         <button
           type="button"
-          onClick={() => toast("All systems operating smoothly at 100% health.", { icon: "🔔" })}
+          onClick={() => toast(t.topbar.allSystemsNormal, { icon: "🔔" })}
           className="relative flex h-8 w-8 items-center justify-center rounded-xl text-stone-400 hover:text-gold hover:bg-[#1F1910] transition-colors cursor-pointer"
-          title="Notifications"
-          aria-label="Notifications"
+          title={t.topbar.notifications}
+          aria-label={t.topbar.notifications}
         >
           <Bell className="h-4 w-4" />
           <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -193,7 +223,7 @@ export default memo(function Topbar({
                       {user.email}
                     </p>
                     <span className="inline-block mt-1.5 rounded-full bg-gold/15 px-2.5 py-0.5 text-[9.5px] font-bold text-gold border border-gold/40">
-                      {isGuest ? "Guest Access" : user.role === "admin" ? "Royal Administrator" : "Verified Member"}
+                      {isGuest ? t.common.guest : user.role === "admin" ? t.common.admin : t.common.member}
                     </span>
                   </div>
                 </div>
@@ -210,7 +240,7 @@ export default memo(function Topbar({
                     className="w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs text-stone-200 hover:bg-[#241D13] hover:text-gold transition-all text-left cursor-pointer"
                   >
                     <UserCheck className="h-4 w-4 text-gold" />
-                    <span>User Profile (ព័ត៌មានគណនី)</span>
+                    <span>{t.topbar.profile}</span>
                   </button>
 
                   {/* Option 2: Settings & Engine */}
@@ -223,10 +253,21 @@ export default memo(function Topbar({
                     className="w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs text-stone-200 hover:bg-[#241D13] hover:text-gold transition-all text-left cursor-pointer"
                   >
                     <Settings className="h-4 w-4 text-gold" />
-                    <span>Settings & Engine (ការកំណត់)</span>
+                    <span>{t.topbar.settingsAndModels}</span>
                   </button>
 
-
+                  {/* Option 3: Wallpaper & Theme */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (onOpenSettings) onOpenSettings("appearance");
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs text-stone-200 hover:bg-[#241D13] hover:text-gold transition-all text-left cursor-pointer"
+                  >
+                    <Palette className="h-4 w-4 text-gold" />
+                    <span>{t.settings.tabs.appearance}</span>
+                  </button>
 
                   {/* Option: Admin Console (ONLY visible to user.role === "admin") */}
                   {user.role === "admin" && (
@@ -239,7 +280,7 @@ export default memo(function Topbar({
                     >
                       <div className="flex items-center gap-2.5">
                         <Shield className="h-4 w-4 text-amber-400" />
-                        <span>Admin Console (គ្រប់គ្រង)</span>
+                        <span>{t.topbar.adminConsole}</span>
                       </div>
                       <ExternalLink className="h-3 w-3" />
                     </a>
@@ -257,7 +298,7 @@ export default memo(function Topbar({
                       className="w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs text-rose-400 hover:bg-rose-500/15 transition-all text-left cursor-pointer"
                     >
                       <LogOut className="h-4 w-4" />
-                      <span>Sign Out (ចាកចេញ)</span>
+                      <span>{t.topbar.signOut}</span>
                     </button>
                   </div>
                 </div>
@@ -272,7 +313,7 @@ export default memo(function Topbar({
             title="Sign In / Register"
           >
             <User className="h-3.5 w-3.5" />
-            <span>Sign In</span>
+            <span>{t.topbar.signIn}</span>
           </button>
         )}
       </div>

@@ -10,6 +10,7 @@ from services.provider_manager import provider_manager
 from services.rag_store import rag_store
 from services.rag_context import build_context
 from config import settings
+from prompts.khmer_linguistics import sanitize_unwanted_thai
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["chat"])
@@ -30,6 +31,12 @@ def _ai_error(e: Exception) -> HTTPException:
         return HTTPException(status_code=503, detail="Provider unreachable. Make sure Ollama is running (`ollama serve` on localhost:11434).")
     if "Embedding model unavailable" in msg:
         return HTTPException(status_code=503, detail="RAG embeddings unavailable — embedding model is not loaded.")
+    # Handle Google API 503 errors (model experiencing high demand)
+    if "503" in msg or "UNAVAILABLE" in msg or "high demand" in msg.lower():
+        return HTTPException(
+            status_code=503,
+            detail="The AI model is currently experiencing high demand. This is usually temporary — please try again in a moment or switch to another provider."
+        )
     if isinstance(e, httpx.ReadTimeout):
         return HTTPException(status_code=504, detail="Model response timed out. The cloud model may still be loading — try again.")
     if isinstance(e, RuntimeError):
@@ -61,13 +68,15 @@ async def get_available_models():
 async def ask(q: Question):
     try:
         result = await provider_manager.ask(q.question)
+        if "answer" in result:
+            result["answer"] = sanitize_unwanted_thai(result["answer"], user_prompt=q.question)
         return Answer(**result)
     except Exception as e:
         raise _ai_error(e) from e
 
 
 @router.post("/chat/stream")
-async def chat_stream(req: ChatRequest, authorization: Optional[str] = Header(None)):
+async def chat_stream(req: ChatRequest, authorization: str = Header(None)):
     import json
     from services.auth_service import decode_access_token, user_repo
     from services.user_chat_store import user_chat_store
@@ -106,13 +115,17 @@ async def chat_stream(req: ChatRequest, authorization: Optional[str] = Header(No
                 model=req.model,
                 image_data=req.get_image_data(),
                 image_urls=[str(u) for u in req.image_urls],
+                document_ids=req.get_document_ids(),
                 rag_context=rag["context"] or None,
+                use_tools=req.use_tools,
+                response_language=req.response_language,
             ):
-                full_answer.append(chunk)
-                yield f"data: {json.dumps({'content': chunk})}\n\n"
+                cleaned_chunk = sanitize_unwanted_thai(chunk, user_prompt=req.message)
+                full_answer.append(cleaned_chunk)
+                yield f"data: {json.dumps({'content': cleaned_chunk})}\n\n"
 
             elapsed_ms = (time.perf_counter() - start_t) * 1000
-            answer = "".join(full_answer)
+            answer = sanitize_unwanted_thai("".join(full_answer), user_prompt=req.message)
             chat_history.add_message(session_id, "assistant", answer)
 
             # Record turn in persistent user chat store for Admin
@@ -140,7 +153,7 @@ async def chat_stream(req: ChatRequest, authorization: Optional[str] = Header(No
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
+async def chat(req: ChatRequest, authorization: str = Header(None)):
     from services.auth_service import decode_access_token, user_repo
     from services.user_chat_store import user_chat_store
     from services.telemetry_service import telemetry_service
@@ -170,8 +183,10 @@ async def chat(req: ChatRequest, authorization: Optional[str] = Header(None)):
             req.message, history=history, mode=req.mode, provider=provider,
             image_data=req.image_data, image_urls=[str(u) for u in req.image_urls],
             rag_context=rag["context"] or None, use_tools=req.use_tools,
+            response_language=req.response_language,
         )
         elapsed_ms = (time.perf_counter() - start_t) * 1000
+        result["answer"] = sanitize_unwanted_thai(result.get("answer", ""), user_prompt=req.message)
 
         chat_history.add_message(session_id, "assistant", result["answer"])
 
@@ -219,6 +234,60 @@ async def list_providers():
     }
 
 
+# Letter-by-letter Khmer phonetic pronunciation map for uppercase English letters
+KHMER_LETTER_SOUNDS = {
+    "A": "អេ", "B": "ប៊ី", "C": "ស៊ី", "D": "ឌី", "E": "អ៊ី",
+    "F": "អែហ្វ", "G": "ជី", "H": "អេច", "I": "អាយ", "J": "ជេ",
+    "K": "ខេ", "L": "អែល", "M": "អឹម", "N": "អិន", "O": "អូ",
+    "P": "ភី", "Q": "គ្យូ", "R": "អ័រ", "S": "អេស", "T": "ធី",
+    "U": "យូ", "V": "វី", "W": "ដាប់ប៊លយូ", "X": "អិច", "Y": "វ៉ាយ",
+    "Z": "ហ្ស៊ិត",
+}
+
+# Well-known Cambodian & tech institutional acronyms
+CUSTOM_ACRONYMS = {
+    r"\bSastra\s+AI\b": "សាស្ត្រា អេអាយ",
+    r"\bPNC\b": "ភី អិន ស៊ី",
+    r"\bSKAI\b": "អេស ខេ អេ អាយ",
+    r"\bABA\b": "អេ ប៊ី អេ",
+    r"\bAI\b": "អេអាយ",
+    r"\bKHQR\b": "ខេអេក្យូអ័រ",
+    r"\bUSD\b": "ដុល្លារ",
+    r"\bKHR\b": "រៀល",
+    r"\bUNESCO\b": "យូណេស្កូ",
+    r"\bNBC\b": "ធនាគារជាតិ",
+    r"\bCADT\b": "ស៊ី អេ ឌី ធី",
+    r"\bRUPP\b": "អ័រ យូ ភី ភី",
+    r"\bITC\b": "អាយ ធី ស៊ី",
+    r"\bEDC\b": "អ៊ី ឌី ស៊ី",
+    r"\bMoEYS\b": "ក្រសួងអប់រំ",
+    r"\bMOEYS\b": "ក្រសួងអប់រំ",
+    r"\bMLVT\b": "ក្រសួងការងារ",
+    r"\bMPTC\b": "ក្រសួងប្រៃសណីយ៍",
+    r"\bMEF\b": "ក្រសួងសេដ្ឋកិច្ច",
+    r"\bMISTI\b": "ក្រសួងឧស្សាហកម្ម",
+    r"\bPDF\b": "ភី ឌី អែហ្វ",
+    r"\bHTML\b": "អេច ធី អឹម អែល",
+    r"\bCSS\b": "ស៊ី អេស អេស",
+    r"\bJS\b": "ជេ អេស",
+    r"\bAPI\b": "អេ ភី អាយ",
+    r"\bSDK\b": "អេស ឌី ខេ",
+    r"\bUI\b": "យូ អាយ",
+    r"\bUX\b": "យូ អិច",
+    r"\bIT\b": "អាយ ធី",
+    r"\bCPU\b": "ស៊ី ភី យូ",
+    r"\bRAM\b": "រ៉េម",
+    r"\bROM\b": "រ៉ូម",
+    r"\bURL\b": "យូ អ័រ អែល",
+    r"\bID\b": "អាយ ឌី",
+    r"\bSMS\b": "អេស អឹម អេស",
+    r"\bSOS\b": "អេស អូ អេស",
+    r"\bWiFi\b": "វ៉ាយហ្វាយ",
+    r"\bWIFI\b": "វ៉ាយហ្វាយ",
+    r"\bUSB\b": "យូ អេស ប៊ី",
+}
+
+
 def _normalize_speech_text(text: str) -> str:
     import re
     # 1. Strip markdown code blocks and inline code
@@ -244,18 +313,43 @@ def _normalize_speech_text(text: str) -> str:
     # 7. Strip decorative emojis and pictographs
     t = re.sub(r"[\U00010000-\U0010ffff]", "", t)
     t = re.sub(r"[\u2600-\u27BF\u2300-\u23FF]", "", t)
-    # 8. Phoneticize common acronyms for natural human Khmer pronunciation
+
+    # 8. Check if text contains Khmer script or is intended for Khmer voice reading
     has_khmer = bool(re.search(r"[\u1780-\u17FF]", t))
-    if has_khmer:
-        t = re.sub(r"\bSastra AI\b", "សាស្ត្រា អេអាយ", t, flags=re.IGNORECASE)
-        t = re.sub(r"\bAI\b", "អេអាយ", t, flags=re.IGNORECASE)
-        t = re.sub(r"\bKHQR\b", "ខេអេក្យូអ័រ", t, flags=re.IGNORECASE)
-        t = re.sub(r"\bUSD\b", "ដុល្លារ", t, flags=re.IGNORECASE)
-        t = re.sub(r"\bKHR\b", "រៀល", t, flags=re.IGNORECASE)
-        t = re.sub(r"\bUNESCO\b", "យូណេស្កូ", t, flags=re.IGNORECASE)
-        t = re.sub(r"\bNBC\b", "ធនាគារជាតិ", t, flags=re.IGNORECASE)
-        t = re.sub(r"\bCADT\b", "បណ្ឌិត្យសភាបច្ចេកវិទ្យាឌីជីថល", t, flags=re.IGNORECASE)
-    # 9. Clean extra whitespace
+
+    # 9. Honorific pronouns & titles (Mr. -> លោក, Ms./Miss -> កញ្ញា, Mrs. -> លោកស្រី, Dr. -> លោកបណ្ឌិត)
+    t = re.sub(r"\bMr\.?\s+", "លោក ", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bMrs\.?\s+", "លោកស្រី ", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bMs\.?\s+", "កញ្ញា ", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bMiss\s+", "កញ្ញា ", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bDr\.?\s+", "លោកបណ្ឌិត ", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bProf\.?\s+", "សាស្ត្រាចារ្យ ", t, flags=re.IGNORECASE)
+
+    # Standalone pronouns without trailing space
+    t = re.sub(r"\bMr\.?\b", "លោក", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bMrs\.?\b", "លោកស្រី", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bMs\.?\b", "កញ្ញា", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bMiss\b", "កញ្ញា", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bDr\.?\b", "លោកបណ្ឌិត", t, flags=re.IGNORECASE)
+    t = re.sub(r"\bProf\.?\b", "សាស្ត្រាចារ្យ", t, flags=re.IGNORECASE)
+
+    # 10. Known institutional and specialized acronyms
+    for pat, rep in CUSTOM_ACRONYMS.items():
+        t = re.sub(pat, rep, t, flags=re.IGNORECASE)
+
+    # 11. Read any remaining uppercase acronyms (2 to 7 letters) letter-by-letter in Khmer
+    # e.g., PNC -> ភី អិន ស៊ី, SKAI -> អេស ខេ អេ អាយ, ABA -> អេ ប៊ី អេ
+    def _spell_letter_by_letter(m):
+        word = m.group(0)
+        # Skip if word is already a known Khmer string
+        if any("\u1780" <= c <= "\u17FF" for c in word):
+            return word
+        sounds = [KHMER_LETTER_SOUNDS.get(c, c) for c in word]
+        return " ".join(sounds)
+
+    t = re.sub(r"\b[A-Z]{2,7}\b", _spell_letter_by_letter, t)
+
+    # 12. Clean extra whitespace
     t = re.sub(r"\s+", " ", t).strip()
     return t
 
@@ -283,18 +377,41 @@ async def text_to_speech(req: TTSRequest):
         clean_text = clean_text[:25000]
 
     has_khmer = bool(re.search(r"[\u1780-\u17FF]", clean_text))
-    
-    # Select best neural voice
-    if has_khmer:
-        # km-KH-PisethNeural (friendly natural Khmer male voice)
-        # or km-KH-SreymomNeural (friendly natural Khmer female voice)
-        voice = req.voice or "km-KH-PisethNeural"
-    else:
-        voice = req.voice or "en-US-AvaNeural"
+
+    # Supported Neural Voice Profiles with authentic Cambodian voice personas
+    voice_profiles = {
+        # Standard Base Voices
+        "km-KH-PisethNeural": {"base": "km-KH-PisethNeural", "rate": "+0%", "pitch": "+0Hz"},
+        "km-KH-SreymomNeural": {"base": "km-KH-SreymomNeural", "rate": "+0%", "pitch": "+0Hz"},
+        "en-US-AvaNeural": {"base": "en-US-AvaNeural", "rate": "+0%", "pitch": "+0Hz"},
+        # 10 Distinct Khmer People Personas
+        "prof-chan": {"base": "km-KH-PisethNeural", "rate": "-8%", "pitch": "-15Hz"},       # សាស្ត្រាចារ្យ ច័ន្ទ (Senior Professor)
+        "teacher-sokha": {"base": "km-KH-PisethNeural", "rate": "+4%", "pitch": "-4Hz"},    # លោកគ្រូ សុខា (Tech & STEM Educator)
+        "teacher-bopha": {"base": "km-KH-SreymomNeural", "rate": "-2%", "pitch": "+8Hz"},   # អ្នកគ្រូ បុប្ផា (Khmer Literature Teacher)
+        "monk-dhammo": {"base": "km-KH-PisethNeural", "rate": "-14%", "pitch": "-18Hz"},    # ព្រះតេជគុណ ធម្មរង្សី (Peaceful Dhamma Talk)
+        "news-sopheap": {"base": "km-KH-SreymomNeural", "rate": "+8%", "pitch": "+12Hz"},   # កញ្ញា សុភាព (Professional Presenter)
+        "biz-vaddhana": {"base": "km-KH-PisethNeural", "rate": "+6%", "pitch": "-6Hz"},     # លោក វឌ្ឍនា (Entrepreneur / Executive)
+        "youth-dara": {"base": "km-KH-PisethNeural", "rate": "+10%", "pitch": "+14Hz"},     # យុវជន តារា (Energetic Modern Youth)
+        "young-devi": {"base": "km-KH-SreymomNeural", "rate": "+5%", "pitch": "+24Hz"},     # កុមារី ទេវី (Curious Young Learner)
+        "grandpa-kong": {"base": "km-KH-PisethNeural", "rate": "-15%", "pitch": "-25Hz"},   # លោកតា គង់ (Elder Historian & Storyteller)
+        "grandma-mao": {"base": "km-KH-SreymomNeural", "rate": "-12%", "pitch": "-10Hz"},   # លោកយាយ ម៉ៅ (Gentle Folk Storyteller)
+        # Custom Professor Alias
+        "custom-professor": {"base": "km-KH-PisethNeural", "rate": "-8%", "pitch": "-15Hz"},
+    }
+
+    voice_id = req.voice or ("km-KH-PisethNeural" if has_khmer else "en-US-AvaNeural")
+    profile = voice_profiles.get(voice_id, {
+        "base": voice_id if "Neural" in voice_id else ("km-KH-PisethNeural" if has_khmer else "en-US-AvaNeural"),
+        "rate": "+0%",
+        "pitch": "+0Hz",
+    })
+    base_voice = profile["base"]
+    voice_rate = profile["rate"]
+    voice_pitch = profile["pitch"]
 
     try:
-        # 1. High-fidelity Microsoft Neural Voice synthesis (Real human sound)
-        comm = edge_tts.Communicate(clean_text, voice=voice, rate="+0%", pitch="+0Hz")
+        # 1. High-fidelity Microsoft Neural Voice synthesis with Persona Pitch & Rate
+        comm = edge_tts.Communicate(clean_text, voice=base_voice, rate=voice_rate, pitch=voice_pitch)
         audio_buffer = bytearray()
         async for chunk in comm.stream():
             if chunk["type"] == "audio":
