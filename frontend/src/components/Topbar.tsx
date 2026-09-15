@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import {
   PanelLeft,
   PanelLeftClose,
+  Bot,
   BookOpen,
   FileText,
   User,
@@ -24,6 +25,7 @@ import LanguageDropdown from "./LanguageDropdown";
 import { useTranslation } from "../i18n/useTranslation";
 import type { SettingsTab } from "./SettingsModal";
 import type { RootState } from "../store";
+import { setPanelOpen } from "../features/agent/agentSlice";
 
 interface TopbarProps {
   onToggleMobileSidebar: () => void;
@@ -45,6 +47,8 @@ export default memo(function Topbar({
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const selectedDocsCount = useSelector((s: RootState) => s.documents.selected.length);
+  const agentOpen = useSelector((s: RootState) => s.agent.open);
+  const agentPending = useSelector((s: RootState) => s.agent.patchSummary?.pending ?? 0);
   const { user, isAuthenticated, isGuest } = useSelector((s: RootState) => s.auth);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -163,6 +167,26 @@ export default memo(function Topbar({
             <span className="hidden sm:inline text-[10.5px]">{t.topbar.docs}</span>
           </button>
         )}
+
+        {/* Agent Mode Button */}
+        <button
+          type="button"
+          onClick={() => dispatch(setPanelOpen(!agentOpen))}
+          className={`relative flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all cursor-pointer shadow-xs ${
+            agentOpen
+              ? "border-gold/60 bg-gold/25 text-gold"
+              : "border-gold/30 bg-gold/10 text-gold hover:bg-gold/20"
+          }`}
+          title="SASTRA Agent — autonomous coding on your local project"
+        >
+          <Bot className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline text-[10.5px]">Agent</span>
+          {agentPending > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-slate-900">
+              {agentPending}
+            </span>
+          )}
+        </button>
 
         {/* Notifications Button */}
         <button

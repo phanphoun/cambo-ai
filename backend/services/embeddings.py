@@ -24,7 +24,10 @@ def _load():
             return _model
         try:
             from sentence_transformers import SentenceTransformer  # heavy import
-            _model = SentenceTransformer(settings.embedding_model)
+            try:
+                _model = SentenceTransformer(settings.embedding_model, local_files_only=True)
+            except Exception:
+                _model = SentenceTransformer(settings.embedding_model)
             _model_name = settings.embedding_model
             return _model
         except Exception as e:  # pragma: no cover — depends on env

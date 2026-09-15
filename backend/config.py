@@ -35,6 +35,12 @@ class Settings(BaseSettings):
 
     # --- CORS ---
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
+    cors_origin_regex: str = (
+        r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|"
+        r"172\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$|"
+        r"^https://.*\.vercel\.app$|^https://.*\.pages\.dev$|^https://.*\.hf\.space$|"
+        r"^https://.*\.onrender\.com$|^https://.*\.koyeb\.app$"
+    )
 
     # --- RAG / Embeddings ---
     rag_dir: str = "./data/rag"
@@ -59,6 +65,18 @@ class Settings(BaseSettings):
     tavily_api_key: str = ""
     tavily_search_depth: str = "basic"
     tavily_max_results: int = 5
+
+    # --- Agent (autonomous coding mode) ---
+    # Disabled by default: the agent reads local files and executes commands, so
+    # it must never be reachable on a public deployment.
+    agent_enabled: bool = False
+    agent_workspace_root: str = ""
+    agent_max_rounds: int = 24
+    agent_command_timeout: float = 90.0
+    # Comma-separated executables the agent may run. Empty = built-in safe default.
+    agent_allowed_commands: str = ""
+    # Require an authenticated admin for every agent endpoint.
+    agent_require_admin: bool = True
 
     # --- JWT Auth ---
     jwt_secret: str = ""
@@ -91,20 +109,24 @@ settings = Settings()
 
 
 def update_env_variable(key: str, value: str):
-    """Updates a configuration variable in memory and persists to .env file."""
+    """Updates a configuration variable in memory and persists to .env file if writable."""
     import re
     setattr(settings, key.lower(), value)
-    
-    env_file = Path(__file__).resolve().parent / ".env"
-    if not env_file.exists():
-        env_file.write_text(f"{key}={value}\n", encoding="utf-8")
-        return
 
-    content = env_file.read_text(encoding="utf-8")
-    pattern = re.compile(rf"^{re.escape(key)}=.*$", re.MULTILINE)
-    if pattern.search(content):
-        new_content = pattern.sub(f"{key}={value}", content)
-    else:
-        new_content = content.rstrip() + f"\n{key}={value}\n"
-    env_file.write_text(new_content, encoding="utf-8")
+    try:
+        env_file = Path(__file__).resolve().parent / ".env"
+        if not env_file.exists():
+            env_file.write_text(f"{key}={value}\n", encoding="utf-8")
+            return
+
+        content = env_file.read_text(encoding="utf-8")
+        pattern = re.compile(rf"^{re.escape(key)}=.*$", re.MULTILINE)
+        if pattern.search(content):
+            new_content = pattern.sub(f"{key}={value}", content)
+        else:
+            new_content = content.rstrip() + f"\n{key}={value}\n"
+        env_file.write_text(new_content, encoding="utf-8")
+    except Exception as e:
+        import logging
+        logging.getLogger("cambo.config").warning("Could not persist %s to .env: %s", key, e)
 

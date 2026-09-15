@@ -29,6 +29,7 @@ import WelcomeScreen from "./components/WelcomeScreen";
 import DirectoryPanel from "./features/directory/DirectoryPanel";
 import DocumentsPanel from "./features/documents/DocumentsPanel";
 import PinnedMessagesDrawer from "./features/pin/PinnedMessagesDrawer";
+import AgentPanel from "./features/agent/AgentPanel";
 import SettingsModal, { type SettingsTab } from "./components/SettingsModal";
 import AuthModal from "./features/auth/AuthModal";
 import LoginPage from "./features/auth/LoginPage";
@@ -501,6 +502,7 @@ export default function App() {
       <DirectoryPanel />
       <DocumentsPanel open={docsOpen} onClose={() => setDocsOpen(false)} />
       <PinnedMessagesDrawer open={pinsOpen} onClose={() => setPinsOpen(false)} />
+      <AgentPanel />
       <SettingsModal open={settingsOpen} initialTab={settingsTab} onClose={() => setSettingsOpen(false)} />
       <AuthModal />
     </div>

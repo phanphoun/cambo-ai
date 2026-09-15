@@ -10,18 +10,21 @@ export function getApiBase(): string {
   if (typeof window !== "undefined" && window.location?.hostname) {
     const host = window.location.hostname;
     const protocol = window.location.protocol;
+    const isPrivateOrLocal =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|.*\.local$)/.test(host);
 
     if (envBase && typeof envBase === "string" && envBase.trim() !== "") {
       try {
         const parsed = new URL(envBase);
-        // If envBase points to a stale IP or localhost while user is accessing over LAN,
-        // or envBase has old 172.16.1.129 while user is on localhost:
         const isLoopbackOrStale =
           parsed.hostname === "localhost" ||
           parsed.hostname === "127.0.0.1" ||
           parsed.hostname === "172.16.1.129";
 
-        if (isLoopbackOrStale && host !== "localhost" && host !== "127.0.0.1") {
+        // LAN mobile/desktop cross-testing: only map host:8001 if host is local/private IP
+        if (isLoopbackOrStale && isPrivateOrLocal && host !== "localhost" && host !== "127.0.0.1") {
           return `${protocol}//${host}:8001`;
         }
 
@@ -29,16 +32,22 @@ export function getApiBase(): string {
           return `${protocol}//${host}:8001`;
         }
 
-        return envBase.replace(/\/+$/, "");
+        // Valid external or explicitly configured URL
+        if (!isLoopbackOrStale || isPrivateOrLocal) {
+          return envBase.replace(/\/+$/, "");
+        }
       } catch {
         // fallback
       }
     }
 
-    return `${protocol}//${host}:8001`;
+    // Default for local development
+    if (isPrivateOrLocal) {
+      return `${protocol}//${host}:8001`;
+    }
   }
 
-  return envBase || "http://localhost:8001";
+  return envBase || "";
 }
 
 export const API_BASE = getApiBase();

@@ -17,16 +17,52 @@ PROVIDERS_FILE = DATA_DIR / "custom_providers.json"
 LOGS_FILE = DATA_DIR / "activity_logs.json"
 
 
-def _get_engine():
-    db_url = settings.database_url
+import urllib.parse
+
+
+def _normalize_db_url(raw_url: str):
+    """Normalize database URL for asyncpg compatibility across cloud providers (Neon, Supabase, Render)."""
+    connect_args = {}
+    if not raw_url:
+        return raw_url, connect_args
+
+    if raw_url.startswith("postgres://"):
+        raw_url = "postgresql+asyncpg://" + raw_url[len("postgres://"):]
+    elif raw_url.startswith("postgresql://"):
+        raw_url = "postgresql+asyncpg://" + raw_url[len("postgresql://"):]
+
     try:
-        engine = create_async_engine(
-            db_url,
-            echo=False,
-            pool_size=10,
-            max_overflow=20,
-            pool_pre_ping=True,
-        )
+        parsed = urllib.parse.urlparse(raw_url)
+        if "asyncpg" in parsed.scheme:
+            query_params = urllib.parse.parse_qs(parsed.query)
+            if "sslmode" in query_params:
+                sslmode = query_params.pop("sslmode")[0]
+                if sslmode in ("require", "verify-ca", "verify-full"):
+                    connect_args["ssl"] = True
+                elif sslmode in ("disable", "allow"):
+                    connect_args["ssl"] = False
+                new_query = urllib.parse.urlencode(query_params, doseq=True)
+                parsed = parsed._replace(query=new_query)
+                raw_url = urllib.parse.urlunparse(parsed)
+    except Exception as e:
+        logger.debug("Failed parsing db_url query params: %s", e)
+
+    return raw_url, connect_args
+
+
+def _get_engine():
+    raw_url = settings.database_url
+    db_url, connect_args = _normalize_db_url(raw_url)
+    try:
+        engine_kwargs = {
+            "echo": False,
+            "pool_size": 10,
+            "max_overflow": 20,
+            "pool_pre_ping": True,
+        }
+        if connect_args:
+            engine_kwargs["connect_args"] = connect_args
+        engine = create_async_engine(db_url, **engine_kwargs)
         return engine, "postgresql"
     except Exception as e:
         logger.warning("Could not initialize PostgreSQL engine (%s). Falling back to SQLite.", e)

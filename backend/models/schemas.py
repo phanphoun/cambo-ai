@@ -123,3 +123,48 @@ class ToolDescriptor(BaseModel):
 
 class ToolList(BaseModel):
     tools: List[ToolDescriptor]
+
+
+# ----------------------------------------------------------------- Agent mode
+
+class AgentWorkspaceRequest(BaseModel):
+    path: str = Field(
+        ...,
+        min_length=1,
+        description="Absolute path to a project directory on the machine running the backend.",
+    )
+
+
+class AgentRunRequest(BaseModel):
+    goal: str = Field(
+        ...,
+        min_length=3,
+        max_length=8000,
+        description="What the agent should accomplish, in natural language.",
+    )
+    workspace_path: Optional[str] = Field(
+        default=None,
+        description="Open this project before running. Defaults to the already-open workspace.",
+    )
+    model: Optional[str] = Field(default=None, description="Override the agent model.")
+    max_rounds: Optional[int] = Field(
+        default=None, ge=1, le=60,
+        description="Cap on model/tool rounds for this run.",
+    )
+
+
+class AgentPatch(BaseModel):
+    id: str
+    kind: str
+    path: str
+    rationale: str
+    diff: str
+    status: str
+    added: int = 0
+    removed: int = 0
+    error: Optional[str] = None
+
+
+class PatchActionResponse(BaseModel):
+    patch: Dict[str, Any]
+    summary: Dict[str, Any]

@@ -101,14 +101,18 @@ class GeminiProvider(BaseProvider):
                 contents=contents,
             )
 
-        # Non-tool query
+        # Dynamic vision vs text model selection and temperature
+        temp = 0.1 if image_data else settings.gemini_temperature
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
-            temperature=settings.gemini_temperature,
+            temperature=temp,
             max_output_tokens=settings.gemini_max_tokens,
         )
 
-        models_to_try = [self._model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-31b-it", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]
+        if image_data:
+            models_to_try = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", self._model, "gemini-3.5-flash-lite"]
+        else:
+            models_to_try = [self._model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-31b-it", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]
         unique_models = list(dict.fromkeys(models_to_try))
 
         last_err = None
@@ -180,13 +184,17 @@ class GeminiProvider(BaseProvider):
 
         contents.append(types.Content(role="user", parts=current_parts))
 
+        temp = 0.1 if image_data else settings.gemini_temperature
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
-            temperature=settings.gemini_temperature,
+            temperature=temp,
             max_output_tokens=settings.gemini_max_tokens,
         )
 
-        models_to_try = [self._model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-31b-it", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]
+        if image_data:
+            models_to_try = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", self._model, "gemini-3.5-flash-lite"]
+        else:
+            models_to_try = [self._model, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemma-4-31b-it", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]
         unique_models = list(dict.fromkeys(models_to_try))
 
         success = False

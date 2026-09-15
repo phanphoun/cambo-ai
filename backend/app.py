@@ -12,7 +12,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from contextlib import asynccontextmanager
 
 from config import settings
-from routes import chat, health, documents, tools, auth, admin
+from routes import chat, health, documents, tools, auth, admin, agent
 from services.telemetry_service import telemetry_service
 
 
@@ -54,6 +54,21 @@ async def lifespan(app: FastAPI):
         logger.info("Database & RAG Embedding model ready.")
     except Exception as e:
         logger.warning("RAG embedding warmup deferred: %s", e)
+
+    # Agent mode: open the configured workspace, if any.
+    if settings.agent_enabled:
+        logger.warning(
+            "AGENT MODE IS ENABLED — this backend can read local files and execute "
+            "commands. Never expose it on a public network."
+        )
+        if settings.agent_workspace_root:
+            try:
+                from services.agent import set_workspace
+                ws = set_workspace(settings.agent_workspace_root)
+                logger.info("Agent workspace: %s", ws.root)
+            except Exception as e:
+                logger.error("Could not open agent workspace: %s", e)
+
     yield
     logger.info("Shutting down %s", settings.app_name)
 
@@ -70,10 +85,16 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
+cors_origins = settings.origins_list
+cors_regex = getattr(settings, "cors_origin_regex", None)
+if cors_origins == ["*"]:
+    cors_origins = []
+    cors_regex = r".*"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.origins_list,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$",
+    allow_origins=cors_origins,
+    allow_origin_regex=cors_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -125,6 +146,7 @@ app.include_router(admin.router)
 app.include_router(chat.router)
 app.include_router(documents.router)
 app.include_router(tools.router)
+app.include_router(agent.router)
 
 
 if __name__ == "__main__":

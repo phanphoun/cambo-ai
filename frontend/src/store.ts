@@ -10,6 +10,7 @@ import providerReducer from "./features/provider/providerSlice";
 import themeReducer from "./features/theme/themeSlice";
 import conversationsReducer from "./features/conversations/conversationsSlice";
 import documentsReducer from "./features/documents/documentsSlice";
+import agentReducer from "./features/agent/agentSlice";
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     theme: themeReducer,
     conversations: conversationsReducer,
     documents: documentsReducer,
+    agent: agentReducer,
     [chatApi.reducerPath]: chatApi.reducer,
     [authApi.reducerPath]: authApi.reducer,
   },
