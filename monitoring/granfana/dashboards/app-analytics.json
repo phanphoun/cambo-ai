@@ -1,0 +1,98 @@
+{
+  "id": null,
+  "uid": "cambo-app-analytics",
+  "title": "Cambo AI App Analytics",
+  "tags": ["cambo-ai", "app"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request Volume",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "cambo_pg_ds" },
+      "targets": [
+        {
+          "rawSql": "SELECT to_timestamp(timestamp) AS time, count(*) AS \"requests\" FROM activity_logs WHERE $__timeFilter(to_timestamp(timestamp)) GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Error Rate %",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "cambo_pg_ds" },
+      "targets": [
+        {
+          "rawSql": "SELECT to_timestamp(timestamp) AS time, count(*) FILTER (WHERE status_code >= 400)::float / count(*) * 100 AS \"error_pct\" FROM activity_logs WHERE $__timeFilter(to_timestamp(timestamp)) GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] }
+    },
+    {
+      "id": 3,
+      "title": "Latency Percentiles (ms)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "cambo_pg_ds" },
+      "targets": [
+        {
+          "rawSql": "SELECT to_timestamp(timestamp) AS time, percentile_cont(0.5) WITHIN GROUP (ORDER BY latency_ms) AS \"p50\", percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS \"p95\" FROM activity_logs WHERE $__timeFilter(to_timestamp(timestamp)) GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Provider Breakdown",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "cambo_pg_ds" },
+      "targets": [
+        {
+          "rawSql": "SELECT provider, count(*) AS \"requests\" FROM activity_logs WHERE $__timeFilter(to_timestamp(timestamp)) GROUP BY 1 ORDER BY 2 DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Top Actions / Routes",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "postgres", "uid": "cambo_pg_ds" },
+      "targets": [
+        {
+          "rawSql": "SELECT action, count(*) AS \"count\" FROM activity_logs WHERE $__timeFilter(to_timestamp(timestamp)) GROUP BY 1 ORDER BY 2 DESC LIMIT 15",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Active Users (per day)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "postgres", "uid": "cambo_pg_ds" },
+      "targets": [
+        {
+          "rawSql": "SELECT date_trunc('day', to_timestamp(timestamp)) AS time, count(DISTINCT user_email) AS \"active_users\" FROM activity_logs WHERE $__timeFilter(to_timestamp(timestamp)) GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

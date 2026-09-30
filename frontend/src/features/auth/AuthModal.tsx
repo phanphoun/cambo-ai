@@ -328,6 +328,7 @@ export default function AuthModal() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t.emailPlaceholder}
+                autoComplete="username"
                 required
                 className="w-full rounded-xl border border-[#3C301D] bg-[#0A0805] pl-9 pr-3 py-2 text-xs text-stone-100 placeholder:text-stone-600 focus:border-gold/70 focus:outline-none focus:ring-1 focus:ring-gold/40 transition-all font-sans"
               />
@@ -345,6 +346,7 @@ export default function AuthModal() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete={authMode === "signup" ? "new-password" : "current-password"}
                 required
                 className="w-full rounded-xl border border-[#3C301D] bg-[#0A0805] pl-9 pr-9 py-2 text-xs text-stone-100 placeholder:text-stone-600 focus:border-gold/70 focus:outline-none focus:ring-1 focus:ring-gold/40 transition-all font-sans"
               />
@@ -374,6 +376,7 @@ export default function AuthModal() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   required
                   className="w-full rounded-xl border border-[#3C301D] bg-[#0A0805] pl-9 pr-3 py-2 text-xs text-stone-100 placeholder:text-stone-600 focus:border-gold/70 focus:outline-none focus:ring-1 focus:ring-gold/40 transition-all font-sans"
                 />

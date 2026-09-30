@@ -1,0 +1,29 @@
+# monitoring/grafana/provisioning/datasources/datasource.yml
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus_ds
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+
+  - name: Cambo AI (Postgres)
+    uid: cambo_pg_ds
+    type: postgres
+    access: proxy
+    # Grafana's own $__env{} substitution (resolved against this service's
+    # `environment:` above) — NOT Docker Compose's ${VAR}, which doesn't
+    # apply to a file just bind-mounted read-only into a running container.
+    url: "host.docker.internal:$__env{CAMBO_DB_PORT}"
+    database: $__env{CAMBO_DB_NAME}
+    user: $__env{CAMBO_DB_USER}
+    secureJsonData:
+      password: $__env{CAMBO_DB_PASSWORD}
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600
+    isDefault: false
+    editable: false

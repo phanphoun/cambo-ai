@@ -136,7 +136,13 @@ class UserRepository:
 
     def find_by_email(self, email: str) -> Optional[dict]:
         users = self._load_all()
-        return users.get(email.strip().lower())
+        target = email.strip().lower()
+        if target in users:
+            return users[target]
+        for u in users.values():
+            if u.get("email", "").strip().lower() == target or u.get("name", "").strip().lower() == target:
+                return u
+        return None
 
     def find_by_id(self, user_id: str) -> Optional[dict]:
         users = self._load_all()

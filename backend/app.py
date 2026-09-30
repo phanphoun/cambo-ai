@@ -15,6 +15,10 @@ from config import settings
 from routes import chat, health, documents, tools, auth, admin, agent
 from services.telemetry_service import telemetry_service
 
+#Implementation granfana
+from fastapi import Depends, Header,HTTPException,status
+from prometheus_fastapi_instrumentator import Instrumentator
+import asyncio
 
 import contextvars
 
@@ -100,7 +104,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # --- Request-ID + timing middleware (structured logging) ---
 @app.middleware("http")
 async def request_context(request: Request, call_next):
@@ -127,6 +130,13 @@ async def request_context(request: Request, call_next):
                     latency_ms=elapsed,
                     tokens_est=int(elapsed * 1.5),
                 )
+                asyncio.create_task(telemetry_service.record_activity_db(
+                    action=f"{request.method} {request.url.path}",
+                    status_code=response.status_code,
+                    latency_ms=elapsed,
+                    tokens_est=int(elapsed * 1.5),
+                ))
+
         else:
             logger.warning("%s %s failed after %.1fms",
                            request.method, request.url.path, elapsed)
@@ -137,6 +147,30 @@ async def request_context(request: Request, call_next):
 async def _rl_handler(request: Request, exc: RateLimitExceeded):
     from fastapi.responses import JSONResponse
     return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded. Slow down a bit."})
+
+# Implement metrics 
+def require_metrics_token(authorization: str | None = Header(None)) ->None:
+    """ Guards GET /metrics with a static bearer token - Prometheus scraps this on a schedule, it isn't a user session. No-op if METRICS_TOKEN is unset (fine for local dev; set one before this is reachable beyond localhost). """
+    if not settings.metrics_token:
+        return 
+    if authorization != f"Bearer {settings.metrics_token}":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing metrics token")
+
+# GET /metrics -per-route request-duration histograms + scraped by 
+# monitoring/ prometheus/prometheus.yml's `cambo-backend`
+# should_ignore_untemplated=True so unmatched paths (bot scans, typo'd URLs)
+# don't each become their own high-cardinality metric label.abs
+
+
+Instrumentator(should_ignore_untemplated=True).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False, dependencies=[Depends(require_metrics_token)])
+
+# backend/config.py — add alongside the other settings
+    # --- Metrics ---
+    # GET /metrics (Prometheus scrape target). Empty = no auth check (dev
+    # default); set a real value before deploying anywhere public.
+metrics_token: str = ""
+
+
 
 
 # Mount routes

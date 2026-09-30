@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from collections import deque
 
+# for connect to postgres
+import uuid
+
 logger = logging.getLogger("cambo.telemetry")
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 LOGS_FILE = DATA_DIR / "activity_logs.json"
@@ -115,6 +118,43 @@ class TelemetryService:
     def clear_logs(self):
         self._logs.clear()
         self._persist_logs()
+
+
+    # backend/services/telemetry_service.py — add as a method on TelemetryService
+    async def record_activity_db(
+        self,
+        action: str,
+        user_email: str = "guest@sastra.ai",
+        provider: str = "gemini",
+        status_code: int = 200,
+        latency_ms: float = 0.0,
+        tokens_est: int = 0,
+        details: Optional[str] = None,
+    ):
+        """Persists one activity row to Postgres so Grafana's SQL datasource
+        can query it directly — the in-memory/JSON path above stays as-is for
+        the admin panel's fast live feed; this is the durable, queryable
+        copy. Fire-and-forget (see app.py's asyncio.create_task call) so a
+        slow/unavailable DB never adds latency to the actual request."""
+        from database.models import ActivityLogDB
+        from database.session import async_session_maker
+
+        try:
+            async with async_session_maker() as session:
+                session.add(ActivityLogDB(
+                    id=f"act-{uuid.uuid4().hex}",
+                    timestamp=time.time(),
+                    action=action,
+                    user_email=user_email,
+                    provider=provider,
+                    status_code=status_code,
+                    latency_ms=round(latency_ms, 1),
+                    tokens_est=tokens_est,
+                    details=details or "",
+                ))
+                await session.commit()
+        except Exception as e:
+            logger.error("Failed to persist activity to Postgres: %s", e)
 
 
 class CustomProviderRepository:

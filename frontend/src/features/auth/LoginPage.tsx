@@ -353,6 +353,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t.emailPlaceholder}
@@ -369,6 +370,7 @@ export default function LoginPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     required
+                    autoComplete={authMode === "signup" ? "new-password" : "current-password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={t.passwordPlaceholder}
@@ -393,6 +395,7 @@ export default function LoginPage() {
                   <input
                     type={showPassword ? "text" : "password"}
                     required
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder={t.confirmPasswordPlaceholder}
